@@ -25,12 +25,13 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogDescription,
+  DialogFooter,
 } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Info, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Info, ChevronLeft, ChevronRight, Pencil } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 
 type SppgData = {
@@ -287,10 +288,15 @@ export default function SppgPage() {
                         </dl>
                     </div>
                 </div>
+                 <DialogFooter>
+                    <Button variant="outline">
+                        <Pencil className="mr-2 h-4 w-4" />
+                        Edit
+                    </Button>
+                </DialogFooter>
             </DialogContent>
         </Dialog>
       )}
     </>
   );
-  
-    
+}
