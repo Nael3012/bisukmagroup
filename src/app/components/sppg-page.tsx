@@ -24,6 +24,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
@@ -33,36 +34,67 @@ import { Info, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 
 type SppgData = {
+  id: string;
   nama: string;
   yayasan: string;
   alamat: string;
   penerimaManfaat: number;
+  namaKaSppg: string;
+  namaAkuntan: string;
+  ahliGizi: string;
+  asistenLapangan: string;
 };
 
 const sppgList: SppgData[] = [
   {
+    id: 'sppg-1',
     nama: 'SPPG Al-Ikhlas',
     yayasan: 'Yayasan Al-Ikhlas',
     alamat: 'Jl. Merdeka No. 1, Jakarta',
     penerimaManfaat: 150,
+    namaKaSppg: 'Budi Hartono',
+    namaAkuntan: 'Siti Rahma',
+    ahliGizi: 'Dr. Ani Wijaya',
+    asistenLapangan: 'Joko Susilo',
   },
   {
+    id: 'sppg-2',
     nama: 'SPPG Bina Umat',
     yayasan: 'Yayasan Bina Umat',
     alamat: 'Jl. Pahlawan No. 10, Surabaya',
     penerimaManfaat: 200,
+    namaKaSppg: 'Ahmad Subarjo',
+    namaAkuntan: 'Dewi Sartika',
+    ahliGizi: 'Dr. Rina Puspita',
+    asistenLapangan: 'Agus Salim',
   },
   {
+    id: 'sppg-3',
     nama: 'SPPG Nurul Hidayah',
     yayasan: 'Yayasan Nurul Hidayah',
     alamat: 'Jl. Sudirman No. 5, Bandung',
     penerimaManfaat: 120,
+    namaKaSppg: 'Zainal Abidin',
+    namaAkuntan: 'Lina Marlina',
+    ahliGizi: 'Dr. Hendra Gunawan',
+    asistenLapangan: 'Rudi Hartono',
   },
 ];
+
+
+const DetailItem = ({ label, value }: { label: string, value: React.ReactNode }) => (
+    <div className="grid grid-cols-3 gap-2 text-sm">
+        <dt className="text-muted-foreground col-span-1">{label}</dt>
+        <dd className="font-medium col-span-2">{value || '-'}</dd>
+    </div>
+);
+
 
 export default function SppgPage() {
   const [itemsPerPage, setItemsPerPage] = useState(15);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [selectedSppg, setSelectedSppg] = useState<SppgData | null>(null);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -75,146 +107,190 @@ export default function SppgPage() {
   }, [currentPage, itemsPerPage]);
 
   const totalPages = Math.ceil(sppgList.length / itemsPerPage);
+  
+  const handleRowClick = (sppg: SppgData) => {
+    setSelectedSppg(sppg);
+    setIsDetailOpen(true);
+  }
 
   return (
-    <div className="flex flex-col gap-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Daftar SPPG</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nama SPPG</TableHead>
-                <TableHead>Yayasan</TableHead>
-                <TableHead>Alamat</TableHead>
-                <TableHead>Penerima Manfaat</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {paginatedSppg.map((sppg, index) => (
-                <TableRow key={index}>
-                  <TableCell>{sppg.nama}</TableCell>
-                  <TableCell>{sppg.yayasan}</TableCell>
-                  <TableCell>{sppg.alamat}</TableCell>
-                  <TableCell>{sppg.penerimaManfaat}</TableCell>
+    <>
+      <div className="flex flex-col gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Daftar SPPG</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nama SPPG</TableHead>
+                  <TableHead>Yayasan</TableHead>
+                  <TableHead>Alamat</TableHead>
+                  <TableHead>Penerima Manfaat</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-      <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-         <div className="flex items-center gap-2">
-            <Label htmlFor="items-per-page-sppg">Tampilkan</Label>
-            <Select
-              value={String(itemsPerPage)}
-              onValueChange={(value) => setItemsPerPage(Number(value))}
+              </TableHeader>
+              <TableBody>
+                {paginatedSppg.map((sppg) => (
+                  <TableRow 
+                    key={sppg.id} 
+                    onClick={() => handleRowClick(sppg)}
+                    className="cursor-pointer"
+                  >
+                    <TableCell>{sppg.nama}</TableCell>
+                    <TableCell>{sppg.yayasan}</TableCell>
+                    <TableCell>{sppg.alamat}</TableCell>
+                    <TableCell>{sppg.penerimaManfaat}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+           <div className="flex items-center gap-2">
+              <Label htmlFor="items-per-page-sppg">Tampilkan</Label>
+              <Select
+                value={String(itemsPerPage)}
+                onValueChange={(value) => setItemsPerPage(Number(value))}
+              >
+                <SelectTrigger id="items-per-page-sppg" className="w-20">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="15">15</SelectItem>
+                  <SelectItem value="30">30</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                  <SelectItem value="100">100</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
             >
-              <SelectTrigger id="items-per-page-sppg" className="w-20">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="15">15</SelectItem>
-                <SelectItem value="30">30</SelectItem>
-                <SelectItem value="50">50</SelectItem>
-                <SelectItem value="100">100</SelectItem>
-              </SelectContent>
-            </Select>
+              <ChevronLeft className="h-4 w-4" />
+              <span className="sr-only">Sebelumnya</span>
+            </Button>
+            <span className="text-sm text-muted-foreground">
+              Halaman {currentPage} dari {totalPages}
+            </span>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+            >
+              <ChevronRight className="h-4 w-4" />
+              <span className="sr-only">Selanjutnya</span>
+            </Button>
           </div>
           
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1}
-          >
-            <ChevronLeft className="h-4 w-4" />
-            <span className="sr-only">Sebelumnya</span>
-          </Button>
-          <span className="text-sm text-muted-foreground">
-            Halaman {currentPage} dari {totalPages}
-          </span>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-            disabled={currentPage === totalPages}
-          >
-            <ChevronRight className="h-4 w-4" />
-            <span className="sr-only">Selanjutnya</span>
-          </Button>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button>Tambah SPPG</Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-4xl">
+              <DialogHeader>
+                <DialogTitle>Tambah SPPG Baru</DialogTitle>
+              </DialogHeader>
+              <div className="flex gap-8 py-4">
+                {/* Left Segment */}
+                <div className="flex-1 space-y-4">
+                  <h3 className="text-lg font-semibold text-muted-foreground">
+                    Data Umum
+                  </h3>
+                  <Alert>
+                    <Info className="h-4 w-4" />
+                    <AlertDescription>
+                      Pastikan data umum yang Anda masukkan di sini sudah sesuai dengan informasi yang terdaftar pada akun Mitra BGN Anda untuk memastikan sinkronisasi dan validasi data yang lancar.
+                    </AlertDescription>
+                  </Alert>
+                  <div className="grid gap-2">
+                    <Label htmlFor="nama-sppg">Nama SPPG</Label>
+                    <Input id="nama-sppg" placeholder="Contoh: SPPG Sejahtera" />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="alamat">Alamat</Label>
+                    <Input id="alamat" placeholder="Contoh: Jl. Pembangunan No. 123" />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="yayasan">Yayasan</Label>
+                    <Input id="yayasan" placeholder="Contoh: Yayasan Harapan Bangsa" />
+                  </div>
+                </div>
+
+                <Separator orientation="vertical" className="h-auto" />
+
+                {/* Right Segment */}
+                <div className="flex-1 space-y-4">
+                   <h3 className="text-lg font-semibold text-muted-foreground">
+                    Data Personel
+                  </h3>
+                  <div className="grid gap-2">
+                    <Label htmlFor="nama-ka-sppg">Nama Ka. SPPG</Label>
+                    <Input id="nama-ka-sppg" placeholder="Contoh: Budi Santoso" />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="nama-akuntan">Nama Akuntan</Label>
+                    <Input id="nama-akuntan" placeholder="Contoh: Siti Aminah" />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="ahli-gizi">Ahli Gizi</Label>
+                    <Input id="ahli-gizi" placeholder="Contoh: Dr. Ani" />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="asisten-lapangan">Asisten Lapangan</Label>
+                    <Input id="asisten-lapangan" placeholder="Contoh: Joko" />
+                  </div>
+                </div>
+              </div>
+              <div className="flex justify-end">
+                <Button type="submit">Simpan</Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
-        
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button>Tambah SPPG</Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-4xl">
-            <DialogHeader>
-              <DialogTitle>Tambah SPPG Baru</DialogTitle>
-            </DialogHeader>
-            <div className="flex gap-8 py-4">
-              {/* Left Segment */}
-              <div className="flex-1 space-y-4">
-                <h3 className="text-lg font-semibold text-muted-foreground">
-                  Data Umum
-                </h3>
-                <Alert>
-                  <Info className="h-4 w-4" />
-                  <AlertDescription>
-                    Pastikan data umum yang Anda masukkan di sini sudah sesuai dengan informasi yang terdaftar pada akun Mitra BGN Anda untuk memastikan sinkronisasi dan validasi data yang lancar.
-                  </AlertDescription>
-                </Alert>
-                <div className="grid gap-2">
-                  <Label htmlFor="nama-sppg">Nama SPPG</Label>
-                  <Input id="nama-sppg" placeholder="Contoh: SPPG Sejahtera" />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="alamat">Alamat</Label>
-                  <Input id="alamat" placeholder="Contoh: Jl. Pembangunan No. 123" />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="yayasan">Yayasan</Label>
-                  <Input id="yayasan" placeholder="Contoh: Yayasan Harapan Bangsa" />
-                </div>
-              </div>
-
-              <Separator orientation="vertical" className="h-auto" />
-
-              {/* Right Segment */}
-              <div className="flex-1 space-y-4">
-                 <h3 className="text-lg font-semibold text-muted-foreground">
-                  Data Personel
-                </h3>
-                <div className="grid gap-2">
-                  <Label htmlFor="nama-ka-sppg">Nama Ka. SPPG</Label>
-                  <Input id="nama-ka-sppg" placeholder="Contoh: Budi Santoso" />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="nama-akuntan">Nama Akuntan</Label>
-                  <Input id="nama-akuntan" placeholder="Contoh: Siti Aminah" />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="ahli-gizi">Ahli Gizi</Label>
-                  <Input id="ahli-gizi" placeholder="Contoh: Dr. Ani" />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="asisten-lapangan">Asisten Lapangan</Label>
-                  <Input id="asisten-lapangan" placeholder="Contoh: Joko" />
-                </div>
-              </div>
-            </div>
-            <div className="flex justify-end">
-              <Button type="submit">Simpan</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
       </div>
-    </div>
-  );
-}
+      
+      {selectedSppg && (
+        <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
+            <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                    <DialogTitle>{selectedSppg.nama}</DialogTitle>
+                    <DialogDescription>{selectedSppg.yayasan}</DialogDescription>
+                </DialogHeader>
+                 <div className="grid gap-6 py-4">
+                    {/* Data Umum */}
+                    <div className="space-y-3">
+                        <h3 className="font-semibold">Data Umum</h3>
+                        <dl className="grid gap-2">
+                            <DetailItem label="Alamat" value={selectedSppg.alamat} />
+                            <DetailItem label="Penerima Manfaat" value={selectedSppg.penerimaManfaat} />
+                        </dl>
+                    </div>
 
+                    <Separator />
+                    
+                    {/* Data Personel */}
+                    <div className="space-y-3">
+                        <h3 className="font-semibold">Data Personel</h3>
+                        <dl className="grid gap-2">
+                            <DetailItem label="Nama Ka. SPPG" value={selectedSppg.namaKaSppg} />
+                            <DetailItem label="Nama Akuntan" value={selectedSppg.namaAkuntan} />
+                            <DetailItem label="Ahli Gizi" value={selectedSppg.ahliGizi} />
+                            <DetailItem label="Asisten Lapangan" value={selectedSppg.asistenLapangan} />
+                        </dl>
+                    </div>
+                </div>
+            </DialogContent>
+        </Dialog>
+      )}
+    </>
+  );
+  
     
