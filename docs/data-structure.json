@@ -1,0 +1,127 @@
+{
+  "sppg": {
+    "description": "Mewakili satu unit SPPG (Sentra Produksi Pangan Gizi).",
+    "type": "object",
+    "properties": {
+      "id": { "type": "string", "description": "ID unik untuk SPPG, cth: 'sppg-al-ikhlas'" },
+      "nama": { "type": "string", "description": "Nama lengkap SPPG, cth: 'SPPG Al-Ikhlas'" },
+      "yayasan": { "type": "string", "description": "Nama yayasan yang menaungi SPPG." },
+      "alamat": { "type": "string", "description": "Alamat lengkap SPPG." },
+      "penerimaManfaat": { "type": "number", "description": "Total jumlah penerima manfaat yang dilayani." }
+    }
+  },
+  "mitra": {
+    "description": "Mewakili mitra penerima manfaat, baik Sekolah maupun B3.",
+    "oneOf": [
+      { "$ref": "#/sekolah" },
+      { "$ref": "#/b3" }
+    ]
+  },
+  "sekolah": {
+    "description": "Mewakili satu sekolah sebagai mitra penerima manfaat.",
+    "type": "object",
+    "properties": {
+      "id": { "type": "string", "description": "ID unik untuk sekolah." },
+      "nama": { "type": "string", "description": "Nama sekolah." },
+      "alamat": { "type": "string", "description": "Alamat sekolah." },
+      "jenjang": { "type": "string", "enum": ["PAUD", "TK", "SD", "SMP", "SMA"], "description": "Jenjang pendidikan sekolah." },
+      "jumlahPM": { "type": "number", "description": "Jumlah penerima manfaat di sekolah tersebut." },
+      "sppgId": { "type": "string", "description": "ID SPPG yang melayani sekolah ini." }
+    }
+  },
+  "b3": {
+    "description": "Mewakili satu B3 (Bumil, Busui, Balita) sebagai mitra penerima manfaat.",
+    "type": "object",
+    "properties": {
+      "id": { "type": "string", "description": "ID unik untuk B3." },
+      "namaDesa": { "type": "string", "description": "Nama desa atau kelurahan." },
+      "alamat": { "type": "string", "description": "Alamat atau lokasi posyandu/puskesmas." },
+      "jenis": {
+        "type": "object",
+        "properties": {
+          "bumil": { "type": "number", "description": "Jumlah ibu hamil." },
+          "busui": { "type": "number", "description": "Jumlah ibu menyusui." },
+          "balita": { "type": "number", "description": "Jumlah balita." }
+        }
+      },
+      "jumlah": { "type": "number", "description": "Total jumlah dari semua jenis B3." },
+      "sppgId": { "type": "string", "description": "ID SPPG yang melayani B3 ini." }
+    }
+  },
+  "menu": {
+    "description": "Mewakili data menu mingguan untuk setiap SPPG.",
+    "type": "object",
+    "properties": {
+      "sppgId": {
+        "type": "object",
+        "patternProperties": {
+          "^[a-zA-Z0-9-]+$": { "$ref": "#/weeklyMenu" }
+        }
+      }
+    }
+  },
+  "weeklyMenu": {
+    "type": "object",
+    "properties": {
+      "weekStatus": {
+        "type": "object",
+        "description": "Status keterisian menu untuk setiap hari dalam seminggu.",
+        "properties": {
+          "Senin": { "type": "boolean" },
+          "Selasa": { "type": "boolean" },
+          "Rabu": { "type": "boolean" },
+          "Kamis": { "type": "boolean" },
+          "Jumat": { "type": "boolean" }
+        }
+      },
+      "menuData": {
+        "type": "object",
+        "description": "Data menu detail untuk setiap hari.",
+        "properties": {
+          "Senin": { "oneOf": [{ "$ref": "#/menuData" }, { "type": "null" }] },
+          "Selasa": { "oneOf": [{ "$ref": "#/menuData" }, { "type": "null" }] },
+          "Rabu": { "oneOf": [{ "$ref": "#/menuData" }, { "type": "null" }] },
+          "Kamis": { "oneOf": [{ "$ref": "#/menuData" }, { "type": "null" }] },
+          "Jumat": { "oneOf": [{ "$ref": "#/menuData" }, { "type": "null" }] }
+        }
+      }
+    }
+  },
+  "menuData": {
+    "type": "object",
+    "properties": {
+      "menuName": { "type": "string", "description": "Nama hidangan menu." },
+      "imageUrl": { "type": "string", "format": "uri", "description": "URL gambar menu." },
+      "largePortion": { "type": "array", "items": { "$ref": "#/nutrient" } },
+      "smallPortion": { "type": "array", "items": { "$ref": "#/nutrient" } }
+    }
+  },
+  "nutrient": {
+    "type": "object",
+    "properties": {
+      "id": { "type": "number", "description": "ID unik untuk nutrisi." },
+      "source": { "type": "string", "description": "Sumber gizi, cth: 'protein', 'karbohidrat'." },
+      "amount": { "type": "string", "description": "Jumlah gizi (beserta satuan jika ada)." }
+    }
+  },
+  "dashboard": {
+    "description": "Mewakili data agregat yang ditampilkan di dashboard.",
+    "type": "object",
+    "properties": {
+      "sppgId": {
+        "type": "object",
+        "patternProperties": {
+          "^[a-zA-Z0-9-]+|all$": {
+            "type": "object",
+            "properties": {
+              "totalSppg": { "type": "number" },
+              "totalPenerimaManfaat": { "type": "number" },
+              "porsiHariIni": { "type": "number" },
+              "porsiMingguan": { "type": "number" }
+            }
+          }
+        }
+      }
+    }
+  }
+}
