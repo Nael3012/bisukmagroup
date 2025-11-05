@@ -6,6 +6,7 @@ import SppgPage from './components/sppg-page';
 import MitraPage from './components/mitra-page';
 import MenuPage from './components/menu-page';
 import DashboardPage from './components/dashboard-page';
+import AccountsPage from './components/accounts-page';
 import { cn } from '@/lib/utils';
 import { PanelLeft, UserCircle } from 'lucide-react';
 import {
@@ -27,7 +28,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ThemeToggle } from '@/components/theme-toggle';
 
 
-type Menu = 'Dashboard' | 'SPPG' | 'Mitra' | 'Menu' | 'Keuangan';
+type Menu = 'Dashboard' | 'SPPG' | 'Mitra' | 'Menu' | 'Keuangan' | 'Kelola Penanggung Jawab';
 
 // Mock user data
 const userData = {
@@ -51,6 +52,8 @@ export default function Home() {
         return <MitraPage />;
       case 'Menu':
         return <MenuPage />;
+      case 'Kelola Penanggung Jawab':
+        return <AccountsPage />;
       case 'Dashboard':
       default:
         return <DashboardPage />;
@@ -112,6 +115,15 @@ export default function Home() {
               onClick={() => handleMenuClick('Keuangan')}
             >
               Keuangan
+            </Button>
+          </li>
+           <li>
+            <Button
+              variant="ghost"
+              className={cn("w-full justify-start", activeMenu === 'Kelola Penanggung Jawab' && "bg-accent text-accent-foreground")}
+              onClick={() => handleMenuClick('Kelola Penanggung Jawab')}
+            >
+              Kelola Penanggung Jawab
             </Button>
           </li>
         </ul>
