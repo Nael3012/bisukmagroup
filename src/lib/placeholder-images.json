@@ -1,22 +1,3 @@
 {
-  "placeholderImages": [
-    {
-      "id": "fruit-salad",
-      "description": "A bowl of fresh fruit salad",
-      "imageUrl": "https://images.unsplash.com/photo-1658431618511-adeba775bd66?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxmcnVpdCUyMHNhbGFkfGVufDB8fHx8MTc2MTQ2NTg3OXww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "fruit salad"
-    },
-    {
-      "id": "grilled-chicken",
-      "description": "Grilled chicken with herbs",
-      "imageUrl": "https://images.unsplash.com/photo-1712579733874-c3a79f0f9d12?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxncmlsbGVkJTIwY2hpY2tlbnxlbnwwfHx8fDE3NjE0NTY3MTB8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "grilled chicken"
-    },
-    {
-      "id": "fried-rice",
-      "description": "A plate of delicious fried rice",
-      "imageUrl": "https://images.unsplash.com/photo-1596560548464-f010549b84d7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxmcmllZCUyMHJpY2V8ZW58MHx8fHwxNzYxNDA0NTI1fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "fried rice"
-    }
-  ]
+  "placeholderImages": []
 }
