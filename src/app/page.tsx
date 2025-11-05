@@ -4,7 +4,15 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import SppgPage from './components/sppg-page';
 import MitraPage from './components/mitra-page';
+import MenuPage from './components/menu-page';
 import { cn } from '@/lib/utils';
+import { PanelLeft } from 'lucide-react';
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+} from '@/components/ui/sheet';
+
 
 type Menu = 'Dashboard' | 'SPPG' | 'Mitra' | 'Menu' | 'Keuangan';
 
@@ -21,6 +29,8 @@ export default function Home() {
         return <SppgPage />;
       case 'Mitra':
         return <MitraPage />;
+      case 'Menu':
+        return <MenuPage />;
       case 'Dashboard':
       default:
         return (
@@ -94,14 +104,28 @@ export default function Home() {
 
   return (
     <div className="flex h-screen bg-background">
-      {/* Static Sidebar */}
-      <div className="border-r flex flex-col w-64">
+      {/* Static Sidebar for Desktop */}
+      <div className="border-r flex-col w-64 hidden md:flex">
         {sidebarContent}
       </div>
 
       <div className="flex flex-col flex-1 overflow-auto">
         <header className="flex items-center justify-between p-4 border-b h-16 sticky top-0 bg-background z-10">
-          <h1 className="text-xl font-semibold">{activeMenu}</h1>
+           <div className="flex items-center gap-4">
+            {/* Mobile Sidebar Trigger */}
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="md:hidden">
+                  <PanelLeft />
+                  <span className="sr-only">Toggle Menu</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="p-0 w-64">
+                {sidebarContent}
+              </SheetContent>
+            </Sheet>
+            <h1 className="text-xl font-semibold">{activeMenu}</h1>
+          </div>
           <div>{/* Placeholder for user menu or other header items */}</div>
         </header>
         <main className="flex-1 p-6">{renderContent()}</main>
