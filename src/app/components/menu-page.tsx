@@ -53,52 +53,78 @@ type MenuData = {
   largePortion: Nutrient[];
   smallPortion: Nutrient[];
 };
+type SppgId = 'all' | 'sppg-al-ikhlas' | 'sppg-bina-umat' | 'sppg-nurul-hidayah';
 
-const initialWeekStatus: Record<DayOfWeek, boolean> = {
-  Senin: true,
-  Selasa: false,
-  Rabu: true,
-  Kamis: true,
-  Jumat: false,
+type WeeklyMenu = {
+    weekStatus: Record<DayOfWeek, boolean>;
+    menuData: Record<DayOfWeek, MenuData | null>;
+}
+
+const menuDataBySppg: Record<SppgId, WeeklyMenu> = {
+    'all': {
+        weekStatus: { Senin: false, Selasa: false, Rabu: false, Kamis: false, Jumat: false },
+        menuData: { Senin: null, Selasa: null, Rabu: null, Kamis: null, Jumat: null }
+    },
+    'sppg-al-ikhlas': {
+        weekStatus: { Senin: true, Selasa: false, Rabu: true, Kamis: true, Jumat: false },
+        menuData: {
+            Senin: {
+                menuName: 'Nasi Ayam Goreng Spesial (Al-Ikhlas)',
+                largePortion: [{ id: 1, source: 'protein', amount: '150' }, { id: 2, source: 'karbohidrat', amount: '200' }],
+                smallPortion: [{ id: 1, source: 'protein', amount: '100' }, { id: 2, source: 'karbohidrat', amount: '150' }],
+            },
+            Rabu: {
+                menuName: 'Ikan Bakar & Sayur Sop (Al-Ikhlas)',
+                largePortion: [{ id: 1, source: 'protein', amount: '180' }, { id: 2, source: 'zat-besi', amount: '20' }],
+                smallPortion: [{ id: 1, source: 'protein', amount: '120' }, { id: 2, source: 'zat-besi', amount: '15' }],
+            },
+            Kamis: {
+                menuName: 'Daging Rendang & Tumis Kangkung (Al-Ikhlas)',
+                largePortion: [{ id: 1, source: 'protein', amount: '200' }, { id: 2, source: 'lemak', amount: '50' }],
+                smallPortion: [{ id: 1, source: 'protein', amount: '130' }, { id: 2, source: 'lemak', amount: '35' }],
+            },
+            Selasa: null,
+            Jumat: null
+        }
+    },
+    'sppg-bina-umat': {
+        weekStatus: { Senin: true, Selasa: true, Rabu: false, Kamis: false, Jumat: false },
+        menuData: {
+            Senin: {
+                menuName: 'Soto Ayam Lamongan (Bina Umat)',
+                largePortion: [{ id: 1, source: 'protein', amount: '160' }, { id: 2, source: 'energi', amount: '300' }],
+                smallPortion: [{ id: 1, source: 'protein', amount: '110' }, { id: 2, source: 'energi', amount: '250' }],
+            },
+            Selasa: {
+                 menuName: 'Gado-gado Siram (Bina Umat)',
+                largePortion: [{ id: 1, source: 'protein', amount: '100' }, { id: 2, source: 'lemak', amount: '40' }],
+                smallPortion: [{ id: 1, source: 'protein', amount: '70' }, { id: 2, source: 'lemak', amount: '25' }],
+            },
+            Rabu: null,
+            Kamis: null,
+            Jumat: null
+        }
+    },
+    'sppg-nurul-hidayah': {
+        weekStatus: { Senin: false, Selasa: false, Rabu: false, Kamis: true, Jumat: true },
+        menuData: {
+            Kamis: {
+                menuName: 'Nasi Uduk Komplit (Nurul Hidayah)',
+                largePortion: [{ id: 1, source: 'karbohidrat', amount: '250' }, { id: 2, source: 'protein', amount: '140' }],
+                smallPortion: [{ id: 1, source: 'karbohidrat', amount: '180' }, { id: 2, source: 'protein', amount: '90' }],
+            },
+            Jumat: {
+                menuName: 'Bubur Ayam Sehat (Nurul Hidayah)',
+                largePortion: [{ id: 1, source: 'karbohidrat', amount: '200' }, { id: 2, source: 'energi', amount: '280' }],
+                smallPortion: [{ id: 1, source: 'karbohidrat', amount: '150' }, { id: 2, source: 'energi', amount: '220' }],
+            },
+            Senin: null,
+            Selasa: null,
+            Rabu: null,
+        }
+    }
 };
 
-const mockMenuData: Record<DayOfWeek, MenuData | null> = {
-    Senin: {
-        menuName: 'Nasi Ayam Goreng Spesial',
-        largePortion: [
-            { id: 1, source: 'protein', amount: '150' },
-            { id: 2, source: 'karbohidrat', amount: '200' },
-        ],
-        smallPortion: [
-            { id: 1, source: 'protein', amount: '100' },
-            { id: 2, source: 'karbohidrat', amount: '150' },
-        ],
-    },
-    Rabu: {
-        menuName: 'Ikan Bakar & Sayur Sop',
-        largePortion: [
-            { id: 1, source: 'protein', amount: '180' },
-            { id: 2, source: 'zat-besi', amount: '20' },
-        ],
-        smallPortion: [
-            { id: 1, source: 'protein', amount: '120' },
-            { id: 2, source: 'zat-besi', amount: '15' },
-        ],
-    },
-    Kamis: {
-        menuName: 'Daging Rendang & Tumis Kangkung',
-        largePortion: [
-            { id: 1, source: 'protein', amount: '200' },
-            { id: 2, source: 'lemak', amount: '50' },
-        ],
-        smallPortion: [
-            { id: 1, source: 'protein', amount: '130' },
-            { id: 2, source: 'lemak', amount: '35' },
-        ],
-    },
-    Selasa: null,
-    Jumat: null
-}
 
 const sppgOptions = [
   {
@@ -325,9 +351,12 @@ export default function MenuPage() {
   const tabsRef = useRef<(HTMLButtonElement | null)[]>([]);
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [selectedDay, setSelectedDay] = useState<DayOfWeek>('Senin');
-  const [weekStatus, setWeekStatus] = useState(initialWeekStatus);
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [selectedSppg, setSelectedSppg] = useState('all');
+  const [selectedSppg, setSelectedSppg] = useState<SppgId>('all');
+  
+  const currentWeeklyMenu = useMemo(() => {
+    return menuDataBySppg[selectedSppg];
+  }, [selectedSppg]);
 
   const selectedSppgLabel = useMemo(() => {
     if (selectedSppg === 'all') return 'Semua SPPG';
@@ -368,8 +397,18 @@ export default function MenuPage() {
   
 
   const renderDailyMenuContent = () => {
-    const isFilled = weekStatus[selectedDay];
-    const currentMenuData = mockMenuData[selectedDay];
+    if (selectedSppg === 'all') {
+        return (
+            <Card className="mt-4">
+                <CardContent className="text-center text-muted-foreground py-8">
+                    <p>Pilih SPPG untuk melihat atau mengelola menu.</p>
+                </CardContent>
+            </Card>
+        )
+    }
+
+    const isFilled = currentWeeklyMenu.weekStatus[selectedDay];
+    const currentMenuData = currentWeeklyMenu.menuData[selectedDay];
 
     return (
       <Card className="mt-4">
@@ -429,7 +468,7 @@ export default function MenuPage() {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="w-full max-w-xs">
-          <Select onValueChange={setSelectedSppg} value={selectedSppg}>
+          <Select onValueChange={(value) => setSelectedSppg(value as SppgId)} value={selectedSppg}>
               <SelectTrigger>
                   <SelectValue placeholder="Pilih SPPG">
                     {selectedSppgLabel}
@@ -506,8 +545,8 @@ export default function MenuPage() {
               <div className="grid gap-2">
                 <Label>Pilih Hari</Label>
                 <div className="flex flex-wrap gap-2">
-                  {(Object.keys(weekStatus) as DayOfWeek[]).map((day) => {
-                    const isFilled = weekStatus[day];
+                  {(Object.keys(currentWeeklyMenu.weekStatus) as DayOfWeek[]).map((day) => {
+                    const isFilled = currentWeeklyMenu.weekStatus[day];
                     const isSelected = selectedDay === day;
                     return (
                       <Button
@@ -544,7 +583,7 @@ export default function MenuPage() {
         isOpen={isFormOpen} 
         onOpenChange={setIsFormOpen} 
         day={selectedDay}
-        menuData={mockMenuData[selectedDay]}
+        menuData={selectedSppg !== 'all' ? menuDataBySppg[selectedSppg].menuData[selectedDay] : null}
     />
     </>
   );
