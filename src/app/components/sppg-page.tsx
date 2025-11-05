@@ -21,6 +21,8 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Info } from 'lucide-react';
 
 type SppgData = {
   nama: string;
@@ -95,6 +97,12 @@ export default function SppgPage() {
                 <h3 className="text-lg font-semibold text-muted-foreground">
                   Data Umum
                 </h3>
+                <Alert>
+                  <Info className="h-4 w-4" />
+                  <AlertDescription>
+                    Pastikan data umum yang Anda masukkan di sini sudah sesuai dengan informasi yang terdaftar pada akun Mitra BGN Anda untuk memastikan sinkronisasi dan validasi data yang lancar.
+                  </AlertDescription>
+                </Alert>
                 <div className="grid gap-2">
                   <Label htmlFor="nama-sppg">Nama SPPG</Label>
                   <Input id="nama-sppg" placeholder="Contoh: SPPG Sejahtera" />
