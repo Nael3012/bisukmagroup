@@ -35,7 +35,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { ArrowUpDown } from 'lucide-react';
+import { ArrowUpDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 
@@ -330,21 +330,25 @@ export default function MitraPage() {
 
                 <div className="flex items-center gap-2">
                     <Button
-                      variant="outline"
+                      variant="ghost"
+                      size="icon"
                       onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                       disabled={currentPage === 1}
                     >
-                      Sebelumnya
+                      <ChevronLeft className="h-4 w-4" />
+                       <span className="sr-only">Sebelumnya</span>
                     </Button>
                     <span className="text-sm text-muted-foreground">
                       Halaman {currentPage} dari {totalPages}
                     </span>
                     <Button
-                      variant="outline"
+                      variant="ghost"
+                      size="icon"
                       onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                       disabled={currentPage === totalPages}
                     >
-                      Selanjutnya
+                      <ChevronRight className="h-4 w-4" />
+                       <span className="sr-only">Selanjutnya</span>
                     </Button>
                   </div>
                 
@@ -423,5 +427,3 @@ export default function MitraPage() {
     </Card>
   );
 }
-
-    
