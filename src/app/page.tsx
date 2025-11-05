@@ -13,7 +13,7 @@ import {
 export default function Home() {
   return (
     <SidebarProvider>
-      <div className="flex h-screen bg-white">
+      <div className="flex h-screen">
         <Sidebar collapsible="none" className="border-r">
           <SidebarHeader>
             <div className="h-16 flex items-center px-4">
