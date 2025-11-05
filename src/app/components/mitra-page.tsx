@@ -97,8 +97,8 @@ export default function MitraPage() {
   const [activeTab, setActiveTab] = useState('sekolah');
   const [indicatorStyle, setIndicatorStyle] = useState({});
   const tabsRef = useRef<(HTMLButtonElement | null)[]>([]);
-  const [selectedSppg, setSelectedSppg] = useState('');
-  const [filteredSekolah, setFilteredSekolah] = useState<Sekolah[]>([]);
+  const [selectedSppg, setSelectedSppg] = useState('all');
+  const [filteredSekolah, setFilteredSekolah] = useState<Sekolah[]>(semuaDaftarSekolah);
   const [selectedJenjang, setSelectedJenjang] = useState<Jenjang>('');
 
 
@@ -118,11 +118,11 @@ export default function MitraPage() {
 
   const handleSppgChange = (value: string) => {
     setSelectedSppg(value);
-    if (value) {
+    if (value === 'all') {
+      setFilteredSekolah(semuaDaftarSekolah);
+    } else {
       const filtered = semuaDaftarSekolah.filter((sekolah) => sekolah.sppg === value);
       setFilteredSekolah(filtered);
-    } else {
-      setFilteredSekolah([]);
     }
   };
 
@@ -199,7 +199,7 @@ export default function MitraPage() {
                       <SelectValue placeholder="Pilih SPPG" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Semua SPPG</SelectItem>
+                      <SelectItem value="all">Semua SPPG</SelectItem>
                       <SelectItem value="sppg-al-ikhlas">SPPG Al-Ikhlas</SelectItem>
                       <SelectItem value="sppg-bina-umat">SPPG Bina Umat</SelectItem>
                       <SelectItem value="sppg-nurul-hidayah">SPPG Nurul Hidayah</SelectItem>
@@ -217,29 +217,21 @@ export default function MitraPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {selectedSppg ? (
-                    filteredSekolah.length > 0 ? (
-                      filteredSekolah.map((sekolah, index) => (
-                        <TableRow key={index}>
-                          <TableCell>{sekolah.nama}</TableCell>
-                          <TableCell>{sekolah.alamat}</TableCell>
-                          <TableCell>{sekolah.jenjang}</TableCell>
-                          <TableCell>{sekolah.jumlahPM}</TableCell>
-                        </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={4} className="text-center">
-                          Tidak ada data sekolah untuk SPPG ini.
-                        </TableCell>
+                  {filteredSekolah.length > 0 ? (
+                    filteredSekolah.map((sekolah, index) => (
+                      <TableRow key={index}>
+                        <TableCell>{sekolah.nama}</TableCell>
+                        <TableCell>{sekolah.alamat}</TableCell>
+                        <TableCell>{sekolah.jenjang}</TableCell>
+                        <TableCell>{sekolah.jumlahPM}</TableCell>
                       </TableRow>
-                    )
+                    ))
                   ) : (
-                     <TableRow>
-                        <TableCell colSpan={4} className="text-center">
-                          Silakan pilih SPPG untuk melihat daftar sekolah.
-                        </TableCell>
-                      </TableRow>
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center">
+                        Tidak ada data sekolah untuk SPPG ini.
+                      </TableCell>
+                    </TableRow>
                   )}
                 </TableBody>
               </Table>
@@ -319,5 +311,3 @@ export default function MitraPage() {
     </Card>
   );
 }
-
-    
