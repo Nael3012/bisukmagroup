@@ -476,7 +476,6 @@ export default function MenuPage() {
         <CardHeader>
           <CardTitle className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <Utensils className="h-5 w-5" />
               Menu Hari {selectedDay}
             </div>
             {isFilled && (
