@@ -105,23 +105,7 @@ export default function Home() {
 
       <div className="flex flex-col flex-1">
         <header className="flex items-center justify-between p-4 border-b h-16">
-          {/* Mobile Sidebar Trigger */}
-          <div className="md:hidden">
-             <Sheet open={isMobileSheetOpen} onOpenChange={setIsMobileSheetOpen}>
-                <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <PanelLeft className="h-6 w-6" />
-                    <span className="sr-only">Toggle Menu</span>
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="left" className="p-0 w-[300px]">
-                   <div className="flex h-full w-full flex-col">
-                      {sidebarContent}
-                   </div>
-                </SheetContent>
-              </Sheet>
-          </div>
-          <h1 className="text-xl font-semibold md:ml-0 ml-4">{activeMenu}</h1>
+          <h1 className="text-xl font-semibold">{activeMenu}</h1>
           <div>{/* Placeholder for user menu or other header items */}</div>
         </header>
         <main className="flex-1 p-6">{renderContent()}</main>
