@@ -58,7 +58,7 @@ export default function Home() {
 
   const sidebarContent = (
     <div className="flex flex-col h-full">
-      <div className="h-16 flex items-center px-4 border-b">
+      <div className="h-16 flex items-center px-4">
         <h1 className="text-2xl">
           <span className="font-bold bg-gradient-to-r from-blue-500 via-purple-500 to-orange-500 bg-clip-text text-transparent">
             BETA
