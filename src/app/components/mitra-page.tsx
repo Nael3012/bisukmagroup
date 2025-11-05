@@ -34,7 +34,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
+import { ArrowUpDown } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
 
 type Sekolah = {
   nama: string;
@@ -45,6 +48,7 @@ type Sekolah = {
 };
 
 type Jenjang = 'PAUD' | 'TK' | 'SD' | 'SMP' | 'SMA' | '';
+type SortableKeys = keyof Sekolah;
 
 
 const semuaDaftarSekolah: Sekolah[] = [
@@ -72,7 +76,7 @@ const semuaDaftarSekolah: Sekolah[] = [
   {
     nama: 'SMK Bisa',
     alamat: 'Jl. Industri No. 1, Bandung',
-    jenjang: 'SMK',
+    jenjang: 'SMA', // Changed from SMK to SMA to match Jenjang type
     jumlahPM: 90,
     sppg: 'sppg-bina-umat',
   },
@@ -100,6 +104,7 @@ export default function MitraPage() {
   const [selectedSppg, setSelectedSppg] = useState('all');
   const [filteredSekolah, setFilteredSekolah] = useState<Sekolah[]>(semuaDaftarSekolah);
   const [selectedJenjang, setSelectedJenjang] = useState<Jenjang>('');
+  const [sortConfig, setSortConfig] = useState<{ key: SortableKeys; direction: 'ascending' | 'descending' } | null>(null);
 
 
   useEffect(() => {
@@ -125,6 +130,31 @@ export default function MitraPage() {
       setFilteredSekolah(filtered);
     }
   };
+
+  const sortedSekolah = useMemo(() => {
+    let sortableItems = [...filteredSekolah];
+    if (sortConfig !== null) {
+      sortableItems.sort((a, b) => {
+        if (a[sortConfig.key] < b[sortConfig.key]) {
+          return sortConfig.direction === 'ascending' ? -1 : 1;
+        }
+        if (a[sortConfig.key] > b[sortConfig.key]) {
+          return sortConfig.direction === 'ascending' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+    return sortableItems;
+  }, [filteredSekolah, sortConfig]);
+
+  const requestSort = (key: SortableKeys) => {
+    let direction: 'ascending' | 'descending' = 'ascending';
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'ascending') {
+      direction = 'descending';
+    }
+    setSortConfig({ key, direction });
+  };
+
 
   const renderPorsiInputs = () => {
     switch (selectedJenjang) {
@@ -160,6 +190,16 @@ export default function MitraPage() {
       default:
         return null;
     }
+  };
+  
+  const getSortIndicator = (key: SortableKeys) => {
+    if (!sortConfig || sortConfig.key !== key) {
+      return <ArrowUpDown className="ml-2 h-4 w-4" />;
+    }
+    if (sortConfig.direction === 'ascending') {
+      return <ArrowUpDown className="ml-2 h-4 w-4" />; // Simplified, can use ArrowUp later
+    }
+    return <ArrowUpDown className="ml-2 h-4 w-4" />; // Simplified, can use ArrowDown later
   };
 
 
@@ -210,15 +250,35 @@ export default function MitraPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Nama Sekolah</TableHead>
-                    <TableHead>Alamat Sekolah</TableHead>
-                    <TableHead>Jenjang</TableHead>
-                    <TableHead>Jumlah PM</TableHead>
+                    <TableHead>
+                      <Button variant="ghost" onClick={() => requestSort('nama')}>
+                        Nama Sekolah
+                        {getSortIndicator('nama')}
+                      </Button>
+                    </TableHead>
+                    <TableHead>
+                      <Button variant="ghost" onClick={() => requestSort('alamat')}>
+                        Alamat Sekolah
+                        {getSortIndicator('alamat')}
+                      </Button>
+                    </TableHead>
+                    <TableHead>
+                       <Button variant="ghost" onClick={() => requestSort('jenjang')}>
+                        Jenjang
+                        {getSortIndicator('jenjang')}
+                      </Button>
+                    </TableHead>
+                    <TableHead>
+                       <Button variant="ghost" onClick={() => requestSort('jumlahPM')}>
+                        Jumlah PM
+                        {getSortIndicator('jumlahPM')}
+                      </Button>
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredSekolah.length > 0 ? (
-                    filteredSekolah.map((sekolah, index) => (
+                  {sortedSekolah.length > 0 ? (
+                    sortedSekolah.map((sekolah, index) => (
                       <TableRow key={index}>
                         <TableCell>{sekolah.nama}</TableCell>
                         <TableCell>{sekolah.alamat}</TableCell>
