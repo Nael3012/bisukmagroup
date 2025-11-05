@@ -30,6 +30,9 @@ import { ThemeToggle } from '@/components/theme-toggle';
 
 type Menu = 'Dashboard' | 'SPPG' | 'Mitra' | 'Menu' | 'Keuangan' | 'Kelola Penanggung Jawab';
 
+const menuItems: Menu[] = ['Dashboard', 'SPPG', 'Mitra', 'Menu', 'Keuangan', 'Kelola Penanggung Jawab'];
+
+
 // Mock user data
 const userData = {
     name: "Admin BGN",
@@ -72,60 +75,22 @@ export default function Home() {
       </div>
       <div className="flex-1 overflow-y-auto p-4">
         <ul className="flex w-full min-w-0 flex-col gap-1">
-          <li>
-            <Button
-              variant="ghost"
-              className={cn("w-full justify-start", activeMenu === 'Dashboard' && "bg-accent text-accent-foreground")}
-              onClick={() => handleMenuClick('Dashboard')}
-            >
-              Dashboard
-            </Button>
-          </li>
-          <li>
-            <Button
-              variant="ghost"
-              className={cn("w-full justify-start", activeMenu === 'SPPG' && "bg-accent text-accent-foreground")}
-              onClick={() => handleMenuClick('SPPG')}
-            >
-              SPPG
-            </Button>
-          </li>
-          <li>
-            <Button
-              variant="ghost"
-              className={cn("w-full justify-start", activeMenu === 'Mitra' && "bg-accent text-accent-foreground")}
-              onClick={() => handleMenuClick('Mitra')}
-            >
-              Mitra
-            </Button>
-          </li>
-          <li>
-            <Button
-              variant="ghost"
-              className={cn("w-full justify-start", activeMenu === 'Menu' && "bg-accent text-accent-foreground")}
-              onClick={() => handleMenuClick('Menu')}
-            >
-              Menu
-            </Button>
-          </li>
-          <li>
-            <Button
-              variant="ghost"
-              className={cn("w-full justify-start", activeMenu === 'Keuangan' && "bg-accent text-accent-foreground")}
-              onClick={() => handleMenuClick('Keuangan')}
-            >
-              Keuangan
-            </Button>
-          </li>
-           <li>
-            <Button
-              variant="ghost"
-              className={cn("w-full justify-start", activeMenu === 'Kelola Penanggung Jawab' && "bg-accent text-accent-foreground")}
-              onClick={() => handleMenuClick('Kelola Penanggung Jawab')}
-            >
-              Kelola Penanggung Jawab
-            </Button>
-          </li>
+          {menuItems.map((menu) => (
+             <li key={menu}>
+                <Button
+                  variant="ghost"
+                  className={cn(
+                    "w-full justify-start", 
+                    activeMenu === menu 
+                        ? "bg-accent text-accent-foreground font-semibold" 
+                        : "text-muted-foreground font-normal"
+                  )}
+                  onClick={() => handleMenuClick(menu)}
+                >
+                  {menu}
+                </Button>
+              </li>
+          ))}
         </ul>
       </div>
        <div className="mt-auto p-4 border-t">
