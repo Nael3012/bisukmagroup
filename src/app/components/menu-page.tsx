@@ -495,18 +495,12 @@ export default function MenuPage() {
             <div className="flex items-center gap-2">
               Menu Hari {selectedDay}
             </div>
-            {isFilled && (
-                <Button variant="outline" size="sm" onClick={() => setIsFormOpen(true)}>
-                    <Pencil className="mr-2 h-4 w-4" />
-                    Edit
-                </Button>
-            )}
           </CardTitle>
         </CardHeader>
         <CardContent>
           {isFilled && currentMenuData ? (
             <div className="space-y-6">
-                <div className="space-y-2">
+                <div className="space-y-4">
                   <h3 className="text-xl font-semibold">{currentMenuData.menuName}</h3>
                   <div className="relative aspect-video w-full max-w-lg mx-auto rounded-lg overflow-hidden border">
                     <Image 
@@ -517,6 +511,12 @@ export default function MenuPage() {
                       className="object-cover"
                     />
                   </div>
+                   <div className="flex justify-center">
+                        <Button variant="outline" size="sm" onClick={() => setIsFormOpen(true)}>
+                            <Pencil className="mr-2 h-4 w-4" />
+                            Edit
+                        </Button>
+                    </div>
                 </div>
                 <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-2">
