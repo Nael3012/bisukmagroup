@@ -8,7 +8,7 @@ import {
   TabsTrigger,
 } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import {
   CalendarIcon,
   CheckCircle2,
@@ -99,6 +99,24 @@ const mockMenuData: Record<DayOfWeek, MenuData | null> = {
     Selasa: null,
     Jumat: null
 }
+
+const sppgOptions = [
+  {
+    value: 'sppg-al-ikhlas',
+    label: 'SPPG Al-Ikhlas',
+    address: 'Jl. Merdeka No. 1, Jakarta',
+  },
+  {
+    value: 'sppg-bina-umat',
+    label: 'SPPG Bina Umat',
+    address: 'Jl. Pahlawan No. 10, Surabaya',
+  },
+  {
+    value: 'sppg-nurul-hidayah',
+    label: 'SPPG Nurul Hidayah',
+    address: 'Jl. Sudirman No. 5, Bandung',
+  },
+];
 
 
 const dayNameToIndex: Record<DayOfWeek, number> = {
@@ -309,6 +327,13 @@ export default function MenuPage() {
   const [selectedDay, setSelectedDay] = useState<DayOfWeek>('Senin');
   const [weekStatus, setWeekStatus] = useState(initialWeekStatus);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [selectedSppg, setSelectedSppg] = useState('all');
+
+  const selectedSppgLabel = useMemo(() => {
+    if (selectedSppg === 'all') return 'Semua SPPG';
+    return sppgOptions.find(option => option.value === selectedSppg)?.label || 'Pilih SPPG';
+  }, [selectedSppg]);
+
 
   useEffect(() => {
     const activeTabIndex = tabsRef.current.findIndex(
@@ -402,7 +427,32 @@ export default function MenuPage() {
       <CardHeader>
         <CardTitle>Menu</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-4">
+        <div className="w-full max-w-xs">
+          <Select onValueChange={setSelectedSppg} value={selectedSppg}>
+              <SelectTrigger>
+                  <SelectValue placeholder="Pilih SPPG">
+                    {selectedSppgLabel}
+                  </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                  <SelectItem value="all">
+                      <div>
+                          <p className="font-medium">Semua SPPG</p>
+                      </div>
+                  </SelectItem>
+                  {sppgOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                      <div>
+                          <p className="font-medium">{option.label}</p>
+                          <p className="text-xs text-muted-foreground">{option.address}</p>
+                      </div>
+                  </SelectItem>
+                  ))}
+              </SelectContent>
+          </Select>
+        </div>
+        
         <Tabs defaultValue="harian" onValueChange={setActiveTab} className="relative">
           <TabsList>
             <TabsTrigger
