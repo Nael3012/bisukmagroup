@@ -1,3 +1,6 @@
+
+'use client';
+import { useState } from 'react';
 import {
   SidebarProvider,
   Sidebar,
@@ -9,11 +12,31 @@ import {
   SidebarMenuButton,
   SidebarFooter,
 } from '@/components/ui/sidebar';
+import SppgPage from './components/sppg-page';
+
+type Menu = 'Dashboard' | 'SPPG' | 'Mitra' | 'Menu' | 'Keuangan';
 
 export default function Home() {
+  const [activeMenu, setActiveMenu] = useState<Menu>('Dashboard');
+
+  const renderContent = () => {
+    switch (activeMenu) {
+      case 'SPPG':
+        return <SppgPage />;
+      case 'Dashboard':
+      default:
+        return (
+          <div className="flex flex-col items-center gap-4">
+            <h1 className="text-4xl font-bold">Hello, World!</h1>
+            <p>Ini adalah tombol dengan warna aksen baru Anda.</p>
+          </div>
+        );
+    }
+  };
+
   return (
     <SidebarProvider>
-      <div className="flex h-screen">
+      <div className="flex h-screen bg-background">
         <Sidebar collapsible="none" className="border-r">
           <SidebarHeader>
             <div className="h-16 flex items-center px-4">
@@ -23,19 +46,19 @@ export default function Home() {
           <SidebarContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton>Dashboard</SidebarMenuButton>
+                <SidebarMenuButton onClick={() => setActiveMenu('Dashboard')} isActive={activeMenu === 'Dashboard'}>Dashboard</SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton>SPPG</SidebarMenuButton>
+                <SidebarMenuButton onClick={() => setActiveMenu('SPPG')} isActive={activeMenu === 'SPPG'}>SPPG</SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton>Mitra</SidebarMenuButton>
+                <SidebarMenuButton onClick={() => setActiveMenu('Mitra')} isActive={activeMenu === 'Mitra'}>Mitra</SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton>Menu</SidebarMenuButton>
+                <SidebarMenuButton onClick={() => setActiveMenu('Menu')} isActive={activeMenu === 'Menu'}>Menu</SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton>Keuangan</SidebarMenuButton>
+                <SidebarMenuButton onClick={() => setActiveMenu('Keuangan')} isActive={activeMenu === 'Keuangan'}>Keuangan</SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarContent>
@@ -46,14 +69,10 @@ export default function Home() {
             <div className="md:hidden">
               <SidebarTrigger />
             </div>
+            <h1 className="text-xl font-semibold">{activeMenu}</h1>
             <div>{/* Placeholder for user menu or other header items */}</div>
           </header>
-          <main className="flex-1 p-6">
-            <div className="flex flex-col items-center gap-4">
-              <h1 className="text-4xl font-bold">Hello, World!</h1>
-              <p>Ini adalah tombol dengan warna aksen baru Anda.</p>
-            </div>
-          </main>
+          <main className="flex-1 p-6">{renderContent()}</main>
         </div>
       </div>
     </SidebarProvider>
