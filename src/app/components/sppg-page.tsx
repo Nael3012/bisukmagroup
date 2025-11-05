@@ -97,15 +97,15 @@ export default function SppgPage() {
                 </h3>
                 <div className="grid gap-2">
                   <Label htmlFor="nama-sppg">Nama SPPG</Label>
-                  <Input id="nama-sppg" />
+                  <Input id="nama-sppg" placeholder="Contoh: SPPG Sejahtera" />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="alamat">Alamat</Label>
-                  <Input id="alamat" />
+                  <Input id="alamat" placeholder="Contoh: Jl. Pembangunan No. 123" />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="yayasan">Yayasan</Label>
-                  <Input id="yayasan" />
+                  <Input id="yayasan" placeholder="Contoh: Yayasan Harapan Bangsa" />
                 </div>
               </div>
 
@@ -118,19 +118,19 @@ export default function SppgPage() {
                 </h3>
                 <div className="grid gap-2">
                   <Label htmlFor="nama-ka-sppg">Nama Ka. SPPG</Label>
-                  <Input id="nama-ka-sppg" />
+                  <Input id="nama-ka-sppg" placeholder="Contoh: Budi Santoso" />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="nama-akuntan">Nama Akuntan</Label>
-                  <Input id="nama-akuntan" />
+                  <Input id="nama-akuntan" placeholder="Contoh: Siti Aminah" />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="ahli-gizi">Ahli Gizi</Label>
-                  <Input id="ahli-gizi" />
+                  <Input id="ahli-gizi" placeholder="Contoh: Dr. Ani" />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="asisten-lapangan">Asisten Lapangan</Label>
-                  <Input id="asisten-lapangan" />
+                  <Input id="asisten-lapangan" placeholder="Contoh: Joko" />
                 </div>
               </div>
             </div>
