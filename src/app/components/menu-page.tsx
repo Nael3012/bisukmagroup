@@ -17,6 +17,8 @@ import {
   PlusCircle,
   X,
   Pencil,
+  Image as ImageIcon,
+  Upload,
 } from 'lucide-react';
 import { format, startOfWeek, setDay } from 'date-fns';
 import { id } from 'date-fns/locale';
@@ -232,6 +234,8 @@ const MenuFormDialog = ({
   const [menuName, setMenuName] = useState('');
   const [largePortionNutrients, setLargePortionNutrients] = useState<Nutrient[]>([{ id: 1, source: '', amount: '' }]);
   const [smallPortionNutrients, setSmallPortionNutrients] = useState<Nutrient[]>([{ id: 1, source: '', amount: '' }]);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   useEffect(() => {
     if (menuData) {
@@ -243,6 +247,7 @@ const MenuFormDialog = ({
         setLargePortionNutrients([{ id: 1, source: '', amount: '' }]);
         setSmallPortionNutrients([{ id: 1, source: '', amount: '' }]);
     }
+    setImagePreview(null);
   }, [menuData, isOpen]);
 
 
@@ -271,6 +276,17 @@ const MenuFormDialog = ({
     updater((prev) => prev.filter((n) => n.id !== id));
   };
     
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -286,6 +302,51 @@ const MenuFormDialog = ({
                 value={menuName}
                 onChange={(e) => setMenuName(e.target.value)}
             />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-base font-semibold">Upload foto menu hari ini</Label>
+              <div 
+                className="relative flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-lg cursor-pointer bg-muted/20 hover:bg-muted/50"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                {imagePreview ? (
+                   <>
+                    <img src={imagePreview} alt="Pratinjau menu" className="object-contain h-full w-full rounded-md" />
+                     <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setImagePreview(null);
+                            if (fileInputRef.current) {
+                                fileInputRef.current.value = '';
+                            }
+                        }}
+                        className="absolute top-2 right-2 h-7 w-7"
+                    >
+                        <X className="h-4 w-4" />
+                    </Button>
+                   </>
+                ) : (
+                  <div className="flex flex-col items-center justify-center pt-5 pb-6 text-center text-muted-foreground">
+                    <Upload className="w-10 h-10 mb-3" />
+                    <p className="mb-2 text-sm">
+                      <span className="font-semibold">Klik untuk mengunggah</span> atau seret dan lepas
+                    </p>
+                    <p className="text-xs">PNG, JPG, atau GIF (MAX. 800x400px)</p>
+                  </div>
+                )}
+                <Input 
+                  ref={fileInputRef}
+                  id="dropzone-file" 
+                  type="file" 
+                  className="hidden" 
+                  accept="image/png, image/jpeg, image/gif"
+                  onChange={handleImageChange}
+                />
+              </div>
             </div>
 
             <Separator />
