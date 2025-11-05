@@ -43,8 +43,12 @@ export default function Home() {
   const sidebarContent = (
     <div className="flex flex-col h-full">
       <div className="h-16 flex items-center px-4 border-b">
-        {/* Placeholder for Logo */}
-        <h1 className="text-xl font-semibold">Nama Aplikasi</h1>
+        <h1 className="text-2xl font-bold">
+          <span className="bg-gradient-to-r from-blue-500 via-purple-500 to-orange-500 bg-clip-text text-transparent">
+            BETA
+          </span>
+          <span className="text-slate-600">report</span>
+        </h1>
       </div>
       <div className="flex-1 overflow-y-auto p-4">
         <ul className="flex w-full min-w-0 flex-col gap-1">
