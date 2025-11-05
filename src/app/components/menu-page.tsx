@@ -13,6 +13,7 @@ import {
   CalendarIcon,
   CheckCircle2,
   Clock,
+  Download,
   Pencil,
   PlusCircle,
   Upload,
@@ -650,9 +651,16 @@ export default function MenuPage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <p className="text-center text-muted-foreground py-8">
-                        Fungsionalitas pengajuan menu mingguan sedang dalam pengembangan.
-                    </p>
+                    <div className="flex justify-center items-center gap-4 py-8">
+                        <Button variant="outline">
+                            <Download className="mr-2 h-4 w-4" />
+                            Download Format
+                        </Button>
+                        <Button>
+                            <Upload className="mr-2 h-4 w-4" />
+                            Upload Laporan
+                        </Button>
+                    </div>
                 </CardContent>
             </Card>
           </TabsContent>
