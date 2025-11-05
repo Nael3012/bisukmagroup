@@ -10,6 +10,8 @@ import { PanelLeft } from 'lucide-react';
 import {
   Sheet,
   SheetContent,
+  SheetHeader,
+  SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
 
@@ -121,6 +123,9 @@ export default function Home() {
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="p-0 w-64">
+                 <SheetHeader>
+                  <SheetTitle className="sr-only">Menu Utama</SheetTitle>
+                </SheetHeader>
                 {sidebarContent}
               </SheetContent>
             </Sheet>
