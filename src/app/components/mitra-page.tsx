@@ -175,6 +175,11 @@ export default function MitraPage() {
   const [sortConfigB3, setSortConfigB3] = useState<{ key: SortableKeysB3; direction: 'ascending' | 'descending' } | null>(null);
   const [itemsPerPageB3, setItemsPerPageB3] = useState(15);
   const [currentPageB3, setCurrentPageB3] = useState(1);
+  
+  const selectedSppgLabel = useMemo(() => {
+    if (selectedSppg === 'all') return 'Semua SPPG';
+    return sppgOptions.find(option => option.value === selectedSppg)?.label || 'Pilih SPPG';
+  }, [selectedSppg]);
 
 
   useEffect(() => {
@@ -346,7 +351,30 @@ export default function MitraPage() {
       <CardHeader>
         <CardTitle>Mitra</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-4">
+        <div className="w-full max-w-xs">
+          <Select onValueChange={handleSppgChange} value={selectedSppg}>
+              <SelectTrigger>
+                  <SelectValue placeholder="Pilih SPPG">{selectedSppgLabel}</SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                  <SelectItem value="all">
+                      <div>
+                          <p className="font-medium">Semua SPPG</p>
+                      </div>
+                  </SelectItem>
+                  {sppgOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                      <div>
+                          <p className="font-medium">{option.label}</p>
+                          <p className="text-xs text-muted-foreground">{option.address}</p>
+                      </div>
+                  </SelectItem>
+                  ))}
+              </SelectContent>
+          </Select>
+        </div>
+
         <Tabs defaultValue="sekolah" onValueChange={setActiveTab} className="relative">
           <TabsList>
             <TabsTrigger
@@ -368,34 +396,9 @@ export default function MitraPage() {
               style={indicatorStyle}
             />
           </TabsList>
-
-          <div className="p-4">
-             <div className="w-full max-w-xs">
-                <Select onValueChange={handleSppgChange} value={selectedSppg}>
-                    <SelectTrigger>
-                        <SelectValue placeholder="Pilih SPPG" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">
-                            <div>
-                                <p className="font-medium">Semua SPPG</p>
-                            </div>
-                        </SelectItem>
-                        {sppgOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                            <div>
-                                <p className="font-medium">{option.label}</p>
-                                <p className="text-xs text-muted-foreground">{option.address}</p>
-                            </div>
-                        </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-              </div>
-          </div>
-
+          
           <TabsContent value="sekolah">
-            <div className="px-4 pb-4 space-y-4">
+            <div className="px-4 pb-4 pt-6 space-y-4">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -553,7 +556,7 @@ export default function MitraPage() {
             </div>
           </TabsContent>
           <TabsContent value="b3">
-             <div className="px-4 pb-4 space-y-4">
+             <div className="px-4 pb-4 pt-6 space-y-4">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -665,5 +668,3 @@ export default function MitraPage() {
     </Card>
   );
 }
-
-    
