@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import SppgPage from './components/sppg-page';
 import MitraPage from './components/mitra-page';
 import MenuPage from './components/menu-page';
+import DashboardPage from './components/dashboard-page';
 import { cn } from '@/lib/utils';
 import { PanelLeft } from 'lucide-react';
 import {
@@ -35,12 +36,7 @@ export default function Home() {
         return <MenuPage />;
       case 'Dashboard':
       default:
-        return (
-          <div className="flex flex-col items-center gap-4">
-            <h1 className="text-4xl font-bold">Hello, World!</h1>
-            <p>Ini adalah tombol dengan warna aksen baru Anda.</p>
-          </div>
-        );
+        return <DashboardPage />;
     }
   };
 
