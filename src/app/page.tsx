@@ -2,21 +2,17 @@
 'use client';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import SppgPage from './components/sppg-page';
 import MitraPage from './components/mitra-page';
-import { PanelLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 type Menu = 'Dashboard' | 'SPPG' | 'Mitra' | 'Menu' | 'Keuangan';
 
 export default function Home() {
   const [activeMenu, setActiveMenu] = useState<Menu>('Dashboard');
-  const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false);
 
   const handleMenuClick = (menu: Menu) => {
     setActiveMenu(menu);
-    setIsMobileSheetOpen(false); // Close sheet on menu item click
   };
 
   const renderContent = () => {
@@ -98,13 +94,13 @@ export default function Home() {
 
   return (
     <div className="flex h-screen bg-background">
-      {/* Static Sidebar for Desktop */}
-      <div className="border-r hidden md:flex md:flex-col w-64">
+      {/* Static Sidebar */}
+      <div className="border-r flex flex-col w-64">
         {sidebarContent}
       </div>
 
-      <div className="flex flex-col flex-1">
-        <header className="flex items-center justify-between p-4 border-b h-16">
+      <div className="flex flex-col flex-1 overflow-auto">
+        <header className="flex items-center justify-between p-4 border-b h-16 sticky top-0 bg-background z-10">
           <h1 className="text-xl font-semibold">{activeMenu}</h1>
           <div>{/* Placeholder for user menu or other header items */}</div>
         </header>
