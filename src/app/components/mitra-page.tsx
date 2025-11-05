@@ -29,24 +29,22 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
+  DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { ArrowUpDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowUpDown, ChevronLeft, ChevronRight, Edit, Pencil } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Sekolah, B3Data } from '../data/mock';
 import { semuaDaftarSekolah, semuaDaftarB3 } from '../data/mock';
 
-
 type Jenjang = 'PAUD' | 'TK' | 'SD' | 'SMP' | 'SMA' | '';
 type SortableKeysSekolah = keyof Omit<Sekolah, 'id' | 'sppgId'>;
-
-
 type SortableKeysB3 = keyof Omit<B3Data, 'id' | 'jenis' | 'sppgId'>;
-
 
 const sppgOptions = [
   {
@@ -66,6 +64,145 @@ const sppgOptions = [
   },
 ];
 
+const DetailItem = ({ label, value }: { label: string; value: React.ReactNode }) => (
+  <div className="grid grid-cols-3 gap-2 text-sm">
+    <dt className="text-muted-foreground col-span-1">{label}</dt>
+    <dd className="font-medium col-span-2">{value || '-'}</dd>
+  </div>
+);
+
+const SekolahForm = ({ sekolah }: { sekolah?: Sekolah | null }) => {
+  const [selectedJenjang, setSelectedJenjang] = useState<Jenjang>(
+    (sekolah?.jenjang as Jenjang) || ''
+  );
+
+  const renderPorsiInputs = () => {
+    switch (selectedJenjang) {
+      case 'PAUD':
+      case 'TK':
+        return (
+          <div className="grid gap-2">
+            <Label htmlFor="porsi-kecil">Jumlah Porsi Kecil</Label>
+            <Input id="porsi-kecil" type="number" placeholder="Contoh: 50" />
+          </div>
+        );
+      case 'SD':
+        return (
+          <>
+            <div className="grid gap-2">
+              <Label htmlFor="porsi-kecil">Jumlah Porsi Kecil (Kelas 1-3)</Label>
+              <Input id="porsi-kecil" type="number" placeholder="Contoh: 30" />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="porsi-besar">Jumlah Porsi Besar (Kelas 4-6)</Label>
+              <Input id="porsi-besar" type="number" placeholder="Contoh: 20" />
+            </div>
+          </>
+        );
+      case 'SMP':
+      case 'SMA':
+        return (
+          <div className="grid gap-2">
+            <Label htmlFor="porsi-besar">Jumlah Porsi Besar</Label>
+            <Input id="porsi-besar" type="number" placeholder="Contoh: 80" />
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="flex flex-col md:flex-row gap-8 py-4">
+      <div className="flex-1 space-y-4">
+        <h3 className="text-lg font-semibold text-muted-foreground">
+          Data Umum
+        </h3>
+        <div className="grid gap-2">
+          <Label htmlFor="nama-sekolah">Nama Sekolah</Label>
+          <Input id="nama-sekolah" placeholder="Contoh: SD Negeri 1" defaultValue={sekolah?.nama} />
+        </div>
+        <div className="grid gap-2">
+          <Label htmlFor="alamat-sekolah">Alamat Sekolah</Label>
+          <Input id="alamat-sekolah" placeholder="Contoh: Jl. Pendidikan No. 1" defaultValue={sekolah?.alamat} />
+        </div>
+        <div className="grid gap-2">
+          <Label htmlFor="jenjang">Jenjang</Label>
+          <Select onValueChange={(value) => setSelectedJenjang(value as Jenjang)} value={selectedJenjang}>
+            <SelectTrigger id="jenjang">
+              <SelectValue placeholder="Pilih Jenjang" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="PAUD">PAUD</SelectItem>
+              <SelectItem value="TK">TK</SelectItem>
+              <SelectItem value="SD">SD</SelectItem>
+              <SelectItem value="SMP">SMP</SelectItem>
+              <SelectItem value="SMA">SMA</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      <Separator orientation="vertical" className="h-auto hidden md:block" />
+      <div className="flex-1 space-y-4">
+        <h3 className="text-lg font-semibold text-muted-foreground">
+          Data Personel & Porsi
+        </h3>
+        <div className="grid gap-2">
+          <Label htmlFor="nama-kepala-sekolah">Nama Kepala Sekolah</Label>
+          <Input id="nama-kepala-sekolah" placeholder="Contoh: Budi Santoso" />
+        </div>
+        <div className="grid gap-2">
+          <Label htmlFor="nama-pic">Nama PIC</Label>
+          <Input id="nama-pic" placeholder="Contoh: Siti Aminah" />
+        </div>
+        {renderPorsiInputs()}
+      </div>
+    </div>
+  );
+};
+
+const B3Form = ({ b3 }: { b3?: B3Data | null }) => {
+    return (
+        <div className="flex flex-col md:flex-row gap-8 py-4">
+            <div className="flex-1 space-y-4">
+                <h3 className="text-lg font-semibold text-muted-foreground">
+                    Data Umum
+                </h3>
+                <div className="grid gap-2">
+                    <Label htmlFor="nama-desa">Nama Desa/Kelurahan</Label>
+                    <Input id="nama-desa" placeholder="Contoh: Desa Makmur" defaultValue={b3?.namaDesa} />
+                </div>
+                <div className="grid gap-2">
+                    <Label htmlFor="alamat-b3">Alamat</Label>
+                    <Input id="alamat-b3" placeholder="Contoh: Jl. Sejahtera No. 1" defaultValue={b3?.alamat} />
+                </div>
+                <div className="grid gap-2">
+                    <Label htmlFor="nama-pic-b3">Nama PIC</Label>
+                    <Input id="nama-pic-b3" placeholder="Contoh: Dewi Lestari" />
+                </div>
+            </div>
+            <Separator orientation="vertical" className="h-auto hidden md:block" />
+            <div className="flex-1 space-y-4">
+                <h3 className="text-lg font-semibold text-muted-foreground">
+                    Data Penerima Manfaat
+                </h3>
+                <div className="grid gap-2">
+                    <Label htmlFor="jumlah-bumil">Ibu Hamil (Bumil)</Label>
+                    <Input id="jumlah-bumil" type="number" placeholder="0" defaultValue={b3?.jenis.bumil} />
+                </div>
+                <div className="grid gap-2">
+                    <Label htmlFor="jumlah-busui">Ibu Menyusui (Busui)</Label>
+                    <Input id="jumlah-busui" type="number" placeholder="0" defaultValue={b3?.jenis.busui} />
+                </div>
+                <div className="grid gap-2">
+                    <Label htmlFor="jumlah-balita">Balita</Label>
+                    <Input id="jumlah-balita" type="number" placeholder="0" defaultValue={b3?.jenis.balita} />
+                </div>
+            </div>
+        </div>
+    );
+}
+
 export default function MitraPage() {
   const [activeTab, setActiveTab] = useState('sekolah');
   const [indicatorStyle, setIndicatorStyle] = useState({});
@@ -79,11 +216,18 @@ export default function MitraPage() {
   const [itemsPerPageSekolah, setItemsPerPageSekolah] = useState(15);
   const [currentPageSekolah, setCurrentPageSekolah] = useState(1);
   const [selectedJenjang, setSelectedJenjang] = useState<Jenjang>('');
+  const [selectedSekolah, setSelectedSekolah] = useState<Sekolah | null>(null);
+  const [isDetailSekolahOpen, setIsDetailSekolahOpen] = useState(false);
+  const [isEditSekolahOpen, setIsEditSekolahOpen] = useState(false);
   
   // State for B3 tab
   const [sortConfigB3, setSortConfigB3] = useState<{ key: SortableKeysB3; direction: 'ascending' | 'descending' } | null>(null);
   const [itemsPerPageB3, setItemsPerPageB3] = useState(15);
   const [currentPageB3, setCurrentPageB3] = useState(1);
+  const [selectedB3, setSelectedB3] = useState<B3Data | null>(null);
+  const [isDetailB3Open, setIsDetailB3Open] = useState(false);
+  const [isEditB3Open, setIsEditB3Open] = useState(false);
+
 
   const selectedSppgLabel = useMemo(() => {
     if (selectedSppg === 'all') return 'Semua SPPG';
@@ -163,6 +307,17 @@ export default function MitraPage() {
 
   const totalPagesSekolah = Math.ceil(sortedSekolah.length / itemsPerPageSekolah);
   
+  const handleSekolahRowClick = (sekolah: Sekolah) => {
+    setSelectedSekolah(sekolah);
+    setIsDetailSekolahOpen(true);
+  }
+
+  const handleEditSekolahClick = () => {
+    setIsDetailSekolahOpen(false);
+    setIsEditSekolahOpen(true);
+  }
+
+
   // Effects and handlers for B3
   useEffect(() => {
     setCurrentPageB3(1);
@@ -201,7 +356,6 @@ export default function MitraPage() {
     if (!sortConfigB3 || sortConfigB3.key !== key) {
       return <ArrowUpDown className="ml-2 h-4 w-4 opacity-50" />;
     }
-    // You can add different icons for ascending/descending
     return <ArrowUpDown className="ml-2 h-4 w-4" />;
   };
   
@@ -212,43 +366,18 @@ export default function MitraPage() {
 
   const totalPagesB3 = Math.ceil(sortedB3.length / itemsPerPageB3);
 
-  const renderPorsiInputs = () => {
-    switch (selectedJenjang) {
-      case 'PAUD':
-      case 'TK':
-        return (
-          <div className="grid gap-2">
-            <Label htmlFor="porsi-kecil">Jumlah Porsi Kecil</Label>
-            <Input id="porsi-kecil" type="number" placeholder="Contoh: 50" />
-          </div>
-        );
-      case 'SD':
-        return (
-          <>
-            <div className="grid gap-2">
-              <Label htmlFor="porsi-kecil">Jumlah Porsi Kecil (Kelas 1-3)</Label>
-              <Input id="porsi-kecil" type="number" placeholder="Contoh: 30" />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="porsi-besar">Jumlah Porsi Besar (Kelas 4-6)</Label>
-              <Input id="porsi-besar" type="number" placeholder="Contoh: 20" />
-            </div>
-          </>
-        );
-      case 'SMP':
-      case 'SMA':
-        return (
-          <div className="grid gap-2">
-            <Label htmlFor="porsi-besar">Jumlah Porsi Besar</Label>
-            <Input id="porsi-besar" type="number" placeholder="Contoh: 80" />
-          </div>
-        );
-      default:
-        return null;
-    }
-  };
+  const handleB3RowClick = (b3: B3Data) => {
+    setSelectedB3(b3);
+    setIsDetailB3Open(true);
+  }
+
+  const handleEditB3Click = () => {
+    setIsDetailB3Open(false);
+    setIsEditB3Open(true);
+  }
   
   return (
+    <>
     <Card>
       <CardHeader>
         <CardTitle>Mitra</CardTitle>
@@ -333,7 +462,7 @@ export default function MitraPage() {
                 <TableBody>
                   {paginatedSekolah.length > 0 ? (
                     paginatedSekolah.map((sekolah) => (
-                      <TableRow key={sekolah.id}>
+                      <TableRow key={sekolah.id} onClick={() => handleSekolahRowClick(sekolah)} className="cursor-pointer">
                         <TableCell>{sekolah.nama}</TableCell>
                         <TableCell>{sekolah.alamat}</TableCell>
                         <TableCell>{sekolah.jenjang}</TableCell>
@@ -400,58 +529,10 @@ export default function MitraPage() {
                     <DialogHeader>
                       <DialogTitle>Tambah Sekolah Penerima Manfaat</DialogTitle>
                     </DialogHeader>
-                    <div className="flex flex-col md:flex-row gap-8 py-4">
-                      {/* Left Segment */}
-                      <div className="flex-1 space-y-4">
-                        <h3 className="text-lg font-semibold text-muted-foreground">
-                          Data Umum
-                        </h3>
-                        <div className="grid gap-2">
-                          <Label htmlFor="nama-sekolah">Nama Sekolah</Label>
-                          <Input id="nama-sekolah" placeholder="Contoh: SD Negeri 1" />
-                        </div>
-                        <div className="grid gap-2">
-                          <Label htmlFor="alamat-sekolah">Alamat Sekolah</Label>
-                          <Input id="alamat-sekolah" placeholder="Contoh: Jl. Pendidikan No. 1" />
-                        </div>
-                        <div className="grid gap-2">
-                          <Label htmlFor="jenjang">Jenjang</Label>
-                           <Select onValueChange={(value) => setSelectedJenjang(value as Jenjang)} value={selectedJenjang}>
-                            <SelectTrigger id="jenjang">
-                              <SelectValue placeholder="Pilih Jenjang" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="PAUD">PAUD</SelectItem>
-                              <SelectItem value="TK">TK</SelectItem>
-                              <SelectItem value="SD">SD</SelectItem>
-                              <SelectItem value="SMP">SMP</SelectItem>
-                              <SelectItem value="SMA">SMA</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-
-                      <Separator orientation="vertical" className="h-auto hidden md:block" />
-
-                      {/* Right Segment */}
-                      <div className="flex-1 space-y-4">
-                         <h3 className="text-lg font-semibold text-muted-foreground">
-                          Data Personel & Porsi
-                        </h3>
-                        <div className="grid gap-2">
-                          <Label htmlFor="nama-kepala-sekolah">Nama Kepala Sekolah</Label>
-                          <Input id="nama-kepala-sekolah" placeholder="Contoh: Budi Santoso" />
-                        </div>
-                        <div className="grid gap-2">
-                          <Label htmlFor="nama-pic">Nama PIC</Label>
-                          <Input id="nama-pic" placeholder="Contoh: Siti Aminah" />
-                        </div>
-                        {renderPorsiInputs()}
-                      </div>
-                    </div>
-                    <div className="flex justify-end">
+                    <SekolahForm />
+                    <DialogFooter>
                       <Button type="submit">Simpan</Button>
-                    </div>
+                    </DialogFooter>
                   </DialogContent>
                 </Dialog>
               </div>
@@ -488,7 +569,7 @@ export default function MitraPage() {
                   <TableBody>
                     {paginatedB3.length > 0 ? (
                       paginatedB3.map((item) => (
-                        <TableRow key={item.id}>
+                        <TableRow key={item.id} onClick={() => handleB3RowClick(item)} className="cursor-pointer">
                           <TableCell>{item.namaDesa}</TableCell>
                           <TableCell>{item.alamat}</TableCell>
                           <TableCell>
@@ -557,50 +638,10 @@ export default function MitraPage() {
                       <DialogHeader>
                         <DialogTitle>Tambah B3 Penerima Manfaat</DialogTitle>
                       </DialogHeader>
-                      <div className="flex flex-col md:flex-row gap-8 py-4">
-                        {/* Left Segment */}
-                        <div className="flex-1 space-y-4">
-                            <h3 className="text-lg font-semibold text-muted-foreground">
-                            Data Umum
-                            </h3>
-                            <div className="grid gap-2">
-                            <Label htmlFor="nama-desa">Nama Desa/Kelurahan</Label>
-                            <Input id="nama-desa" placeholder="Contoh: Desa Makmur" />
-                            </div>
-                            <div className="grid gap-2">
-                            <Label htmlFor="alamat-b3">Alamat</Label>
-                            <Input id="alamat-b3" placeholder="Contoh: Jl. Sejahtera No. 1" />
-                            </div>
-                            <div className="grid gap-2">
-                            <Label htmlFor="nama-pic-b3">Nama PIC</Label>
-                            <Input id="nama-pic-b3" placeholder="Contoh: Dewi Lestari" />
-                            </div>
-                        </div>
-
-                        <Separator orientation="vertical" className="h-auto hidden md:block" />
-
-                        {/* Right Segment */}
-                        <div className="flex-1 space-y-4">
-                            <h3 className="text-lg font-semibold text-muted-foreground">
-                                Data Penerima Manfaat
-                            </h3>
-                            <div className="grid gap-2">
-                                <Label htmlFor="jumlah-bumil">Ibu Hamil (Bumil)</Label>
-                                <Input id="jumlah-bumil" type="number" placeholder="0" />
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="jumlah-busui">Ibu Menyusui (Busui)</Label>
-                                <Input id="jumlah-busui" type="number" placeholder="0" />
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="jumlah-balita">Balita</Label>
-                                <Input id="jumlah-balita" type="number" placeholder="0" />
-                            </div>
-                        </div>
-                      </div>
-                       <div className="flex justify-end">
+                      <B3Form />
+                       <DialogFooter>
                             <Button type="submit">Simpan</Button>
-                        </div>
+                        </DialogFooter>
                     </DialogContent>
                   </Dialog>
                 </div>
@@ -609,5 +650,94 @@ export default function MitraPage() {
         </Tabs>
       </CardContent>
     </Card>
+
+    {/* Dialogs for Sekolah */}
+    {selectedSekolah && (
+        <Dialog open={isDetailSekolahOpen} onOpenChange={setIsDetailSekolahOpen}>
+            <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                    <DialogTitle>{selectedSekolah.nama}</DialogTitle>
+                    <DialogDescription>{selectedSekolah.jenjang}</DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-6 py-4">
+                    <div className="space-y-3">
+                        <h3 className="font-semibold">Data Sekolah</h3>
+                        <dl className="grid gap-2">
+                            <DetailItem label="Alamat" value={selectedSekolah.alamat} />
+                            <DetailItem label="Jumlah PM" value={selectedSekolah.jumlahPM} />
+                            <DetailItem label="SPPG" value={sppgOptions.find(opt => opt.value === selectedSekolah.sppgId)?.label} />
+                        </dl>
+                    </div>
+                </div>
+                <DialogFooter>
+                    <Button variant="outline" onClick={handleEditSekolahClick}>
+                        <Pencil className="mr-2 h-4 w-4" />
+                        Edit
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    )}
+    {selectedSekolah && (
+        <Dialog open={isEditSekolahOpen} onOpenChange={setIsEditSekolahOpen}>
+            <DialogContent className="max-w-4xl">
+                <DialogHeader>
+                    <DialogTitle>Edit Data Sekolah</DialogTitle>
+                    <DialogDescription>Ubah data untuk {selectedSekolah.nama}.</DialogDescription>
+                </DialogHeader>
+                <SekolahForm sekolah={selectedSekolah} />
+                <DialogFooter>
+                    <Button type="submit">Simpan Perubahan</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    )}
+
+    {/* Dialogs for B3 */}
+    {selectedB3 && (
+        <Dialog open={isDetailB3Open} onOpenChange={setIsDetailB3Open}>
+            <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                    <DialogTitle>{selectedB3.namaDesa}</DialogTitle>
+                    <DialogDescription>{selectedB3.alamat}</DialogDescription>
+                </DialogHeader>
+                 <div className="grid gap-6 py-4">
+                    <div className="space-y-3">
+                        <h3 className="font-semibold">Data B3</h3>
+                        <dl className="grid gap-2">
+                            <DetailItem label="Jumlah" value={selectedB3.jumlah} />
+                            <DetailItem label="Ibu Hamil" value={selectedB3.jenis.bumil} />
+                            <DetailItem label="Ibu Menyusui" value={selectedB3.jenis.busui} />
+                            <DetailItem label="Balita" value={selectedB3.jenis.balita} />
+                            <DetailItem label="SPPG" value={sppgOptions.find(opt => opt.value === selectedB3.sppgId)?.label} />
+                        </dl>
+                    </div>
+                </div>
+                <DialogFooter>
+                    <Button variant="outline" onClick={handleEditB3Click}>
+                        <Pencil className="mr-2 h-4 w-4" />
+                        Edit
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    )}
+     {selectedB3 && (
+        <Dialog open={isEditB3Open} onOpenChange={setIsEditB3Open}>
+            <DialogContent className="max-w-4xl">
+                <DialogHeader>
+                    <DialogTitle>Edit Data B3</DialogTitle>
+                    <DialogDescription>Ubah data untuk {selectedB3.namaDesa}.</DialogDescription>
+                </DialogHeader>
+                <B3Form b3={selectedB3} />
+                <DialogFooter>
+                    <Button type="submit">Simpan Perubahan</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    )}
+    </>
   );
 }
+
+    
