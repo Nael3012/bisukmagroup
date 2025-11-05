@@ -13,6 +13,7 @@ import {
   SidebarFooter,
 } from '@/components/ui/sidebar';
 import SppgPage from './components/sppg-page';
+import MitraPage from './components/mitra-page';
 
 type Menu = 'Dashboard' | 'SPPG' | 'Mitra' | 'Menu' | 'Keuangan';
 
@@ -23,6 +24,8 @@ export default function Home() {
     switch (activeMenu) {
       case 'SPPG':
         return <SppgPage />;
+      case 'Mitra':
+        return <MitraPage />;
       case 'Dashboard':
       default:
         return (
