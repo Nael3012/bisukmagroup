@@ -23,9 +23,9 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogDescription,
   DialogFooter,
+  DialogTrigger,
 } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
@@ -90,11 +90,69 @@ const DetailItem = ({ label, value }: { label: string, value: React.ReactNode })
     </div>
 );
 
+const SppgForm = ({ sppg }: { sppg?: SppgData | null }) => {
+    return (
+        <div className="flex flex-col md:flex-row gap-8 py-4">
+            {/* Left Segment */}
+            <div className="flex-1 space-y-4">
+                <h3 className="text-lg font-semibold text-muted-foreground">
+                Data Umum
+                </h3>
+                <Alert>
+                <Info className="h-4 w-4" />
+                <AlertDescription>
+                    Pastikan data umum yang Anda masukkan di sini sudah sesuai dengan informasi yang terdaftar pada akun Mitra BGN Anda untuk memastikan sinkronisasi dan validasi data yang lancar.
+                </AlertDescription>
+                </Alert>
+                <div className="grid gap-2">
+                <Label htmlFor="nama-sppg">Nama SPPG</Label>
+                <Input id="nama-sppg" placeholder="Contoh: SPPG Sejahtera" defaultValue={sppg?.nama} />
+                </div>
+                <div className="grid gap-2">
+                <Label htmlFor="alamat">Alamat</Label>
+                <Input id="alamat" placeholder="Contoh: Jl. Pembangunan No. 123" defaultValue={sppg?.alamat} />
+                </div>
+                <div className="grid gap-2">
+                <Label htmlFor="yayasan">Yayasan</Label>
+                <Input id="yayasan" placeholder="Contoh: Yayasan Harapan Bangsa" defaultValue={sppg?.yayasan} />
+                </div>
+            </div>
+
+            <Separator orientation="vertical" className="h-auto hidden md:block" />
+
+            {/* Right Segment */}
+            <div className="flex-1 space-y-4">
+                <h3 className="text-lg font-semibold text-muted-foreground">
+                Data Personel
+                </h3>
+                <div className="grid gap-2">
+                <Label htmlFor="nama-ka-sppg">Nama Ka. SPPG</Label>
+                <Input id="nama-ka-sppg" placeholder="Contoh: Budi Santoso" defaultValue={sppg?.namaKaSppg} />
+                </div>
+                <div className="grid gap-2">
+                <Label htmlFor="nama-akuntan">Nama Akuntan</Label>
+                <Input id="nama-akuntan" placeholder="Contoh: Siti Aminah" defaultValue={sppg?.namaAkuntan} />
+                </div>
+                <div className="grid gap-2">
+                <Label htmlFor="ahli-gizi">Ahli Gizi</Label>
+                <Input id="ahli-gizi" placeholder="Contoh: Dr. Ani" defaultValue={sppg?.ahliGizi} />
+                </div>
+                <div className="grid gap-2">
+                <Label htmlFor="asisten-lapangan">Asisten Lapangan</Label>
+                <Input id="asisten-lapangan" placeholder="Contoh: Joko" defaultValue={sppg?.asistenLapangan} />
+                </div>
+            </div>
+        </div>
+    );
+};
+
 
 export default function SppgPage() {
   const [itemsPerPage, setItemsPerPage] = useState(15);
   const [currentPage, setCurrentPage] = useState(1);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedSppg, setSelectedSppg] = useState<SppgData | null>(null);
 
   useEffect(() => {
@@ -112,6 +170,11 @@ export default function SppgPage() {
   const handleRowClick = (sppg: SppgData) => {
     setSelectedSppg(sppg);
     setIsDetailOpen(true);
+  }
+
+  const handleEditClick = () => {
+    setIsDetailOpen(false);
+    setIsEditOpen(true);
   }
 
   return (
@@ -191,7 +254,7 @@ export default function SppgPage() {
             </Button>
           </div>
           
-          <Dialog>
+          <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
             <DialogTrigger asChild>
               <Button>Tambah SPPG</Button>
             </DialogTrigger>
@@ -199,65 +262,16 @@ export default function SppgPage() {
               <DialogHeader>
                 <DialogTitle>Tambah SPPG Baru</DialogTitle>
               </DialogHeader>
-              <div className="flex gap-8 py-4">
-                {/* Left Segment */}
-                <div className="flex-1 space-y-4">
-                  <h3 className="text-lg font-semibold text-muted-foreground">
-                    Data Umum
-                  </h3>
-                  <Alert>
-                    <Info className="h-4 w-4" />
-                    <AlertDescription>
-                      Pastikan data umum yang Anda masukkan di sini sudah sesuai dengan informasi yang terdaftar pada akun Mitra BGN Anda untuk memastikan sinkronisasi dan validasi data yang lancar.
-                    </AlertDescription>
-                  </Alert>
-                  <div className="grid gap-2">
-                    <Label htmlFor="nama-sppg">Nama SPPG</Label>
-                    <Input id="nama-sppg" placeholder="Contoh: SPPG Sejahtera" />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="alamat">Alamat</Label>
-                    <Input id="alamat" placeholder="Contoh: Jl. Pembangunan No. 123" />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="yayasan">Yayasan</Label>
-                    <Input id="yayasan" placeholder="Contoh: Yayasan Harapan Bangsa" />
-                  </div>
-                </div>
-
-                <Separator orientation="vertical" className="h-auto" />
-
-                {/* Right Segment */}
-                <div className="flex-1 space-y-4">
-                   <h3 className="text-lg font-semibold text-muted-foreground">
-                    Data Personel
-                  </h3>
-                  <div className="grid gap-2">
-                    <Label htmlFor="nama-ka-sppg">Nama Ka. SPPG</Label>
-                    <Input id="nama-ka-sppg" placeholder="Contoh: Budi Santoso" />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="nama-akuntan">Nama Akuntan</Label>
-                    <Input id="nama-akuntan" placeholder="Contoh: Siti Aminah" />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="ahli-gizi">Ahli Gizi</Label>
-                    <Input id="ahli-gizi" placeholder="Contoh: Dr. Ani" />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="asisten-lapangan">Asisten Lapangan</Label>
-                    <Input id="asisten-lapangan" placeholder="Contoh: Joko" />
-                  </div>
-                </div>
-              </div>
-              <div className="flex justify-end">
+              <SppgForm />
+              <DialogFooter>
                 <Button type="submit">Simpan</Button>
-              </div>
+              </DialogFooter>
             </DialogContent>
           </Dialog>
         </div>
       </div>
       
+      {/* Detail Dialog */}
       {selectedSppg && (
         <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
             <DialogContent className="max-w-2xl">
@@ -289,7 +303,7 @@ export default function SppgPage() {
                     </div>
                 </div>
                  <DialogFooter>
-                    <Button variant="outline">
+                    <Button variant="outline" onClick={handleEditClick}>
                         <Pencil className="mr-2 h-4 w-4" />
                         Edit
                     </Button>
@@ -297,6 +311,24 @@ export default function SppgPage() {
             </DialogContent>
         </Dialog>
       )}
+
+      {/* Edit Dialog */}
+       {selectedSppg && (
+         <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+            <DialogContent className="max-w-4xl">
+              <DialogHeader>
+                <DialogTitle>Edit Data SPPG</DialogTitle>
+                <DialogDescription>
+                  Ubah data untuk {selectedSppg.nama}. Klik simpan jika sudah selesai.
+                </DialogDescription>
+              </DialogHeader>
+              <SppgForm sppg={selectedSppg} />
+              <DialogFooter>
+                <Button type="submit">Simpan Perubahan</Button>
+              </DialogFooter>
+            </DialogContent>
+         </Dialog>
+       )}
     </>
   );
 }
