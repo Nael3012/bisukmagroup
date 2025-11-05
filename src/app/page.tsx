@@ -1,24 +1,23 @@
 
 'use client';
 import { useState } from 'react';
-import {
-  SidebarProvider,
-  Sidebar,
-  SidebarHeader,
-  SidebarTrigger,
-  SidebarContent,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarFooter,
-} from '@/components/ui/sidebar';
+import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import SppgPage from './components/sppg-page';
 import MitraPage from './components/mitra-page';
+import { PanelLeft } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 type Menu = 'Dashboard' | 'SPPG' | 'Mitra' | 'Menu' | 'Keuangan';
 
 export default function Home() {
   const [activeMenu, setActiveMenu] = useState<Menu>('Dashboard');
+  const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false);
+
+  const handleMenuClick = (menu: Menu) => {
+    setActiveMenu(menu);
+    setIsMobileSheetOpen(false); // Close sheet on menu item click
+  };
 
   const renderContent = () => {
     switch (activeMenu) {
@@ -37,47 +36,97 @@ export default function Home() {
     }
   };
 
-  return (
-    <SidebarProvider>
-      <div className="flex h-screen bg-background">
-        <Sidebar collapsible="none" className="border-r">
-          <SidebarHeader>
-            <div className="h-16 flex items-center px-4">
-              {/* Placeholder for Logo */}
-            </div>
-          </SidebarHeader>
-          <SidebarContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton onClick={() => setActiveMenu('Dashboard')} isActive={activeMenu === 'Dashboard'}>Dashboard</SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton onClick={() => setActiveMenu('SPPG')} isActive={activeMenu === 'SPPG'}>SPPG</SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton onClick={() => setActiveMenu('Mitra')} isActive={activeMenu === 'Mitra'}>Mitra</SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton onClick={() => setActiveMenu('Menu')} isActive={activeMenu === 'Menu'}>Menu</SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton onClick={() => setActiveMenu('Keuangan')} isActive={activeMenu === 'Keuangan'}>Keuangan</SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarContent>
-          <SidebarFooter />
-        </Sidebar>
-        <div className="flex flex-col flex-1">
-          <header className="flex items-center justify-between p-4 border-b h-16">
-            <div className="md:hidden">
-              <SidebarTrigger />
-            </div>
-            <h1 className="text-xl font-semibold">{activeMenu}</h1>
-            <div>{/* Placeholder for user menu or other header items */}</div>
-          </header>
-          <main className="flex-1 p-6">{renderContent()}</main>
+  const sidebarContent = (
+    <>
+      <div className="flex flex-col gap-2 p-2">
+        <div className="h-16 flex items-center px-4">
+          {/* Placeholder for Logo */}
         </div>
+        <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-auto p-2">
+          <ul className="flex w-full min-w-0 flex-col gap-1">
+            <li className="relative">
+              <Button
+                variant="ghost"
+                className={cn("w-full justify-start", activeMenu === 'Dashboard' && "bg-accent text-accent-foreground")}
+                onClick={() => handleMenuClick('Dashboard')}
+              >
+                Dashboard
+              </Button>
+            </li>
+            <li className="relative">
+              <Button
+                variant="ghost"
+                className={cn("w-full justify-start", activeMenu === 'SPPG' && "bg-accent text-accent-foreground")}
+                onClick={() => handleMenuClick('SPPG')}
+              >
+                SPPG
+              </Button>
+            </li>
+            <li className="relative">
+              <Button
+                variant="ghost"
+                className={cn("w-full justify-start", activeMenu === 'Mitra' && "bg-accent text-accent-foreground")}
+                onClick={() => handleMenuClick('Mitra')}
+              >
+                Mitra
+              </Button>
+            </li>
+            <li className="relative">
+              <Button
+                variant="ghost"
+                className={cn("w-full justify-start", activeMenu === 'Menu' && "bg-accent text-accent-foreground")}
+                onClick={() => handleMenuClick('Menu')}
+              >
+                Menu
+              </Button>
+            </li>
+            <li className="relative">
+              <Button
+                variant="ghost"
+                className={cn("w-full justify-start", activeMenu === 'Keuangan' && "bg-accent text-accent-foreground")}
+                onClick={() => handleMenuClick('Keuangan')}
+              >
+                Keuangan
+              </Button>
+            </li>
+          </ul>
+        </div>
+        <div className="flex flex-col gap-2 p-2" />
       </div>
-    </SidebarProvider>
+    </>
+  );
+
+  return (
+    <div className="flex h-screen bg-background">
+      {/* Static Sidebar for Desktop */}
+      <div className="border-r hidden md:flex md:flex-col w-64">
+        {sidebarContent}
+      </div>
+
+      <div className="flex flex-col flex-1">
+        <header className="flex items-center justify-between p-4 border-b h-16">
+          {/* Mobile Sidebar Trigger */}
+          <div className="md:hidden">
+             <Sheet open={isMobileSheetOpen} onOpenChange={setIsMobileSheetOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <PanelLeft className="h-6 w-6" />
+                    <span className="sr-only">Toggle Menu</span>
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="p-0 w-[300px]">
+                   <div className="flex h-full w-full flex-col">
+                      {sidebarContent}
+                   </div>
+                </SheetContent>
+              </Sheet>
+          </div>
+          <h1 className="text-xl font-semibold md:ml-0 ml-4">{activeMenu}</h1>
+          <div>{/* Placeholder for user menu or other header items */}</div>
+        </header>
+        <main className="flex-1 p-6">{renderContent()}</main>
+      </div>
+    </div>
   );
 }
+
