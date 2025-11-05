@@ -16,6 +16,7 @@ import {
   Utensils,
   PlusCircle,
   X,
+  Pencil,
 } from 'lucide-react';
 import { format, startOfWeek, setDay } from 'date-fns';
 import { id } from 'date-fns/locale';
@@ -47,6 +48,11 @@ import { Label } from '@/components/ui/label';
 
 type DayOfWeek = 'Senin' | 'Selasa' | 'Rabu' | 'Kamis' | 'Jumat';
 type Nutrient = { id: number; source: string; amount: string };
+type MenuData = {
+  menuName: string;
+  largePortion: Nutrient[];
+  smallPortion: Nutrient[];
+};
 
 const initialWeekStatus: Record<DayOfWeek, boolean> = {
   Senin: true,
@@ -55,6 +61,45 @@ const initialWeekStatus: Record<DayOfWeek, boolean> = {
   Kamis: true,
   Jumat: false,
 };
+
+const mockMenuData: Record<DayOfWeek, MenuData | null> = {
+    Senin: {
+        menuName: 'Nasi Ayam Goreng Spesial',
+        largePortion: [
+            { id: 1, source: 'protein', amount: '150' },
+            { id: 2, source: 'karbohidrat', amount: '200' },
+        ],
+        smallPortion: [
+            { id: 1, source: 'protein', amount: '100' },
+            { id: 2, source: 'karbohidrat', amount: '150' },
+        ],
+    },
+    Rabu: {
+        menuName: 'Ikan Bakar & Sayur Sop',
+        largePortion: [
+            { id: 1, source: 'protein', amount: '180' },
+            { id: 2, source: 'zat-besi', amount: '20' },
+        ],
+        smallPortion: [
+            { id: 1, source: 'protein', amount: '120' },
+            { id: 2, source: 'zat-besi', amount: '15' },
+        ],
+    },
+    Kamis: {
+        menuName: 'Daging Rendang & Tumis Kangkung',
+        largePortion: [
+            { id: 1, source: 'protein', amount: '200' },
+            { id: 2, source: 'lemak', amount: '50' },
+        ],
+        smallPortion: [
+            { id: 1, source: 'protein', amount: '130' },
+            { id: 2, source: 'lemak', amount: '35' },
+        ],
+    },
+    Selasa: null,
+    Jumat: null
+}
+
 
 const dayNameToIndex: Record<DayOfWeek, number> = {
   Senin: 1,
@@ -128,6 +173,134 @@ const NutrientInputRow = ({
   </div>
 );
 
+const MenuFormDialog = ({
+  isOpen,
+  onOpenChange,
+  day,
+  menuData
+}: {
+  isOpen: boolean,
+  onOpenChange: (isOpen: boolean) => void,
+  day: DayOfWeek,
+  menuData: MenuData | null
+}) => {
+    
+  const [menuName, setMenuName] = useState('');
+  const [largePortionNutrients, setLargePortionNutrients] = useState<Nutrient[]>([{ id: 1, source: '', amount: '' }]);
+  const [smallPortionNutrients, setSmallPortionNutrients] = useState<Nutrient[]>([{ id: 1, source: '', amount: '' }]);
+  
+  useEffect(() => {
+    if (menuData) {
+        setMenuName(menuData.menuName);
+        setLargePortionNutrients(menuData.largePortion.length > 0 ? menuData.largePortion : [{ id: 1, source: '', amount: '' }]);
+        setSmallPortionNutrients(menuData.smallPortion.length > 0 ? menuData.smallPortion : [{ id: 1, source: '', amount: '' }]);
+    } else {
+        setMenuName('');
+        setLargePortionNutrients([{ id: 1, source: '', amount: '' }]);
+        setSmallPortionNutrients([{ id: 1, source: '', amount: '' }]);
+    }
+  }, [menuData, isOpen]);
+
+
+  const handleNutrientChange = (
+    segment: 'large' | 'small',
+    id: number,
+    field: 'source' | 'amount',
+    value: string
+  ) => {
+    const updater = segment === 'large' ? setLargePortionNutrients : setSmallPortionNutrients;
+    updater((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, [field]: value } : n))
+    );
+  };
+
+  const addNutrient = (segment: 'large' | 'small') => {
+    const updater = segment === 'large' ? setLargePortionNutrients : setSmallPortionNutrients;
+    updater((prev) => [
+      ...prev,
+      { id: Date.now(), source: '', amount: '' },
+    ]);
+  };
+
+  const removeNutrient = (segment: 'large' | 'small', id: number) => {
+    const updater = segment === 'large' ? setLargePortionNutrients : setSmallPortionNutrients;
+    updater((prev) => prev.filter((n) => n.id !== id));
+  };
+    
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+            <DialogTitle>{menuData ? 'Edit' : 'Isi'} Menu Harian - {day}</DialogTitle>
+        </DialogHeader>
+        <form className="space-y-6 py-4">
+            <div className="space-y-2">
+            <Label htmlFor="menu-name" className="text-base font-semibold">Nama Menu</Label>
+            <Input 
+                id="menu-name" 
+                placeholder="Contoh: Nasi Ayam Teriyaki" 
+                value={menuName}
+                onChange={(e) => setMenuName(e.target.value)}
+            />
+            </div>
+
+            <Separator />
+            
+            <div className="flex flex-col gap-8 md:flex-row">
+            {/* Segment Menu Besar */}
+            <div className="flex-1 space-y-4 rounded-lg border p-4">
+                <h3 className="text-lg font-semibold">Menu Besar</h3>
+                <div className="space-y-4">
+                {largePortionNutrients.map((nutrient) => (
+                    <NutrientInputRow
+                    key={nutrient.id}
+                    nutrient={nutrient}
+                    onUpdate={(id, field, value) => handleNutrientChange('large', id, field, value)}
+                    onRemove={(id) => removeNutrient('large', id)}
+                    segment="large"
+                    />
+                ))}
+                </div>
+                <Button type="button" variant="outline" size="sm" onClick={() => addNutrient('large')}>
+                <PlusCircle className="mr-2" />
+                Tambah Sumber Gizi
+                </Button>
+            </div>
+
+            <Separator orientation="vertical" className="h-auto hidden md:block" />
+
+            {/* Segment Menu Kecil */}
+            <div className="flex-1 space-y-4 rounded-lg border p-4">
+                <h3 className="text-lg font-semibold">Menu Kecil</h3>
+                <div className="space-y-4">
+                {smallPortionNutrients.map((nutrient) => (
+                    <NutrientInputRow
+                    key={nutrient.id}
+                    nutrient={nutrient}
+                    onUpdate={(id, field, value) => handleNutrientChange('small', id, field, value)}
+                    onRemove={(id) => removeNutrient('small', id)}
+                    segment="small"
+                    />
+                ))}
+                </div>
+                <Button type="button" variant="outline" size="sm" onClick={() => addNutrient('small')}>
+                <PlusCircle className="mr-2" />
+                Tambah Sumber Gizi
+                </Button>
+            </div>
+            </div>
+
+
+            <div className="flex justify-end pt-4">
+            <Button type="submit">Simpan Menu</Button>
+            </div>
+        </form>
+        </DialogContent>
+    </Dialog>
+  );
+}
+
+
 export default function MenuPage() {
   const [activeTab, setActiveTab] = useState('harian');
   const [indicatorStyle, setIndicatorStyle] = useState({});
@@ -136,12 +309,6 @@ export default function MenuPage() {
   const [selectedDay, setSelectedDay] = useState<DayOfWeek>('Senin');
   const [weekStatus, setWeekStatus] = useState(initialWeekStatus);
   const [isFormOpen, setIsFormOpen] = useState(false);
-  
-  // Form State
-  const [menuName, setMenuName] = useState('');
-  const [largePortionNutrients, setLargePortionNutrients] = useState<Nutrient[]>([{ id: 1, source: '', amount: '' }]);
-  const [smallPortionNutrients, setSmallPortionNutrients] = useState<Nutrient[]>([{ id: 1, source: '', amount: '' }]);
-
 
   useEffect(() => {
     const activeTabIndex = tabsRef.current.findIndex(
@@ -174,124 +341,54 @@ export default function MenuPage() {
     setDate(newDate);
   };
   
-  // Nutrient handlers
-  const handleNutrientChange = (
-    segment: 'large' | 'small',
-    id: number,
-    field: 'source' | 'amount',
-    value: string
-  ) => {
-    const updater = segment === 'large' ? setLargePortionNutrients : setSmallPortionNutrients;
-    updater((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, [field]: value } : n))
-    );
-  };
-
-  const addNutrient = (segment: 'large' | 'small') => {
-    const updater = segment === 'large' ? setLargePortionNutrients : setSmallPortionNutrients;
-    updater((prev) => [
-      ...prev,
-      { id: Date.now(), source: '', amount: '' },
-    ]);
-  };
-
-  const removeNutrient = (segment: 'large' | 'small', id: number) => {
-    const updater = segment === 'large' ? setLargePortionNutrients : setSmallPortionNutrients;
-    updater((prev) => prev.filter((n) => n.id !== id));
-  };
-
 
   const renderDailyMenuContent = () => {
     const isFilled = weekStatus[selectedDay];
+    const currentMenuData = mockMenuData[selectedDay];
+
     return (
       <Card className="mt-4">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Utensils className="h-5 w-5" />
-            Menu Hari {selectedDay}
+          <CardTitle className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <Utensils className="h-5 w-5" />
+              Menu Hari {selectedDay}
+            </div>
+            {isFilled && (
+                <Button variant="outline" size="sm" onClick={() => setIsFormOpen(true)}>
+                    <Pencil className="mr-2 h-4 w-4" />
+                    Edit
+                </Button>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {isFilled ? (
-            <div>
-              <p>Detail menu untuk hari {selectedDay} akan ditampilkan di sini.</p>
-              {/* Placeholder for actual menu content */}
+          {isFilled && currentMenuData ? (
+            <div className="space-y-6">
+                <h3 className="text-xl font-semibold">{currentMenuData.menuName}</h3>
+                <div className="grid md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                        <h4 className="font-semibold text-lg">Menu Besar</h4>
+                        <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                            {currentMenuData.largePortion.map(n => (
+                                <li key={n.id}><span className="capitalize">{n.source.replace('-', ' ')}</span>: {n.amount}</li>
+                            ))}
+                        </ul>
+                    </div>
+                    <div className="space-y-2">
+                         <h4 className="font-semibold text-lg">Menu Kecil</h4>
+                        <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                            {currentMenuData.smallPortion.map(n => (
+                                <li key={n.id}><span className="capitalize">{n.source.replace('-', ' ')}</span>: {n.amount}</li>
+                            ))}
+                        </ul>
+                    </div>
+                </div>
             </div>
           ) : (
             <div className="text-center text-muted-foreground py-8">
               <p>Menu untuk hari {selectedDay} belum diisi.</p>
-               <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-                  <DialogTrigger asChild>
-                    <Button className="mt-4">Isi Menu</Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                    <DialogHeader>
-                      <DialogTitle>Isi Menu Harian - {selectedDay}</DialogTitle>
-                    </DialogHeader>
-                    <form className="space-y-6 py-4">
-                       <div className="space-y-2">
-                          <Label htmlFor="menu-name" className="text-base font-semibold">Nama Menu</Label>
-                          <Input 
-                            id="menu-name" 
-                            placeholder="Contoh: Nasi Ayam Teriyaki" 
-                            value={menuName}
-                            onChange={(e) => setMenuName(e.target.value)}
-                          />
-                       </div>
-
-                       <Separator />
-                       
-                       <div className="flex gap-8">
-                         {/* Segment Menu Besar */}
-                         <div className="flex-1 space-y-4 rounded-lg border p-4">
-                           <h3 className="text-lg font-semibold">Menu Besar</h3>
-                           <div className="space-y-4">
-                             {largePortionNutrients.map((nutrient) => (
-                                <NutrientInputRow
-                                  key={nutrient.id}
-                                  nutrient={nutrient}
-                                  onUpdate={(id, field, value) => handleNutrientChange('large', id, field, value)}
-                                  onRemove={(id) => removeNutrient('large', id)}
-                                  segment="large"
-                                />
-                             ))}
-                           </div>
-                           <Button type="button" variant="outline" size="sm" onClick={() => addNutrient('large')}>
-                              <PlusCircle className="mr-2" />
-                              Tambah Sumber Gizi
-                           </Button>
-                         </div>
-
-                          <Separator orientation="vertical" className="h-auto" />
-
-                         {/* Segment Menu Kecil */}
-                          <div className="flex-1 space-y-4 rounded-lg border p-4">
-                           <h3 className="text-lg font-semibold">Menu Kecil</h3>
-                           <div className="space-y-4">
-                             {smallPortionNutrients.map((nutrient) => (
-                                <NutrientInputRow
-                                  key={nutrient.id}
-                                  nutrient={nutrient}
-                                  onUpdate={(id, field, value) => handleNutrientChange('small', id, field, value)}
-                                  onRemove={(id) => removeNutrient('small', id)}
-                                  segment="small"
-                                />
-                             ))}
-                           </div>
-                            <Button type="button" variant="outline" size="sm" onClick={() => addNutrient('small')}>
-                              <PlusCircle className="mr-2" />
-                              Tambah Sumber Gizi
-                           </Button>
-                         </div>
-                       </div>
-
-
-                       <div className="flex justify-end pt-4">
-                          <Button type="submit">Simpan Menu</Button>
-                       </div>
-                    </form>
-                  </DialogContent>
-                </Dialog>
+                <Button className="mt-4" onClick={() => setIsFormOpen(true)}>Isi Menu</Button>
             </div>
           )}
         </CardContent>
@@ -300,6 +397,7 @@ export default function MenuPage() {
   };
 
   return (
+    <>
     <Card>
       <CardHeader>
         <CardTitle>Menu</CardTitle>
@@ -392,10 +490,12 @@ export default function MenuPage() {
         </Tabs>
       </CardContent>
     </Card>
+    <MenuFormDialog 
+        isOpen={isFormOpen} 
+        onOpenChange={setIsFormOpen} 
+        day={selectedDay}
+        menuData={mockMenuData[selectedDay]}
+    />
+    </>
   );
 }
-
-
-    
-
-    
