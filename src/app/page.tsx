@@ -24,6 +24,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 
 type Menu = 'Dashboard' | 'SPPG' | 'Mitra' | 'Menu' | 'Keuangan';
@@ -114,6 +115,9 @@ export default function Home() {
             </Button>
           </li>
         </ul>
+      </div>
+       <div className="mt-auto p-4 border-t">
+        <ThemeToggle />
       </div>
     </div>
   );
