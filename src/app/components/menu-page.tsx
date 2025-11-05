@@ -240,46 +240,51 @@ export default function MenuPage() {
                        </div>
 
                        <Separator />
-
-                       {/* Segment Menu Besar */}
-                       <div className="space-y-4 rounded-lg border p-4">
-                         <h3 className="text-lg font-semibold">Menu Besar</h3>
-                         <div className="space-y-4">
-                           {largePortionNutrients.map((nutrient) => (
-                              <NutrientInputRow
-                                key={nutrient.id}
-                                nutrient={nutrient}
-                                onUpdate={(id, field, value) => handleNutrientChange('large', id, field, value)}
-                                onRemove={(id) => removeNutrient('large', id)}
-                                segment="large"
-                              />
-                           ))}
+                       
+                       <div className="flex gap-8">
+                         {/* Segment Menu Besar */}
+                         <div className="flex-1 space-y-4 rounded-lg border p-4">
+                           <h3 className="text-lg font-semibold">Menu Besar</h3>
+                           <div className="space-y-4">
+                             {largePortionNutrients.map((nutrient) => (
+                                <NutrientInputRow
+                                  key={nutrient.id}
+                                  nutrient={nutrient}
+                                  onUpdate={(id, field, value) => handleNutrientChange('large', id, field, value)}
+                                  onRemove={(id) => removeNutrient('large', id)}
+                                  segment="large"
+                                />
+                             ))}
+                           </div>
+                           <Button type="button" variant="outline" size="sm" onClick={() => addNutrient('large')}>
+                              <PlusCircle className="mr-2" />
+                              Tambah Sumber Gizi
+                           </Button>
                          </div>
-                         <Button type="button" variant="outline" size="sm" onClick={() => addNutrient('large')}>
-                            <PlusCircle className="mr-2" />
-                            Tambah Sumber Gizi
-                         </Button>
+
+                          <Separator orientation="vertical" className="h-auto" />
+
+                         {/* Segment Menu Kecil */}
+                          <div className="flex-1 space-y-4 rounded-lg border p-4">
+                           <h3 className="text-lg font-semibold">Menu Kecil</h3>
+                           <div className="space-y-4">
+                             {smallPortionNutrients.map((nutrient) => (
+                                <NutrientInputRow
+                                  key={nutrient.id}
+                                  nutrient={nutrient}
+                                  onUpdate={(id, field, value) => handleNutrientChange('small', id, field, value)}
+                                  onRemove={(id) => removeNutrient('small', id)}
+                                  segment="small"
+                                />
+                             ))}
+                           </div>
+                            <Button type="button" variant="outline" size="sm" onClick={() => addNutrient('small')}>
+                              <PlusCircle className="mr-2" />
+                              Tambah Sumber Gizi
+                           </Button>
+                         </div>
                        </div>
 
-                       {/* Segment Menu Kecil */}
-                        <div className="space-y-4 rounded-lg border p-4">
-                         <h3 className="text-lg font-semibold">Menu Kecil</h3>
-                         <div className="space-y-4">
-                           {smallPortionNutrients.map((nutrient) => (
-                              <NutrientInputRow
-                                key={nutrient.id}
-                                nutrient={nutrient}
-                                onUpdate={(id, field, value) => handleNutrientChange('small', id, field, value)}
-                                onRemove={(id) => removeNutrient('small', id)}
-                                segment="small"
-                              />
-                           ))}
-                         </div>
-                          <Button type="button" variant="outline" size="sm" onClick={() => addNutrient('small')}>
-                            <PlusCircle className="mr-2" />
-                            Tambah Sumber Gizi
-                         </Button>
-                       </div>
 
                        <div className="flex justify-end pt-4">
                           <Button type="submit">Simpan Menu</Button>
@@ -390,5 +395,7 @@ export default function MenuPage() {
   );
 }
 
+
+    
 
     
