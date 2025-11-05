@@ -48,7 +48,15 @@ type Sekolah = {
 };
 
 type Jenjang = 'PAUD' | 'TK' | 'SD' | 'SMP' | 'SMA' | '';
-type SortableKeys = keyof Sekolah;
+type SortableKeysSekolah = keyof Sekolah;
+
+type B3Data = {
+  namaDesa: string;
+  alamat: string;
+  jenis: { bumil: number; busui: number; balita: number };
+  jumlah: number;
+};
+type SortableKeysB3 = keyof B3Data;
 
 
 const semuaDaftarSekolah: Sekolah[] = [
@@ -96,17 +104,46 @@ const semuaDaftarSekolah: Sekolah[] = [
   },
 ];
 
+const semuaDaftarB3: B3Data[] = [
+  {
+    namaDesa: 'Desa Makmur',
+    alamat: 'Jl. Sejahtera No. 1',
+    jenis: { bumil: 10, busui: 15, balita: 25 },
+    jumlah: 50,
+  },
+  {
+    namaDesa: 'Desa Sentosa',
+    alamat: 'Jl. Damai No. 2',
+    jenis: { bumil: 5, busui: 10, balita: 20 },
+    jumlah: 35,
+  },
+    {
+    namaDesa: 'Kelurahan Jaya',
+    alamat: 'Jl. Bahagia No. 3',
+    jenis: { bumil: 8, busui: 12, balita: 30 },
+    jumlah: 50,
+  },
+];
+
 
 export default function MitraPage() {
   const [activeTab, setActiveTab] = useState('sekolah');
   const [indicatorStyle, setIndicatorStyle] = useState({});
   const tabsRef = useRef<(HTMLButtonElement | null)[]>([]);
+
+  // State for Sekolah tab
   const [selectedSppg, setSelectedSppg] = useState('all');
   const [filteredSekolah, setFilteredSekolah] = useState<Sekolah[]>(semuaDaftarSekolah);
   const [selectedJenjang, setSelectedJenjang] = useState<Jenjang>('');
-  const [sortConfig, setSortConfig] = useState<{ key: SortableKeys; direction: 'ascending' | 'descending' } | null>(null);
-  const [itemsPerPage, setItemsPerPage] = useState(15);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [sortConfigSekolah, setSortConfigSekolah] = useState<{ key: SortableKeysSekolah; direction: 'ascending' | 'descending' } | null>(null);
+  const [itemsPerPageSekolah, setItemsPerPageSekolah] = useState(15);
+  const [currentPageSekolah, setCurrentPageSekolah] = useState(1);
+  
+  // State for B3 tab
+  const [daftarB3, setDaftarB3] = useState<B3Data[]>(semuaDaftarB3);
+  const [sortConfigB3, setSortConfigB3] = useState<{ key: SortableKeysB3; direction: 'ascending' | 'descending' } | null>(null);
+  const [itemsPerPageB3, setItemsPerPageB3] = useState(15);
+  const [currentPageB3, setCurrentPageB3] = useState(1);
 
 
   useEffect(() => {
@@ -123,9 +160,10 @@ export default function MitraPage() {
     }
   }, [activeTab]);
 
+  // Effects and handlers for Sekolah
   useEffect(() => {
-    setCurrentPage(1);
-  }, [itemsPerPage, selectedSppg]);
+    setCurrentPageSekolah(1);
+  }, [itemsPerPageSekolah, selectedSppg]);
 
   const handleSppgChange = (value: string) => {
     setSelectedSppg(value);
@@ -139,27 +177,90 @@ export default function MitraPage() {
 
   const sortedSekolah = useMemo(() => {
     let sortableItems = [...filteredSekolah];
-    if (sortConfig !== null) {
+    if (sortConfigSekolah !== null) {
       sortableItems.sort((a, b) => {
-        if (a[sortConfig.key] < b[sortConfig.key]) {
-          return sortConfig.direction === 'ascending' ? -1 : 1;
+        if (a[sortConfigSekolah.key] < b[sortConfigSekolah.key]) {
+          return sortConfigSekolah.direction === 'ascending' ? -1 : 1;
         }
-        if (a[sortConfig.key] > b[sortConfig.key]) {
-          return sortConfig.direction === 'ascending' ? 1 : -1;
+        if (a[sortConfigSekolah.key] > b[sortConfigSekolah.key]) {
+          return sortConfigSekolah.direction === 'ascending' ? 1 : -1;
         }
         return 0;
       });
     }
     return sortableItems;
-  }, [filteredSekolah, sortConfig]);
+  }, [filteredSekolah, sortConfigSekolah]);
 
-  const requestSort = (key: SortableKeys) => {
+  const requestSortSekolah = (key: SortableKeysSekolah) => {
     let direction: 'ascending' | 'descending' = 'ascending';
-    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'ascending') {
+    if (sortConfigSekolah && sortConfigSekolah.key === key && sortConfigSekolah.direction === 'ascending') {
       direction = 'descending';
     }
-    setSortConfig({ key, direction });
+    setSortConfigSekolah({ key, direction });
   };
+  
+  const getSortIndicatorSekolah = (key: SortableKeysSekolah) => {
+    if (!sortConfigSekolah || sortConfigSekolah.key !== key) {
+      return <ArrowUpDown className="ml-2 h-4 w-4" />;
+    }
+    return <ArrowUpDown className="ml-2 h-4 w-4" />;
+  };
+  
+  const paginatedSekolah = useMemo(() => {
+    const startIndex = (currentPageSekolah - 1) * itemsPerPageSekolah;
+    const endIndex = startIndex + itemsPerPageSekolah;
+    return sortedSekolah.slice(startIndex, endIndex);
+  }, [sortedSekolah, currentPageSekolah, itemsPerPageSekolah]);
+
+  const totalPagesSekolah = Math.ceil(sortedSekolah.length / itemsPerPageSekolah);
+  
+  // Effects and handlers for B3
+  useEffect(() => {
+    setCurrentPageB3(1);
+  }, [itemsPerPageB3]);
+  
+  const sortedB3 = useMemo(() => {
+    let sortableItems = [...daftarB3];
+    if (sortConfigB3 !== null) {
+      sortableItems.sort((a, b) => {
+        const valA = a[sortConfigB3.key];
+        const valB = b[sortConfigB3.key];
+        if (typeof valA === 'object' || typeof valB === 'object') return 0;
+
+        if (valA < valB) {
+          return sortConfigB3.direction === 'ascending' ? -1 : 1;
+        }
+        if (valA > valB) {
+          return sortConfigB3.direction === 'ascending' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+    return sortableItems;
+  }, [daftarB3, sortConfigB3]);
+
+  const requestSortB3 = (key: SortableKeysB3) => {
+    let direction: 'ascending' | 'descending' = 'ascending';
+    if (sortConfigB3 && sortConfigB3.key === key && sortConfigB3.direction === 'ascending') {
+      direction = 'descending';
+    }
+    setSortConfigB3({ key, direction });
+  };
+
+  const getSortIndicatorB3 = (key: SortableKeysB3) => {
+    if (!sortConfigB3 || sortConfigB3.key !== key) {
+      return <ArrowUpDown className="ml-2 h-4 w-4" />;
+    }
+    return <ArrowUpDown className="ml-2 h-4 w-4" />;
+  };
+  
+  const paginatedB3 = useMemo(() => {
+    const startIndex = (currentPageB3 - 1) * itemsPerPageB3;
+    const endIndex = startIndex + itemsPerPageB3;
+    return sortedB3.slice(startIndex, endIndex);
+  }, [sortedB3, currentPageB3, itemsPerPageB3]);
+
+  const totalPagesB3 = Math.ceil(sortedB3.length / itemsPerPageB3);
 
 
   const renderPorsiInputs = () => {
@@ -198,24 +299,6 @@ export default function MitraPage() {
     }
   };
   
-  const getSortIndicator = (key: SortableKeys) => {
-    if (!sortConfig || sortConfig.key !== key) {
-      return <ArrowUpDown className="ml-2 h-4 w-4" />;
-    }
-    if (sortConfig.direction === 'ascending') {
-      return <ArrowUpDown className="ml-2 h-4 w-4" />; // Simplified, can use ArrowUp later
-    }
-    return <ArrowUpDown className="ml-2 h-4 w-4" />; // Simplified, can use ArrowDown later
-  };
-  
-  const paginatedSekolah = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return sortedSekolah.slice(startIndex, endIndex);
-  }, [sortedSekolah, currentPage, itemsPerPage]);
-
-  const totalPages = Math.ceil(sortedSekolah.length / itemsPerPage);
-
 
   return (
     <Card>
@@ -265,27 +348,27 @@ export default function MitraPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>
-                      <Button variant="ghost" onClick={() => requestSort('nama')}>
+                      <Button variant="ghost" onClick={() => requestSortSekolah('nama')}>
                         Nama Sekolah
-                        {getSortIndicator('nama')}
+                        {getSortIndicatorSekolah('nama')}
                       </Button>
                     </TableHead>
                     <TableHead>
-                      <Button variant="ghost" onClick={() => requestSort('alamat')}>
+                      <Button variant="ghost" onClick={() => requestSortSekolah('alamat')}>
                         Alamat Sekolah
-                        {getSortIndicator('alamat')}
+                        {getSortIndicatorSekolah('alamat')}
                       </Button>
                     </TableHead>
                     <TableHead>
-                       <Button variant="ghost" onClick={() => requestSort('jenjang')}>
+                       <Button variant="ghost" onClick={() => requestSortSekolah('jenjang')}>
                         Jenjang
-                        {getSortIndicator('jenjang')}
+                        {getSortIndicatorSekolah('jenjang')}
                       </Button>
                     </TableHead>
                     <TableHead>
-                       <Button variant="ghost" onClick={() => requestSort('jumlahPM')}>
+                       <Button variant="ghost" onClick={() => requestSortSekolah('jumlahPM')}>
                         Jumlah PM
-                        {getSortIndicator('jumlahPM')}
+                        {getSortIndicatorSekolah('jumlahPM')}
                       </Button>
                     </TableHead>
                   </TableRow>
@@ -311,12 +394,12 @@ export default function MitraPage() {
               </Table>
               <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-4">
                  <div className="flex items-center gap-2">
-                    <Label htmlFor="items-per-page">Tampilkan</Label>
+                    <Label htmlFor="items-per-page-sekolah">Tampilkan</Label>
                     <Select
-                      value={String(itemsPerPage)}
-                      onValueChange={(value) => setItemsPerPage(Number(value))}
+                      value={String(itemsPerPageSekolah)}
+                      onValueChange={(value) => setItemsPerPageSekolah(Number(value))}
                     >
-                      <SelectTrigger id="items-per-page" className="w-20">
+                      <SelectTrigger id="items-per-page-sekolah" className="w-20">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -332,20 +415,20 @@ export default function MitraPage() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                      disabled={currentPage === 1}
+                      onClick={() => setCurrentPageSekolah((prev) => Math.max(prev - 1, 1))}
+                      disabled={currentPageSekolah === 1}
                     >
                       <ChevronLeft className="h-4 w-4" />
                        <span className="sr-only">Sebelumnya</span>
                     </Button>
                     <span className="text-sm text-muted-foreground">
-                      Halaman {currentPage} dari {totalPages}
+                      Halaman {currentPageSekolah} dari {totalPagesSekolah}
                     </span>
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                      disabled={currentPage === totalPages}
+                      onClick={() => setCurrentPageSekolah((prev) => Math.min(prev + 1, totalPagesSekolah))}
+                      disabled={currentPageSekolah === totalPagesSekolah}
                     >
                       <ChevronRight className="h-4 w-4" />
                        <span className="sr-only">Selanjutnya</span>
@@ -418,12 +501,117 @@ export default function MitraPage() {
             </div>
           </TabsContent>
           <TabsContent value="b3">
-            <div className="p-4">
-              <p>Konten untuk B3 Penerima Manfaat akan ditampilkan di sini.</p>
-            </div>
+             <div className="p-4 space-y-4">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>
+                        <Button variant="ghost" onClick={() => requestSortB3('namaDesa')}>
+                          Nama Desa/Kelurahan
+                          {getSortIndicatorB3('namaDesa')}
+                        </Button>
+                      </TableHead>
+                      <TableHead>
+                        <Button variant="ghost" onClick={() => requestSortB3('alamat')}>
+                          Alamat
+                          {getSortIndicatorB3('alamat')}
+                        </Button>
+                      </TableHead>
+                      <TableHead>
+                        Jenis
+                      </TableHead>
+                      <TableHead>
+                        <Button variant="ghost" onClick={() => requestSortB3('jumlah')}>
+                          Jumlah
+                          {getSortIndicatorB3('jumlah')}
+                        </Button>
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {paginatedB3.length > 0 ? (
+                      paginatedB3.map((item, index) => (
+                        <TableRow key={index}>
+                          <TableCell>{item.namaDesa}</TableCell>
+                          <TableCell>{item.alamat}</TableCell>
+                          <TableCell>
+                            <div>Bumil: {item.jenis.bumil}</div>
+                            <div>Busui: {item.jenis.busui}</div>
+                            <div>Balita: {item.jenis.balita}</div>
+                          </TableCell>
+                          <TableCell>{item.jumlah}</TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-center">
+                          Tidak ada data B3.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+                <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-4">
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="items-per-page-b3">Tampilkan</Label>
+                    <Select
+                      value={String(itemsPerPageB3)}
+                      onValueChange={(value) => setItemsPerPageB3(Number(value))}
+                    >
+                      <SelectTrigger id="items-per-page-b3" className="w-20">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="15">15</SelectItem>
+                        <SelectItem value="30">30</SelectItem>
+                        <SelectItem value="50">50</SelectItem>
+                        <SelectItem value="100">100</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setCurrentPageB3((prev) => Math.max(prev - 1, 1))}
+                      disabled={currentPageB3 === 1}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                       <span className="sr-only">Sebelumnya</span>
+                    </Button>
+                    <span className="text-sm text-muted-foreground">
+                      Halaman {currentPageB3} dari {totalPagesB3}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setCurrentPageB3((prev) => Math.min(prev + 1, totalPagesB3))}
+                      disabled={currentPageB3 === totalPagesB3}
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                      <span className="sr-only">Selanjutnya</span>
+                    </Button>
+                  </div>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button>Tambah B3</Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Tambah B3 Penerima Manfaat</DialogTitle>
+                      </DialogHeader>
+                      <div className="p-4">
+                        <p>Formulir untuk menambah B3 akan ditampilkan di sini.</p>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </div>
           </TabsContent>
         </Tabs>
       </CardContent>
     </Card>
   );
 }
+
+    
