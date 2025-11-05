@@ -46,11 +46,14 @@ import {
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { CardDescription } from '@/components/ui/card';
+import Image from 'next/image';
+
 
 type DayOfWeek = 'Senin' | 'Selasa' | 'Rabu' | 'Kamis' | 'Jumat';
 type Nutrient = { id: number; source: string; amount: string };
 type MenuData = {
   menuName: string;
+  imageUrl: string;
   largePortion: Nutrient[];
   smallPortion: Nutrient[];
 };
@@ -71,16 +74,19 @@ const menuDataBySppg: Record<SppgId, WeeklyMenu> = {
         menuData: {
             Senin: {
                 menuName: 'Nasi Ayam Goreng Spesial (Al-Ikhlas)',
+                imageUrl: 'https://picsum.photos/seed/1/600/400',
                 largePortion: [{ id: 1, source: 'protein', amount: '150' }, { id: 2, source: 'karbohidrat', amount: '200' }],
                 smallPortion: [{ id: 1, source: 'protein', amount: '100' }, { id: 2, source: 'karbohidrat', amount: '150' }],
             },
             Rabu: {
                 menuName: 'Ikan Bakar & Sayur Sop (Al-Ikhlas)',
+                imageUrl: 'https://picsum.photos/seed/2/600/400',
                 largePortion: [{ id: 1, source: 'protein', amount: '180' }, { id: 2, source: 'zat-besi', amount: '20' }],
                 smallPortion: [{ id: 1, source: 'protein', amount: '120' }, { id: 2, source: 'zat-besi', amount: '15' }],
             },
             Kamis: {
                 menuName: 'Daging Rendang & Tumis Kangkung (Al-Ikhlas)',
+                imageUrl: 'https://picsum.photos/seed/3/600/400',
                 largePortion: [{ id: 1, source: 'protein', amount: '200' }, { id: 2, source: 'lemak', amount: '50' }],
                 smallPortion: [{ id: 1, source: 'protein', amount: '130' }, { id: 2, source: 'lemak', amount: '35' }],
             },
@@ -93,11 +99,13 @@ const menuDataBySppg: Record<SppgId, WeeklyMenu> = {
         menuData: {
             Senin: {
                 menuName: 'Soto Ayam Lamongan (Bina Umat)',
+                imageUrl: 'https://picsum.photos/seed/4/600/400',
                 largePortion: [{ id: 1, source: 'protein', amount: '160' }, { id: 2, source: 'energi', amount: '300' }],
                 smallPortion: [{ id: 1, source: 'protein', amount: '110' }, { id: 2, source: 'energi', amount: '250' }],
             },
             Selasa: {
                  menuName: 'Gado-gado Siram (Bina Umat)',
+                 imageUrl: 'https://picsum.photos/seed/5/600/400',
                 largePortion: [{ id: 1, source: 'protein', amount: '100' }, { id: 2, source: 'lemak', amount: '40' }],
                 smallPortion: [{ id: 1, source: 'protein', amount: '70' }, { id: 2, source: 'lemak', amount: '25' }],
             },
@@ -111,11 +119,13 @@ const menuDataBySppg: Record<SppgId, WeeklyMenu> = {
         menuData: {
             Kamis: {
                 menuName: 'Nasi Uduk Komplit (Nurul Hidayah)',
+                imageUrl: 'https://picsum.photos/seed/6/600/400',
                 largePortion: [{ id: 1, source: 'karbohidrat', amount: '250' }, { id: 2, source: 'protein', amount: '140' }],
                 smallPortion: [{ id: 1, source: 'karbohidrat', amount: '180' }, { id: 2, source: 'protein', amount: '90' }],
             },
             Jumat: {
                 menuName: 'Bubur Ayam Sehat (Nurul Hidayah)',
+                imageUrl: 'https://picsum.photos/seed/7/600/400',
                 largePortion: [{ id: 1, source: 'karbohidrat', amount: '200' }, { id: 2, source: 'energi', amount: '280' }],
                 smallPortion: [{ id: 1, source: 'karbohidrat', amount: '150' }, { id: 2, source: 'energi', amount: '220' }],
             },
@@ -241,12 +251,13 @@ const MenuFormDialog = ({
         setMenuName(menuData.menuName);
         setLargePortionNutrients(menuData.largePortion.length > 0 ? menuData.largePortion : [{ id: 1, source: '', amount: '' }]);
         setSmallPortionNutrients(menuData.smallPortion.length > 0 ? menuData.smallPortion : [{ id: 1, source: '', amount: '' }]);
+        setImagePreview(menuData.imageUrl);
     } else {
         setMenuName('');
         setLargePortionNutrients([{ id: 1, source: '', amount: '' }]);
         setSmallPortionNutrients([{ id: 1, source: '', amount: '' }]);
+        setImagePreview(null);
     }
-    setImagePreview(null);
   }, [menuData, isOpen]);
 
 
@@ -311,7 +322,7 @@ const MenuFormDialog = ({
               >
                 {imagePreview ? (
                    <>
-                    <img src={imagePreview} alt="Pratinjau menu" className="object-contain h-full w-full rounded-md" />
+                    <Image src={imagePreview} alt="Pratinjau menu" fill className="object-contain rounded-md" />
                      <Button
                         type="button"
                         variant="destructive"
@@ -498,7 +509,18 @@ export default function MenuPage() {
         <CardContent>
           {isFilled && currentMenuData ? (
             <div className="space-y-6">
-                <h3 className="text-xl font-semibold">{currentMenuData.menuName}</h3>
+                <div className="space-y-2">
+                  <h3 className="text-xl font-semibold">{currentMenuData.menuName}</h3>
+                  <div className="relative aspect-video w-full max-w-lg mx-auto rounded-lg overflow-hidden border">
+                    <Image 
+                      src={currentMenuData.imageUrl} 
+                      alt={`Foto menu ${currentMenuData.menuName}`} 
+                      fill
+                      data-ai-hint="food meal"
+                      className="object-cover"
+                    />
+                  </div>
+                </div>
                 <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                         <h4 className="font-semibold text-lg">Menu Besar</h4>
@@ -676,3 +698,5 @@ export default function MenuPage() {
     </>
   );
 }
+
+    
