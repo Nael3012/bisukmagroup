@@ -32,6 +32,14 @@ const initialWeekStatus: Record<DayOfWeek, boolean> = {
   Jumat: false,
 };
 
+const dayMapping: Record<number, DayOfWeek> = {
+  1: 'Senin',
+  2: 'Selasa',
+  3: 'Rabu',
+  4: 'Kamis',
+  5: 'Jumat',
+};
+
 export default function MenuPage() {
     const [activeTab, setActiveTab] = useState('harian');
     const [indicatorStyle, setIndicatorStyle] = useState({});
@@ -54,6 +62,16 @@ export default function MenuPage() {
         });
         }
     }, [activeTab]);
+    
+    useEffect(() => {
+        if (date) {
+            const dayOfWeek = date.getDay();
+            const newSelectedDay = dayMapping[dayOfWeek];
+            if (newSelectedDay) {
+                setSelectedDay(newSelectedDay);
+            }
+        }
+    }, [date]);
 
     const renderDailyMenuContent = () => {
       const isFilled = weekStatus[selectedDay];
