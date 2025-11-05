@@ -40,6 +40,7 @@ import { cn } from '@/lib/utils';
 
 
 type Sekolah = {
+  id: string;
   nama: string;
   alamat: string;
   jenjang: string;
@@ -48,20 +49,21 @@ type Sekolah = {
 };
 
 type Jenjang = 'PAUD' | 'TK' | 'SD' | 'SMP' | 'SMA' | '';
-type SortableKeysSekolah = keyof Sekolah;
+type SortableKeysSekolah = keyof Omit<Sekolah, 'id'>;
 
 type B3Data = {
+  id: string;
   namaDesa: string;
   alamat: string;
   jenis: { bumil: number; busui: number; balita: number };
   jumlah: number;
   sppg: string;
 };
-type SortableKeysB3 = keyof B3Data;
-
+type SortableKeysB3 = keyof Omit<B3Data, 'id' | 'jenis'>;
 
 const semuaDaftarSekolah: Sekolah[] = [
   {
+    id: 'sekolah-1',
     nama: 'SDN Merdeka 1',
     alamat: 'Jl. Kemerdekaan No. 10, Jakarta',
     jenjang: 'SD',
@@ -69,6 +71,7 @@ const semuaDaftarSekolah: Sekolah[] = [
     sppg: 'sppg-al-ikhlas',
   },
   {
+    id: 'sekolah-2',
     nama: 'SMP Juara',
     alamat: 'Jl. Kemenangan No. 5, Jakarta',
     jenjang: 'SMP',
@@ -76,6 +79,7 @@ const semuaDaftarSekolah: Sekolah[] = [
     sppg: 'sppg-al-ikhlas',
   },
   {
+    id: 'sekolah-3',
     nama: 'SMP Bina Bangsa',
     alamat: 'Jl. Pendidikan No. 25, Bandung',
     jenjang: 'SMP',
@@ -83,6 +87,7 @@ const semuaDaftarSekolah: Sekolah[] = [
     sppg: 'sppg-bina-umat',
   },
   {
+    id: 'sekolah-4',
     nama: 'SMK Bisa',
     alamat: 'Jl. Industri No. 1, Bandung',
     jenjang: 'SMA', // Changed from SMK to SMA to match Jenjang type
@@ -90,6 +95,7 @@ const semuaDaftarSekolah: Sekolah[] = [
     sppg: 'sppg-bina-umat',
   },
   {
+    id: 'sekolah-5',
     nama: 'SMA Cendekia',
     alamat: 'Jl. Pelajar No. 5, Surabaya',
     jenjang: 'SMA',
@@ -97,6 +103,7 @@ const semuaDaftarSekolah: Sekolah[] = [
     sppg: 'sppg-nurul-hidayah',
   },
    {
+    id: 'sekolah-6',
     nama: 'SD Pelita Harapan',
     alamat: 'Jl. Ilmu No. 15, Surabaya',
     jenjang: 'SD',
@@ -107,6 +114,7 @@ const semuaDaftarSekolah: Sekolah[] = [
 
 const semuaDaftarB3: B3Data[] = [
   {
+    id: 'b3-1',
     namaDesa: 'Desa Makmur',
     alamat: 'Jl. Sejahtera No. 1',
     jenis: { bumil: 10, busui: 15, balita: 25 },
@@ -114,6 +122,7 @@ const semuaDaftarB3: B3Data[] = [
     sppg: 'sppg-al-ikhlas',
   },
   {
+    id: 'b3-2',
     namaDesa: 'Desa Sentosa',
     alamat: 'Jl. Damai No. 2',
     jenis: { bumil: 5, busui: 10, balita: 20 },
@@ -121,6 +130,7 @@ const semuaDaftarB3: B3Data[] = [
     sppg: 'sppg-bina-umat',
   },
     {
+    id: 'b3-3',
     namaDesa: 'Kelurahan Jaya',
     alamat: 'Jl. Bahagia No. 3',
     jenis: { bumil: 8, busui: 12, balita: 30 },
@@ -129,6 +139,23 @@ const semuaDaftarB3: B3Data[] = [
   },
 ];
 
+const sppgOptions = [
+  {
+    value: 'sppg-al-ikhlas',
+    label: 'SPPG Al-Ikhlas',
+    address: 'Jl. Merdeka No. 1, Jakarta',
+  },
+  {
+    value: 'sppg-bina-umat',
+    label: 'SPPG Bina Umat',
+    address: 'Jl. Pahlawan No. 10, Surabaya',
+  },
+  {
+    value: 'sppg-nurul-hidayah',
+    label: 'SPPG Nurul Hidayah',
+    address: 'Jl. Sudirman No. 5, Bandung',
+  },
+];
 
 export default function MitraPage() {
   const [activeTab, setActiveTab] = useState('sekolah');
@@ -345,15 +372,24 @@ export default function MitraPage() {
           <div className="p-4">
              <div className="w-full max-w-xs">
                 <Select onValueChange={handleSppgChange} value={selectedSppg}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Pilih SPPG" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Semua SPPG</SelectItem>
-                    <SelectItem value="sppg-al-ikhlas">SPPG Al-Ikhlas</SelectItem>
-                    <SelectItem value="sppg-bina-umat">SPPG Bina Umat</SelectItem>
-                    <SelectItem value="sppg-nurul-hidayah">SPPG Nurul Hidayah</SelectItem>
-                  </SelectContent>
+                    <SelectTrigger>
+                        <SelectValue placeholder="Pilih SPPG" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">
+                            <div>
+                                <p className="font-medium">Semua SPPG</p>
+                            </div>
+                        </SelectItem>
+                        {sppgOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                            <div>
+                                <p className="font-medium">{option.label}</p>
+                                <p className="text-xs text-muted-foreground">{option.address}</p>
+                            </div>
+                        </SelectItem>
+                        ))}
+                    </SelectContent>
                 </Select>
               </div>
           </div>
@@ -391,8 +427,8 @@ export default function MitraPage() {
                 </TableHeader>
                 <TableBody>
                   {paginatedSekolah.length > 0 ? (
-                    paginatedSekolah.map((sekolah, index) => (
-                      <TableRow key={index}>
+                    paginatedSekolah.map((sekolah) => (
+                      <TableRow key={sekolah.id}>
                         <TableCell>{sekolah.nama}</TableCell>
                         <TableCell>{sekolah.alamat}</TableCell>
                         <TableCell>{sekolah.jenjang}</TableCell>
@@ -546,8 +582,8 @@ export default function MitraPage() {
                   </TableHeader>
                   <TableBody>
                     {paginatedB3.length > 0 ? (
-                      paginatedB3.map((item, index) => (
-                        <TableRow key={index}>
+                      paginatedB3.map((item) => (
+                        <TableRow key={item.id}>
                           <TableCell>{item.namaDesa}</TableCell>
                           <TableCell>{item.alamat}</TableCell>
                           <TableCell>
