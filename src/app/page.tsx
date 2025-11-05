@@ -1,4 +1,3 @@
-import { Button } from '@/components/ui/button';
 import {
   SidebarProvider,
   Sidebar,
@@ -15,9 +14,9 @@ import {
 export default function Home() {
   return (
     <SidebarProvider>
-      <Sidebar>
+      <Sidebar collapsible="none">
         <SidebarHeader>
-          <SidebarTrigger />
+          <div className="h-8" />
         </SidebarHeader>
         <SidebarContent>
           <SidebarMenu>
@@ -41,11 +40,16 @@ export default function Home() {
         <SidebarFooter />
       </Sidebar>
       <SidebarInset>
-        <main className="flex min-h-screen flex-col items-center justify-center p-24">
+        <header className="flex items-center justify-between p-4 border-b md:justify-end">
+          <div className="md:hidden">
+            <SidebarTrigger />
+          </div>
+          <div>{/* Placeholder for user menu or other header items */}</div>
+        </header>
+        <main className="flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center p-24">
           <div className="flex flex-col items-center gap-4">
             <h1 className="text-4xl font-bold">Hello, World!</h1>
             <p>Ini adalah tombol dengan warna aksen baru Anda.</p>
-            <Button>Tombol Keren</Button>
           </div>
         </main>
       </SidebarInset>
