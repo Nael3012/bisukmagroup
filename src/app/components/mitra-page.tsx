@@ -55,6 +55,7 @@ type B3Data = {
   alamat: string;
   jenis: { bumil: number; busui: number; balita: number };
   jumlah: number;
+  sppg: string;
 };
 type SortableKeysB3 = keyof B3Data;
 
@@ -110,18 +111,21 @@ const semuaDaftarB3: B3Data[] = [
     alamat: 'Jl. Sejahtera No. 1',
     jenis: { bumil: 10, busui: 15, balita: 25 },
     jumlah: 50,
+    sppg: 'sppg-al-ikhlas',
   },
   {
     namaDesa: 'Desa Sentosa',
     alamat: 'Jl. Damai No. 2',
     jenis: { bumil: 5, busui: 10, balita: 20 },
     jumlah: 35,
+    sppg: 'sppg-bina-umat',
   },
     {
     namaDesa: 'Kelurahan Jaya',
     alamat: 'Jl. Bahagia No. 3',
     jenis: { bumil: 8, busui: 12, balita: 30 },
     jumlah: 50,
+    sppg: 'sppg-nurul-hidayah',
   },
 ];
 
@@ -140,7 +144,7 @@ export default function MitraPage() {
   const [currentPageSekolah, setCurrentPageSekolah] = useState(1);
   
   // State for B3 tab
-  const [daftarB3, setDaftarB3] = useState<B3Data[]>(semuaDaftarB3);
+  const [filteredB3, setFilteredB3] = useState<B3Data[]>(semuaDaftarB3);
   const [sortConfigB3, setSortConfigB3] = useState<{ key: SortableKeysB3; direction: 'ascending' | 'descending' } | null>(null);
   const [itemsPerPageB3, setItemsPerPageB3] = useState(15);
   const [currentPageB3, setCurrentPageB3] = useState(1);
@@ -160,20 +164,30 @@ export default function MitraPage() {
     }
   }, [activeTab]);
 
-  // Effects and handlers for Sekolah
+  // Effects and handlers for both tabs
   useEffect(() => {
     setCurrentPageSekolah(1);
-  }, [itemsPerPageSekolah, selectedSppg]);
+    setCurrentPageB3(1);
+
+    if (selectedSppg === 'all') {
+      setFilteredSekolah(semuaDaftarSekolah);
+      setFilteredB3(semuaDaftarB3);
+    } else {
+      const filteredSekolahData = semuaDaftarSekolah.filter((sekolah) => sekolah.sppg === selectedSppg);
+      const filteredB3Data = semuaDaftarB3.filter((b3) => b3.sppg === selectedSppg);
+      setFilteredSekolah(filteredSekolahData);
+      setFilteredB3(filteredB3Data);
+    }
+  }, [selectedSppg]);
 
   const handleSppgChange = (value: string) => {
     setSelectedSppg(value);
-    if (value === 'all') {
-      setFilteredSekolah(semuaDaftarSekolah);
-    } else {
-      const filtered = semuaDaftarSekolah.filter((sekolah) => sekolah.sppg === value);
-      setFilteredSekolah(filtered);
-    }
   };
+
+  // Effects and handlers for Sekolah
+  useEffect(() => {
+    setCurrentPageSekolah(1);
+  }, [itemsPerPageSekolah]);
 
   const sortedSekolah = useMemo(() => {
     let sortableItems = [...filteredSekolah];
@@ -220,7 +234,7 @@ export default function MitraPage() {
   }, [itemsPerPageB3]);
   
   const sortedB3 = useMemo(() => {
-    let sortableItems = [...daftarB3];
+    let sortableItems = [...filteredB3];
     if (sortConfigB3 !== null) {
       sortableItems.sort((a, b) => {
         const valA = a[sortConfigB3.key];
@@ -237,7 +251,7 @@ export default function MitraPage() {
       });
     }
     return sortableItems;
-  }, [daftarB3, sortConfigB3]);
+  }, [filteredB3, sortConfigB3]);
 
   const requestSortB3 = (key: SortableKeysB3) => {
     let direction: 'ascending' | 'descending' = 'ascending';
@@ -327,23 +341,25 @@ export default function MitraPage() {
               style={indicatorStyle}
             />
           </TabsList>
-          <TabsContent value="sekolah">
-            <div className="p-4 space-y-4">
-              <div className="flex justify-between items-center">
-                <div className="w-full max-w-xs">
-                  <Select onValueChange={handleSppgChange} value={selectedSppg}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih SPPG" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Semua SPPG</SelectItem>
-                      <SelectItem value="sppg-al-ikhlas">SPPG Al-Ikhlas</SelectItem>
-                      <SelectItem value="sppg-bina-umat">SPPG Bina Umat</SelectItem>
-                      <SelectItem value="sppg-nurul-hidayah">SPPG Nurul Hidayah</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+
+          <div className="p-4">
+             <div className="w-full max-w-xs">
+                <Select onValueChange={handleSppgChange} value={selectedSppg}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih SPPG" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Semua SPPG</SelectItem>
+                    <SelectItem value="sppg-al-ikhlas">SPPG Al-Ikhlas</SelectItem>
+                    <SelectItem value="sppg-bina-umat">SPPG Bina Umat</SelectItem>
+                    <SelectItem value="sppg-nurul-hidayah">SPPG Nurul Hidayah</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
+          </div>
+
+          <TabsContent value="sekolah">
+            <div className="px-4 pb-4 space-y-4">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -501,7 +517,7 @@ export default function MitraPage() {
             </div>
           </TabsContent>
           <TabsContent value="b3">
-             <div className="p-4 space-y-4">
+             <div className="px-4 pb-4 space-y-4">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -545,7 +561,7 @@ export default function MitraPage() {
                     ) : (
                       <TableRow>
                         <TableCell colSpan={4} className="text-center">
-                          Tidak ada data B3.
+                          Tidak ada data B3 untuk SPPG ini.
                         </TableCell>
                       </TableRow>
                     )}
