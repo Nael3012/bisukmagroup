@@ -33,54 +33,8 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Info, ChevronLeft, ChevronRight, Pencil } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
-
-type SppgData = {
-  id: string;
-  nama: string;
-  yayasan: string;
-  alamat: string;
-  penerimaManfaat: number;
-  namaKaSppg: string;
-  namaAkuntan: string;
-  ahliGizi: string;
-  asistenLapangan: string;
-};
-
-const sppgList: SppgData[] = [
-  {
-    id: 'sppg-1',
-    nama: 'SPPG Al-Ikhlas',
-    yayasan: 'Yayasan Al-Ikhlas',
-    alamat: 'Jl. Merdeka No. 1, Jakarta',
-    penerimaManfaat: 150,
-    namaKaSppg: 'Budi Hartono',
-    namaAkuntan: 'Siti Rahma',
-    ahliGizi: 'Dr. Ani Wijaya',
-    asistenLapangan: 'Joko Susilo',
-  },
-  {
-    id: 'sppg-2',
-    nama: 'SPPG Bina Umat',
-    yayasan: 'Yayasan Bina Umat',
-    alamat: 'Jl. Pahlawan No. 10, Surabaya',
-    penerimaManfaat: 200,
-    namaKaSppg: 'Ahmad Subarjo',
-    namaAkuntan: 'Dewi Sartika',
-    ahliGizi: 'Dr. Rina Puspita',
-    asistenLapangan: 'Agus Salim',
-  },
-  {
-    id: 'sppg-3',
-    nama: 'SPPG Nurul Hidayah',
-    yayasan: 'Yayasan Nurul Hidayah',
-    alamat: 'Jl. Sudirman No. 5, Bandung',
-    penerimaManfaat: 120,
-    namaKaSppg: 'Zainal Abidin',
-    namaAkuntan: 'Lina Marlina',
-    ahliGizi: 'Dr. Hendra Gunawan',
-    asistenLapangan: 'Rudi Hartono',
-  },
-];
+import type { SppgData } from '../data/mock';
+import { getSppgListWithDynamicPM } from '../data/mock';
 
 
 const DetailItem = ({ label, value }: { label: string, value: React.ReactNode }) => (
@@ -155,6 +109,8 @@ export default function SppgPage() {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedSppg, setSelectedSppg] = useState<SppgData | null>(null);
 
+  const sppgList = useMemo(() => getSppgListWithDynamicPM(), []);
+
   useEffect(() => {
     setCurrentPage(1);
   }, [itemsPerPage]);
@@ -163,7 +119,7 @@ export default function SppgPage() {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     return sppgList.slice(startIndex, endIndex);
-  }, [currentPage, itemsPerPage]);
+  }, [sppgList, currentPage, itemsPerPage]);
 
   const totalPages = Math.ceil(sppgList.length / itemsPerPage);
   

@@ -37,108 +37,16 @@ import { Separator } from '@/components/ui/separator';
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { ArrowUpDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import type { Sekolah, B3Data } from '../data/mock';
+import { semuaDaftarSekolah, semuaDaftarB3 } from '../data/mock';
 
-
-type Sekolah = {
-  id: string;
-  nama: string;
-  alamat: string;
-  jenjang: string;
-  jumlahPM: number;
-  sppg: string;
-};
 
 type Jenjang = 'PAUD' | 'TK' | 'SD' | 'SMP' | 'SMA' | '';
-type SortableKeysSekolah = keyof Omit<Sekolah, 'id' | 'sppg'>;
+type SortableKeysSekolah = keyof Omit<Sekolah, 'id' | 'sppgId'>;
 
 
-type B3Data = {
-  id: string;
-  namaDesa: string;
-  alamat: string;
-  jenis: { bumil: number; busui: number; balita: number };
-  jumlah: number;
-  sppg: string;
-};
-type SortableKeysB3 = keyof Omit<B3Data, 'id' | 'jenis' | 'sppg'>;
+type SortableKeysB3 = keyof Omit<B3Data, 'id' | 'jenis' | 'sppgId'>;
 
-const semuaDaftarSekolah: Sekolah[] = [
-  {
-    id: 'sekolah-1',
-    nama: 'SDN Merdeka 1',
-    alamat: 'Jl. Kemerdekaan No. 10, Jakarta',
-    jenjang: 'SD',
-    jumlahPM: 50,
-    sppg: 'sppg-al-ikhlas',
-  },
-  {
-    id: 'sekolah-2',
-    nama: 'SMP Juara',
-    alamat: 'Jl. Kemenangan No. 5, Jakarta',
-    jenjang: 'SMP',
-    jumlahPM: 60,
-    sppg: 'sppg-al-ikhlas',
-  },
-  {
-    id: 'sekolah-3',
-    nama: 'SMP Bina Bangsa',
-    alamat: 'Jl. Pendidikan No. 25, Bandung',
-    jenjang: 'SMP',
-    jumlahPM: 75,
-    sppg: 'sppg-bina-umat',
-  },
-  {
-    id: 'sekolah-4',
-    nama: 'SMK Bisa',
-    alamat: 'Jl. Industri No. 1, Bandung',
-    jenjang: 'SMA', // Changed from SMK to SMA to match Jenjang type
-    jumlahPM: 90,
-    sppg: 'sppg-bina-umat',
-  },
-  {
-    id: 'sekolah-5',
-    nama: 'SMA Cendekia',
-    alamat: 'Jl. Pelajar No. 5, Surabaya',
-    jenjang: 'SMA',
-    jumlahPM: 100,
-    sppg: 'sppg-nurul-hidayah',
-  },
-   {
-    id: 'sekolah-6',
-    nama: 'SD Pelita Harapan',
-    alamat: 'Jl. Ilmu No. 15, Surabaya',
-    jenjang: 'SD',
-    jumlahPM: 45,
-    sppg: 'sppg-nurul-hidayah',
-  },
-];
-
-const semuaDaftarB3: B3Data[] = [
-  {
-    id: 'b3-1',
-    namaDesa: 'Desa Makmur',
-    alamat: 'Jl. Sejahtera No. 1',
-    jenis: { bumil: 10, busui: 15, balita: 25 },
-    jumlah: 50,
-    sppg: 'sppg-al-ikhlas',
-  },
-  {
-    id: 'b3-2',
-    namaDesa: 'Desa Sentosa',
-    alamat: 'Jl. Damai No. 2',
-    jenis: { bumil: 5, busui: 10, balita: 20 },
-    jumlah: 35,
-    sppg: 'sppg-bina-umat',
-  },
-    {
-    id: 'b3-3',
-    namaDesa: 'Kelurahan Jaya',
-    alamat: 'Jl. Bahagia No. 3',
-    jenis: { bumil: 8, busui: 12, balita: 30 },
-    jumlah: 50,
-    sppg: 'sppg-nurul-hidayah',
-  },
-];
 
 const sppgOptions = [
   {
@@ -201,12 +109,12 @@ export default function MitraPage() {
   // Memoized filtered data for both tabs
   const filteredSekolah = useMemo(() => {
     if (selectedSppg === 'all') return semuaDaftarSekolah;
-    return semuaDaftarSekolah.filter((sekolah) => sekolah.sppg === selectedSppg);
+    return semuaDaftarSekolah.filter((sekolah) => sekolah.sppgId === selectedSppg);
   }, [selectedSppg]);
   
   const filteredB3 = useMemo(() => {
     if (selectedSppg === 'all') return semuaDaftarB3;
-    return semuaDaftarB3.filter((b3) => b3.sppg === selectedSppg);
+    return semuaDaftarB3.filter((b3) => b3.sppgId === selectedSppg);
   }, [selectedSppg]);
 
   // Effects and handlers for Sekolah
