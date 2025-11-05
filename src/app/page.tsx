@@ -45,69 +45,67 @@ export default function Home() {
   };
 
   const sidebarContent = (
-    <>
-      <div className="flex flex-col gap-2 p-2">
-        <div className="h-16 flex items-center px-4">
-          {/* Placeholder for Logo */}
-        </div>
-        <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-auto p-2">
-          <ul className="flex w-full min-w-0 flex-col gap-1">
-            <li className="relative">
-              <Button
-                variant="ghost"
-                className={cn("w-full justify-start", activeMenu === 'Dashboard' && "bg-accent text-accent-foreground")}
-                onClick={() => handleMenuClick('Dashboard')}
-              >
-                Dashboard
-              </Button>
-            </li>
-            <li className="relative">
-              <Button
-                variant="ghost"
-                className={cn("w-full justify-start", activeMenu === 'SPPG' && "bg-accent text-accent-foreground")}
-                onClick={() => handleMenuClick('SPPG')}
-              >
-                SPPG
-              </Button>
-            </li>
-            <li className="relative">
-              <Button
-                variant="ghost"
-                className={cn("w-full justify-start", activeMenu === 'Mitra' && "bg-accent text-accent-foreground")}
-                onClick={() => handleMenuClick('Mitra')}
-              >
-                Mitra
-              </Button>
-            </li>
-            <li className="relative">
-              <Button
-                variant="ghost"
-                className={cn("w-full justify-start", activeMenu === 'Menu' && "bg-accent text-accent-foreground")}
-                onClick={() => handleMenuClick('Menu')}
-              >
-                Menu
-              </Button>
-            </li>
-            <li className="relative">
-              <Button
-                variant="ghost"
-                className={cn("w-full justify-start", activeMenu === 'Keuangan' && "bg-accent text-accent-foreground")}
-                onClick={() => handleMenuClick('Keuangan')}
-              >
-                Keuangan
-              </Button>
-            </li>
-          </ul>
-        </div>
-        <div className="flex flex-col gap-2 p-2" />
+    <div className="flex flex-col h-full">
+      <div className="h-16 flex items-center px-4 border-b">
+        {/* Placeholder for Logo */}
+        <h1 className="text-xl font-semibold">Nama Aplikasi</h1>
       </div>
-    </>
+      <div className="flex-1 overflow-y-auto p-4">
+        <ul className="flex w-full min-w-0 flex-col gap-1">
+          <li>
+            <Button
+              variant="ghost"
+              className={cn("w-full justify-start", activeMenu === 'Dashboard' && "bg-accent text-accent-foreground")}
+              onClick={() => handleMenuClick('Dashboard')}
+            >
+              Dashboard
+            </Button>
+          </li>
+          <li>
+            <Button
+              variant="ghost"
+              className={cn("w-full justify-start", activeMenu === 'SPPG' && "bg-accent text-accent-foreground")}
+              onClick={() => handleMenuClick('SPPG')}
+            >
+              SPPG
+            </Button>
+          </li>
+          <li>
+            <Button
+              variant="ghost"
+              className={cn("w-full justify-start", activeMenu === 'Mitra' && "bg-accent text-accent-foreground")}
+              onClick={() => handleMenuClick('Mitra')}
+            >
+              Mitra
+            </Button>
+          </li>
+          <li>
+            <Button
+              variant="ghost"
+              className={cn("w-full justify-start", activeMenu === 'Menu' && "bg-accent text-accent-foreground")}
+              onClick={() => handleMenuClick('Menu')}
+            >
+              Menu
+            </Button>
+          </li>
+          <li>
+            <Button
+              variant="ghost"
+              className={cn("w-full justify-start", activeMenu === 'Keuangan' && "bg-accent text-accent-foreground")}
+              onClick={() => handleMenuClick('Keuangan')}
+            >
+              Keuangan
+            </Button>
+          </li>
+        </ul>
+      </div>
+    </div>
   );
 
   return (
     <div className="flex h-screen bg-background">
       {/* Static Sidebar for Desktop */}
-      <div className="border-r flex-col w-64 hidden md:flex">
+      <div className="border-r w-64 hidden md:flex flex-col">
         {sidebarContent}
       </div>
 
@@ -119,12 +117,12 @@ export default function Home() {
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="md:hidden">
                   <PanelLeft />
-                  <span className="sr-only">Toggle Menu</span>
+                  <span className="sr-only">Buka Menu</span>
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="p-0 w-64">
-                 <SheetHeader>
-                  <SheetTitle className="sr-only">Menu Utama</SheetTitle>
+                <SheetHeader className="sr-only">
+                  <SheetTitle>Menu Utama</SheetTitle>
                 </SheetHeader>
                 {sidebarContent}
               </SheetContent>
