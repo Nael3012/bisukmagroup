@@ -43,11 +43,11 @@ export default function Home() {
   const sidebarContent = (
     <div className="flex flex-col h-full">
       <div className="h-16 flex items-center px-4 border-b">
-        <h1 className="text-2xl font-bold">
-          <span className="bg-gradient-to-r from-blue-500 via-purple-500 to-orange-500 bg-clip-text text-transparent">
+        <h1 className="text-2xl">
+          <span className="font-bold bg-gradient-to-r from-blue-500 via-purple-500 to-orange-500 bg-clip-text text-transparent">
             BETA
           </span>
-          <span className="text-slate-600">report</span>
+          <span className="text-xl font-light text-slate-600">report</span>
         </h1>
       </div>
       <div className="flex-1 overflow-y-auto p-4">
