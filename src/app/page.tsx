@@ -7,7 +7,7 @@ import MitraPage from './components/mitra-page';
 import MenuPage from './components/menu-page';
 import DashboardPage from './components/dashboard-page';
 import { cn } from '@/lib/utils';
-import { PanelLeft } from 'lucide-react';
+import { PanelLeft, UserCircle } from 'lucide-react';
 import {
   Sheet,
   SheetContent,
@@ -15,9 +15,25 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 
 type Menu = 'Dashboard' | 'SPPG' | 'Mitra' | 'Menu' | 'Keuangan';
+
+// Mock user data
+const userData = {
+    name: "Admin BGN",
+    role: "Admin Pusat",
+    avatar: "https://github.com/shadcn.png" // Example avatar
+}
 
 export default function Home() {
   const [activeMenu, setActiveMenu] = useState<Menu>('Dashboard');
@@ -129,7 +145,43 @@ export default function Home() {
             </Sheet>
             <h1 className="text-xl font-semibold">{activeMenu}</h1>
           </div>
-          <div>{/* Placeholder for user menu or other header items */}</div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative flex items-center gap-3 px-2">
+                    <div className='text-right hidden sm:block'>
+                        <p className='text-sm font-medium'>{userData.name}</p>
+                        <p className='text-xs text-muted-foreground'>{userData.role}</p>
+                    </div>
+                    <Avatar className="h-9 w-9">
+                        <AvatarImage src={userData.avatar} alt={`@${userData.name}`} />
+                        <AvatarFallback>
+                            <UserCircle />
+                        </AvatarFallback>
+                    </Avatar>
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none">{userData.name}</p>
+                        <p className="text-xs leading-none text-muted-foreground">
+                            {userData.role}
+                        </p>
+                    </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                    Profil
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                    Pengaturan
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                    Logout
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </header>
         <main className="flex-1 p-6">{renderContent()}</main>
       </div>
