@@ -651,13 +651,54 @@ export default function MitraPage() {
                     <DialogTrigger asChild>
                       <Button>Tambah B3</Button>
                     </DialogTrigger>
-                    <DialogContent>
+                    <DialogContent className="max-w-4xl">
                       <DialogHeader>
                         <DialogTitle>Tambah B3 Penerima Manfaat</DialogTitle>
                       </DialogHeader>
-                      <div className="p-4">
-                        <p>Formulir untuk menambah B3 akan ditampilkan di sini.</p>
+                      <div className="flex gap-8 py-4">
+                        {/* Left Segment */}
+                        <div className="flex-1 space-y-4">
+                            <h3 className="text-lg font-semibold text-muted-foreground">
+                            Data Umum
+                            </h3>
+                            <div className="grid gap-2">
+                            <Label htmlFor="nama-desa">Nama Desa/Kelurahan</Label>
+                            <Input id="nama-desa" placeholder="Contoh: Desa Makmur" />
+                            </div>
+                            <div className="grid gap-2">
+                            <Label htmlFor="alamat-b3">Alamat</Label>
+                            <Input id="alamat-b3" placeholder="Contoh: Jl. Sejahtera No. 1" />
+                            </div>
+                            <div className="grid gap-2">
+                            <Label htmlFor="nama-pic-b3">Nama PIC</Label>
+                            <Input id="nama-pic-b3" placeholder="Contoh: Dewi Lestari" />
+                            </div>
+                        </div>
+
+                        <Separator orientation="vertical" className="h-auto" />
+
+                        {/* Right Segment */}
+                        <div className="flex-1 space-y-4">
+                            <h3 className="text-lg font-semibold text-muted-foreground">
+                                Data Penerima Manfaat
+                            </h3>
+                            <div className="grid gap-2">
+                                <Label htmlFor="jumlah-bumil">Ibu Hamil (Bumil)</Label>
+                                <Input id="jumlah-bumil" type="number" placeholder="0" />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="jumlah-busui">Ibu Menyusui (Busui)</Label>
+                                <Input id="jumlah-busui" type="number" placeholder="0" />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="jumlah-balita">Balita</Label>
+                                <Input id="jumlah-balita" type="number" placeholder="0" />
+                            </div>
+                        </div>
                       </div>
+                       <div className="flex justify-end">
+                            <Button type="submit">Simpan</Button>
+                        </div>
                     </DialogContent>
                   </Dialog>
                 </div>
@@ -668,3 +709,5 @@ export default function MitraPage() {
     </Card>
   );
 }
+
+    
