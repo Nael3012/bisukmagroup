@@ -13,14 +13,12 @@ import {
   CalendarIcon,
   CheckCircle2,
   Clock,
-  Utensils,
-  PlusCircle,
-  X,
   Pencil,
-  Image as ImageIcon,
+  PlusCircle,
   Upload,
+  X,
 } from 'lucide-react';
-import { format, startOfWeek, setDay } from 'date-fns';
+import { format, startOfWeek, setDay, addWeeks, addDays } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -35,7 +33,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
@@ -47,6 +44,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { CardDescription } from '@/components/ui/card';
 
 type DayOfWeek = 'Senin' | 'Selasa' | 'Rabu' | 'Kamis' | 'Jumat';
 type Nutrient = { id: number; source: string; amount: string };
@@ -424,6 +422,16 @@ export default function MenuPage() {
     return sppgOptions.find(option => option.value === selectedSppg)?.label || 'Pilih SPPG';
   }, [selectedSppg]);
 
+  const nextWeekDateRange = useMemo(() => {
+    const today = new Date();
+    const nextWeek = addWeeks(today, 1);
+    const startOfNextWeek = startOfWeek(nextWeek, { weekStartsOn: 1 }); // Monday
+    const endOfNextWeek = addDays(startOfNextWeek, 4); // Friday
+    return {
+      start: format(startOfNextWeek, 'd MMMM yyyy', { locale: id }),
+      end: format(endOfNextWeek, 'd MMMM yyyy', { locale: id }),
+    };
+  }, []);
 
   useEffect(() => {
     const activeTabIndex = tabsRef.current.findIndex(
@@ -632,9 +640,21 @@ export default function MenuPage() {
             </div>
           </TabsContent>
           <TabsContent value="mingguan">
-            <div className="p-4">
-              <p>Konten untuk Menu Mingguan akan ditampilkan di sini.</p>
-            </div>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Pengajuan Menu Minggu Depan</CardTitle>
+                    <CardDescription>
+                        Tab ini digunakan untuk pengajuan menu pada periode tanggal 
+                        <span className="font-semibold text-foreground"> {nextWeekDateRange.start}</span> sampai 
+                        <span className="font-semibold text-foreground"> {nextWeekDateRange.end}</span>.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <p className="text-center text-muted-foreground py-8">
+                        Fungsionalitas pengajuan menu mingguan sedang dalam pengembangan.
+                    </p>
+                </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </CardContent>
