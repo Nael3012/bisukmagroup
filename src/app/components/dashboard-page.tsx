@@ -23,25 +23,25 @@ const sppgOptions = [
 const dashboardData: Record<string, any> = {
   all: {
     totalSppg: 3,
-    totalPenerimaManfaat: 480, // 320 (sekolah) + 160 (b3) -> total from all sppg
-    porsiHariIni: 310, // Example data
-    porsiMingguan: 1550, // Example data
+    totalPenerimaManfaat: 480, // 160 + 200 + 120
+    porsiHariIni: 310, // 80 + 100 + 130
+    porsiMingguan: 1550, // 400 + 500 + 650
   },
   'sppg-al-ikhlas': {
     totalSppg: 1,
-    totalPenerimaManfaat: 160, // 110 (sekolah) + 50 (b3)
+    totalPenerimaManfaat: 160, 
     porsiHariIni: 80,
     porsiMingguan: 400,
   },
   'sppg-bina-umat': {
     totalSppg: 1,
-    totalPenerimaManfaat: 200, // 165 (sekolah) + 35 (b3)
+    totalPenerimaManfaat: 200, 
     porsiHariIni: 100,
     porsiMingguan: 500,
   },
   'sppg-nurul-hidayah': {
     totalSppg: 1,
-    totalPenerimaManfaat: 120, // 70 (sekolah) + 50 (b3)
+    totalPenerimaManfaat: 120, 
     porsiHariIni: 130,
     porsiMingguan: 650,
   },

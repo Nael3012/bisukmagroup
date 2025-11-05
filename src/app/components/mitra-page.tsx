@@ -49,7 +49,8 @@ type Sekolah = {
 };
 
 type Jenjang = 'PAUD' | 'TK' | 'SD' | 'SMP' | 'SMA' | '';
-type SortableKeysSekolah = keyof Omit<Sekolah, 'id'>;
+type SortableKeysSekolah = keyof Omit<Sekolah, 'id' | 'sppg'>;
+
 
 type B3Data = {
   id: string;
@@ -59,7 +60,7 @@ type B3Data = {
   jumlah: number;
   sppg: string;
 };
-type SortableKeysB3 = keyof Omit<B3Data, 'id' | 'jenis'>;
+type SortableKeysB3 = keyof Omit<B3Data, 'id' | 'jenis' | 'sppg'>;
 
 const semuaDaftarSekolah: Sekolah[] = [
   {
@@ -162,32 +163,27 @@ export default function MitraPage() {
   const [indicatorStyle, setIndicatorStyle] = useState({});
   const tabsRef = useRef<(HTMLButtonElement | null)[]>([]);
 
-  // State for Sekolah tab
+  // State for SPPG selection
   const [selectedSppg, setSelectedSppg] = useState('all');
-  const [filteredSekolah, setFilteredSekolah] = useState<Sekolah[]>(semuaDaftarSekolah);
-  const [selectedJenjang, setSelectedJenjang] = useState<Jenjang>('');
+  
+  // State for Sekolah tab
   const [sortConfigSekolah, setSortConfigSekolah] = useState<{ key: SortableKeysSekolah; direction: 'ascending' | 'descending' } | null>(null);
   const [itemsPerPageSekolah, setItemsPerPageSekolah] = useState(15);
   const [currentPageSekolah, setCurrentPageSekolah] = useState(1);
+  const [selectedJenjang, setSelectedJenjang] = useState<Jenjang>('');
   
   // State for B3 tab
-  const [filteredB3, setFilteredB3] = useState<B3Data[]>(semuaDaftarB3);
   const [sortConfigB3, setSortConfigB3] = useState<{ key: SortableKeysB3; direction: 'ascending' | 'descending' } | null>(null);
   const [itemsPerPageB3, setItemsPerPageB3] = useState(15);
   const [currentPageB3, setCurrentPageB3] = useState(1);
-  
+
   const selectedSppgLabel = useMemo(() => {
     if (selectedSppg === 'all') return 'Semua SPPG';
     return sppgOptions.find(option => option.value === selectedSppg)?.label || 'Pilih SPPG';
   }, [selectedSppg]);
 
-
   useEffect(() => {
-    const activeTabIndex = tabsRef.current.findIndex(
-      (tab) => tab?.dataset.value === activeTab
-    );
-    const activeTabElement = tabsRef.current[activeTabIndex];
-
+    const activeTabElement = tabsRef.current.find(tab => tab?.dataset.value === activeTab);
     if (activeTabElement) {
       setIndicatorStyle({
         left: activeTabElement.offsetLeft,
@@ -196,25 +192,22 @@ export default function MitraPage() {
     }
   }, [activeTab]);
 
-  // Effects and handlers for both tabs
-  useEffect(() => {
-    setCurrentPageSekolah(1);
-    setCurrentPageB3(1);
-
-    if (selectedSppg === 'all') {
-      setFilteredSekolah(semuaDaftarSekolah);
-      setFilteredB3(semuaDaftarB3);
-    } else {
-      const filteredSekolahData = semuaDaftarSekolah.filter((sekolah) => sekolah.sppg === selectedSppg);
-      const filteredB3Data = semuaDaftarB3.filter((b3) => b3.sppg === selectedSppg);
-      setFilteredSekolah(filteredSekolahData);
-      setFilteredB3(filteredB3Data);
-    }
-  }, [selectedSppg]);
-
   const handleSppgChange = (value: string) => {
     setSelectedSppg(value);
+    setCurrentPageSekolah(1);
+    setCurrentPageB3(1);
   };
+  
+  // Memoized filtered data for both tabs
+  const filteredSekolah = useMemo(() => {
+    if (selectedSppg === 'all') return semuaDaftarSekolah;
+    return semuaDaftarSekolah.filter((sekolah) => sekolah.sppg === selectedSppg);
+  }, [selectedSppg]);
+  
+  const filteredB3 = useMemo(() => {
+    if (selectedSppg === 'all') return semuaDaftarB3;
+    return semuaDaftarB3.filter((b3) => b3.sppg === selectedSppg);
+  }, [selectedSppg]);
 
   // Effects and handlers for Sekolah
   useEffect(() => {
@@ -247,15 +240,17 @@ export default function MitraPage() {
   
   const getSortIndicatorSekolah = (key: SortableKeysSekolah) => {
     if (!sortConfigSekolah || sortConfigSekolah.key !== key) {
-      return <ArrowUpDown className="ml-2 h-4 w-4" />;
+      return <ArrowUpDown className="ml-2 h-4 w-4 opacity-50" />;
     }
-    return <ArrowUpDown className="ml-2 h-4 w-4" />;
+    if(sortConfigSekolah.direction === 'ascending'){
+        return <ArrowUpDown className="ml-2 h-4 w-4" />; // Replace with up arrow
+    }
+    return <ArrowUpDown className="ml-2 h-4 w-4" />; // Replace with down arrow
   };
   
   const paginatedSekolah = useMemo(() => {
     const startIndex = (currentPageSekolah - 1) * itemsPerPageSekolah;
-    const endIndex = startIndex + itemsPerPageSekolah;
-    return sortedSekolah.slice(startIndex, endIndex);
+    return sortedSekolah.slice(startIndex, startIndex + itemsPerPageSekolah);
   }, [sortedSekolah, currentPageSekolah, itemsPerPageSekolah]);
 
   const totalPagesSekolah = Math.ceil(sortedSekolah.length / itemsPerPageSekolah);
@@ -271,8 +266,9 @@ export default function MitraPage() {
       sortableItems.sort((a, b) => {
         const valA = a[sortConfigB3.key];
         const valB = b[sortConfigB3.key];
-        if (typeof valA === 'object' || typeof valB === 'object') return 0;
-
+        if (typeof valA === 'string' && typeof valB === 'string') {
+          return sortConfigB3.direction === 'ascending' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+        }
         if (valA < valB) {
           return sortConfigB3.direction === 'ascending' ? -1 : 1;
         }
@@ -295,19 +291,18 @@ export default function MitraPage() {
 
   const getSortIndicatorB3 = (key: SortableKeysB3) => {
     if (!sortConfigB3 || sortConfigB3.key !== key) {
-      return <ArrowUpDown className="ml-2 h-4 w-4" />;
+      return <ArrowUpDown className="ml-2 h-4 w-4 opacity-50" />;
     }
+    // You can add different icons for ascending/descending
     return <ArrowUpDown className="ml-2 h-4 w-4" />;
   };
   
   const paginatedB3 = useMemo(() => {
     const startIndex = (currentPageB3 - 1) * itemsPerPageB3;
-    const endIndex = startIndex + itemsPerPageB3;
-    return sortedB3.slice(startIndex, endIndex);
+    return sortedB3.slice(startIndex, startIndex + itemsPerPageB3);
   }, [sortedB3, currentPageB3, itemsPerPageB3]);
 
   const totalPagesB3 = Math.ceil(sortedB3.length / itemsPerPageB3);
-
 
   const renderPorsiInputs = () => {
     switch (selectedJenjang) {
@@ -345,7 +340,6 @@ export default function MitraPage() {
     }
   };
   
-
   return (
     <Card>
       <CardHeader>
@@ -379,14 +373,14 @@ export default function MitraPage() {
           <TabsList>
             <TabsTrigger
               value="sekolah"
-              ref={(el) => (tabsRef.current[0] = el)}
+              ref={(el) => tabsRef.current.push(el)}
               data-value="sekolah"
             >
               Sekolah Penerima Manfaat
             </TabsTrigger>
             <TabsTrigger
               value="b3"
-              ref={(el) => (tabsRef.current[1] = el)}
+              ref={(el) => tabsRef.current.push(el)}
               data-value="b3"
             >
               B3 Penerima Manfaat
@@ -498,7 +492,7 @@ export default function MitraPage() {
                     <DialogHeader>
                       <DialogTitle>Tambah Sekolah Penerima Manfaat</DialogTitle>
                     </DialogHeader>
-                    <div className="flex gap-8 py-4">
+                    <div className="flex flex-col md:flex-row gap-8 py-4">
                       {/* Left Segment */}
                       <div className="flex-1 space-y-4">
                         <h3 className="text-lg font-semibold text-muted-foreground">
@@ -529,7 +523,7 @@ export default function MitraPage() {
                         </div>
                       </div>
 
-                      <Separator orientation="vertical" className="h-auto" />
+                      <Separator orientation="vertical" className="h-auto hidden md:block" />
 
                       {/* Right Segment */}
                       <div className="flex-1 space-y-4">
@@ -655,7 +649,7 @@ export default function MitraPage() {
                       <DialogHeader>
                         <DialogTitle>Tambah B3 Penerima Manfaat</DialogTitle>
                       </DialogHeader>
-                      <div className="flex gap-8 py-4">
+                      <div className="flex flex-col md:flex-row gap-8 py-4">
                         {/* Left Segment */}
                         <div className="flex-1 space-y-4">
                             <h3 className="text-lg font-semibold text-muted-foreground">
@@ -675,7 +669,7 @@ export default function MitraPage() {
                             </div>
                         </div>
 
-                        <Separator orientation="vertical" className="h-auto" />
+                        <Separator orientation="vertical" className="h-auto hidden md:block" />
 
                         {/* Right Segment */}
                         <div className="flex-1 space-y-4">
@@ -709,5 +703,3 @@ export default function MitraPage() {
     </Card>
   );
 }
-
-    

@@ -322,7 +322,7 @@ const MenuFormDialog = ({
               >
                 {imagePreview ? (
                    <>
-                    <Image src={imagePreview} alt="Pratinjau menu" fill className="object-contain rounded-md" />
+                    <Image src={imagePreview} alt="Pratinjau menu" fill className="object-contain rounded-md p-2" />
                      <Button
                         type="button"
                         variant="destructive"
@@ -377,7 +377,7 @@ const MenuFormDialog = ({
                 ))}
                 </div>
                 <Button type="button" variant="outline" size="sm" onClick={() => addNutrient('large')}>
-                <PlusCircle className="mr-2" />
+                <PlusCircle className="mr-2 h-4 w-4" />
                 Tambah Sumber Gizi
                 </Button>
             </div>
@@ -399,7 +399,7 @@ const MenuFormDialog = ({
                 ))}
                 </div>
                 <Button type="button" variant="outline" size="sm" onClick={() => addNutrient('small')}>
-                <PlusCircle className="mr-2" />
+                <PlusCircle className="mr-2 h-4 w-4" />
                 Tambah Sumber Gizi
                 </Button>
             </div>
@@ -446,11 +446,7 @@ export default function MenuPage() {
   }, []);
 
   useEffect(() => {
-    const activeTabIndex = tabsRef.current.findIndex(
-      (tab) => tab?.dataset.value === activeTab
-    );
-    const activeTabElement = tabsRef.current[activeTabIndex];
-
+    const activeTabElement = tabsRef.current.find(tab => tab?.dataset.value === activeTab);
     if (activeTabElement) {
       setIndicatorStyle({
         left: activeTabElement.offsetLeft,
@@ -463,9 +459,11 @@ export default function MenuPage() {
     if (date) {
       const dayOfWeek = date.getDay();
       const newSelectedDay = dayIndexToName[dayOfWeek] || 'Senin';
-      setSelectedDay(newSelectedDay);
+      if (newSelectedDay !== selectedDay) {
+        setSelectedDay(newSelectedDay);
+      }
     }
-  }, [date]);
+  }, [date, selectedDay]);
 
   const handleDayClick = (day: DayOfWeek) => {
     setSelectedDay(day);
@@ -476,7 +474,6 @@ export default function MenuPage() {
     setDate(newDate);
   };
   
-
   const renderDailyMenuContent = () => {
     if (selectedSppg === 'all') {
         return (
@@ -584,17 +581,18 @@ export default function MenuPage() {
         </div>
         
         <Tabs defaultValue="harian" onValueChange={setActiveTab} className="relative">
-          <TabsList>
+          <TabsList ref={el => {
+              if (!el) return;
+              tabsRef.current = Array.from(el.children) as HTMLButtonElement[];
+          }}>
             <TabsTrigger
               value="harian"
-              ref={(el) => (tabsRef.current[0] = el)}
               data-value="harian"
             >
               Menu Harian
             </TabsTrigger>
             <TabsTrigger
               value="mingguan"
-              ref={(el) => (tabsRef.current[1] = el)}
               data-value="mingguan"
             >
               Menu Mingguan
@@ -698,5 +696,3 @@ export default function MenuPage() {
     </>
   );
 }
-
-    
