@@ -10,7 +10,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useState, useRef, useEffect } from 'react';
 import { CalendarIcon, CheckCircle2, Clock, Utensils } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, startOfWeek, setDay } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -32,13 +32,22 @@ const initialWeekStatus: Record<DayOfWeek, boolean> = {
   Jumat: false,
 };
 
-const dayMapping: Record<number, DayOfWeek> = {
+const dayNameToIndex: Record<DayOfWeek, number> = {
+  Senin: 1,
+  Selasa: 2,
+  Rabu: 3,
+  Kamis: 4,
+  Jumat: 5,
+};
+
+const dayIndexToName: Record<number, DayOfWeek | undefined> = {
   1: 'Senin',
   2: 'Selasa',
   3: 'Rabu',
   4: 'Kamis',
   5: 'Jumat',
 };
+
 
 export default function MenuPage() {
     const [activeTab, setActiveTab] = useState('harian');
@@ -66,12 +75,20 @@ export default function MenuPage() {
     useEffect(() => {
         if (date) {
             const dayOfWeek = date.getDay();
-            const newSelectedDay = dayMapping[dayOfWeek];
-            if (newSelectedDay) {
-                setSelectedDay(newSelectedDay);
-            }
+            // Sunday (0) should be treated as part of the previous week's view, but let's default to Monday
+            const newSelectedDay = dayIndexToName[dayOfWeek] || 'Senin';
+            setSelectedDay(newSelectedDay);
         }
     }, [date]);
+
+    const handleDayClick = (day: DayOfWeek) => {
+        setSelectedDay(day);
+        const currentRefDate = date || new Date();
+        const weekStartsOn = 1; // Monday
+        const startOfCurrentWeek = startOfWeek(currentRefDate, { weekStartsOn });
+        const newDate = setDay(startOfCurrentWeek, dayNameToIndex[day], { weekStartsOn });
+        setDate(newDate);
+    };
 
     const renderDailyMenuContent = () => {
       const isFilled = weekStatus[selectedDay];
@@ -151,6 +168,7 @@ export default function MenuPage() {
                           onSelect={setDate}
                           initialFocus
                           locale={id}
+                          disabled={(day) => day.getDay() === 0 || day.getDay() === 6}
                       />
                       </PopoverContent>
                   </Popover>
@@ -165,7 +183,7 @@ export default function MenuPage() {
                       <Button
                         key={day}
                         variant={isSelected ? 'default' : 'outline'}
-                        onClick={() => setSelectedDay(day)}
+                        onClick={() => handleDayClick(day)}
                         className="flex-1 min-w-[100px]"
                       >
                         {isFilled ? (
