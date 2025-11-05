@@ -9,6 +9,13 @@ import {
   TableHead,
   TableCell,
 } from '@/components/ui/table';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -23,6 +30,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Info } from 'lucide-react';
+import { useState, useMemo, useEffect } from 'react';
 
 type SppgData = {
   nama: string;
@@ -53,6 +61,21 @@ const sppgList: SppgData[] = [
 ];
 
 export default function SppgPage() {
+  const [itemsPerPage, setItemsPerPage] = useState(15);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [itemsPerPage]);
+
+  const paginatedSppg = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return sppgList.slice(startIndex, endIndex);
+  }, [currentPage, itemsPerPage]);
+
+  const totalPages = Math.ceil(sppgList.length / itemsPerPage);
+
   return (
     <div className="flex flex-col gap-6">
       <Card>
@@ -70,7 +93,7 @@ export default function SppgPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sppgList.map((sppg, index) => (
+              {paginatedSppg.map((sppg, index) => (
                 <TableRow key={index}>
                   <TableCell>{sppg.nama}</TableCell>
                   <TableCell>{sppg.yayasan}</TableCell>
@@ -82,7 +105,45 @@ export default function SppgPage() {
           </Table>
         </CardContent>
       </Card>
-      <div className="flex justify-start">
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+         <div className="flex items-center gap-2">
+            <Label htmlFor="items-per-page-sppg">Tampilkan</Label>
+            <Select
+              value={String(itemsPerPage)}
+              onValueChange={(value) => setItemsPerPage(Number(value))}
+            >
+              <SelectTrigger id="items-per-page-sppg" className="w-20">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="15">15</SelectItem>
+                <SelectItem value="30">30</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+                <SelectItem value="100">100</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+          >
+            Sebelumnya
+          </Button>
+          <span className="text-sm text-muted-foreground">
+            Halaman {currentPage} dari {totalPages}
+          </span>
+          <Button
+            variant="outline"
+            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+          >
+            Selanjutnya
+          </Button>
+        </div>
+        
         <Dialog>
           <DialogTrigger asChild>
             <Button>Tambah SPPG</Button>
@@ -151,3 +212,5 @@ export default function SppgPage() {
     </div>
   );
 }
+
+    

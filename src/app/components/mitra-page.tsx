@@ -105,6 +105,8 @@ export default function MitraPage() {
   const [filteredSekolah, setFilteredSekolah] = useState<Sekolah[]>(semuaDaftarSekolah);
   const [selectedJenjang, setSelectedJenjang] = useState<Jenjang>('');
   const [sortConfig, setSortConfig] = useState<{ key: SortableKeys; direction: 'ascending' | 'descending' } | null>(null);
+  const [itemsPerPage, setItemsPerPage] = useState(15);
+  const [currentPage, setCurrentPage] = useState(1);
 
 
   useEffect(() => {
@@ -120,6 +122,10 @@ export default function MitraPage() {
       });
     }
   }, [activeTab]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [itemsPerPage, selectedSppg]);
 
   const handleSppgChange = (value: string) => {
     setSelectedSppg(value);
@@ -201,6 +207,14 @@ export default function MitraPage() {
     }
     return <ArrowUpDown className="ml-2 h-4 w-4" />; // Simplified, can use ArrowDown later
   };
+  
+  const paginatedSekolah = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return sortedSekolah.slice(startIndex, endIndex);
+  }, [sortedSekolah, currentPage, itemsPerPage]);
+
+  const totalPages = Math.ceil(sortedSekolah.length / itemsPerPage);
 
 
   return (
@@ -277,8 +291,8 @@ export default function MitraPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {sortedSekolah.length > 0 ? (
-                    sortedSekolah.map((sekolah, index) => (
+                  {paginatedSekolah.length > 0 ? (
+                    paginatedSekolah.map((sekolah, index) => (
                       <TableRow key={index}>
                         <TableCell>{sekolah.nama}</TableCell>
                         <TableCell>{sekolah.alamat}</TableCell>
@@ -295,7 +309,45 @@ export default function MitraPage() {
                   )}
                 </TableBody>
               </Table>
-              <div className="flex justify-start pt-4">
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-4">
+                 <div className="flex items-center gap-2">
+                    <Label htmlFor="items-per-page">Tampilkan</Label>
+                    <Select
+                      value={String(itemsPerPage)}
+                      onValueChange={(value) => setItemsPerPage(Number(value))}
+                    >
+                      <SelectTrigger id="items-per-page" className="w-20">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="15">15</SelectItem>
+                        <SelectItem value="30">30</SelectItem>
+                        <SelectItem value="50">50</SelectItem>
+                        <SelectItem value="100">100</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                    >
+                      Sebelumnya
+                    </Button>
+                    <span className="text-sm text-muted-foreground">
+                      Halaman {currentPage} dari {totalPages}
+                    </span>
+                    <Button
+                      variant="outline"
+                      onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                      disabled={currentPage === totalPages}
+                    >
+                      Selanjutnya
+                    </Button>
+                  </div>
+                
                 <Dialog>
                   <DialogTrigger asChild>
                     <Button>Tambah Sekolah</Button>
@@ -371,3 +423,5 @@ export default function MitraPage() {
     </Card>
   );
 }
+
+    
