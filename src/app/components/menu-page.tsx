@@ -307,7 +307,7 @@ const MenuFormDialog = ({
             <div className="space-y-2">
               <Label className="text-base font-semibold">Upload foto menu hari ini</Label>
               <div 
-                className="relative flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-lg cursor-pointer bg-muted/20 hover:bg-muted/50"
+                className="relative flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer bg-muted/20 hover:bg-muted/50"
                 onClick={() => fileInputRef.current?.click()}
               >
                 {imagePreview ? (
@@ -331,11 +331,11 @@ const MenuFormDialog = ({
                    </>
                 ) : (
                   <div className="flex flex-col items-center justify-center pt-5 pb-6 text-center text-muted-foreground">
-                    <Upload className="w-10 h-10 mb-3" />
-                    <p className="mb-2 text-sm">
-                      <span className="font-semibold">Klik untuk mengunggah</span> atau seret dan lepas
+                    <Upload className="w-8 h-8 mb-2" />
+                    <p className="mb-1 text-xs">
+                      <span className="font-semibold">Klik untuk mengunggah</span>
                     </p>
-                    <p className="text-xs">PNG, JPG, atau GIF (MAX. 800x400px)</p>
+                    <p className="text-xs">PNG, JPG (MAX. 5MB)</p>
                   </div>
                 )}
                 <Input 
