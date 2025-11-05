@@ -11,6 +11,16 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Separator } from '@/components/ui/separator';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 type SppgData = {
   nama: string;
@@ -71,7 +81,64 @@ export default function SppgPage() {
         </CardContent>
       </Card>
       <div className="flex justify-start">
-        <Button>Tambah SPPG</Button>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button>Tambah SPPG</Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-4xl">
+            <DialogHeader>
+              <DialogTitle>Tambah SPPG Baru</DialogTitle>
+            </DialogHeader>
+            <div className="flex gap-8 py-4">
+              {/* Left Segment */}
+              <div className="flex-1 space-y-4">
+                <h3 className="text-lg font-semibold text-muted-foreground">
+                  Data Umum
+                </h3>
+                <div className="grid gap-2">
+                  <Label htmlFor="nama-sppg">Nama SPPG</Label>
+                  <Input id="nama-sppg" />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="alamat">Alamat</Label>
+                  <Input id="alamat" />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="yayasan">Yayasan</Label>
+                  <Input id="yayasan" />
+                </div>
+              </div>
+
+              <Separator orientation="vertical" className="h-auto" />
+
+              {/* Right Segment */}
+              <div className="flex-1 space-y-4">
+                 <h3 className="text-lg font-semibold text-muted-foreground">
+                  Data Personel
+                </h3>
+                <div className="grid gap-2">
+                  <Label htmlFor="nama-ka-sppg">Nama Ka. SPPG</Label>
+                  <Input id="nama-ka-sppg" />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="nama-akuntan">Nama Akuntan</Label>
+                  <Input id="nama-akuntan" />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="ahli-gizi">Ahli Gizi</Label>
+                  <Input id="ahli-gizi" />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="asisten-lapangan">Asisten Lapangan</Label>
+                  <Input id="asisten-lapangan" />
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end">
+              <Button type="submit">Simpan</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
