@@ -39,6 +39,13 @@ const allMenuItems: Menu[] = ['Dashboard', 'SPPG', 'Mitra', 'Menu', 'Keuangan', 
 // NOTE: This logic will need to be updated to use actual user roles from the database
 const adminOnlyMenus: Menu[] = ['SPPG', 'Laporan', 'Kelola Penanggung Jawab'];
 
+const sppgOptions = [
+    { value: 'sppg-al-ikhlas', label: 'SPPG Al-Ikhlas' },
+    { value: 'sppg-bina-umat', label: 'SPPG Bina Umat' },
+    { value: 'sppg-nurul-hidayah', label: 'SPPG Nurul Hidayah' },
+    { value: 'admin-pusat', label: 'Admin Pusat' },
+];
+
 type SppgData = {
   id: string;
   nama: string;
@@ -89,6 +96,9 @@ export default function ClientPage({ user, sppgList, sekolahList, b3List, assign
   const userSppgId = user.user_metadata?.sppgId;
   const userName = user.user_metadata?.full_name || user.email;
   const userAvatar = user.user_metadata?.avatar_url;
+
+  const sppgName = sppgOptions.find(opt => opt.value === userSppgId)?.label || userSppgId;
+
 
   const handleMenuClick = (menu: Menu) => {
     setActiveMenu(menu);
@@ -199,7 +209,7 @@ export default function ClientPage({ user, sppgList, sekolahList, b3List, assign
                 <Button variant="ghost" className="relative flex items-center gap-3 px-2">
                     <div className='text-right hidden sm:block'>
                         <p className='text-sm font-medium'>{userName}</p>
-                        <p className='text-xs text-muted-foreground'>{userRole}</p>
+                        <p className='text-xs text-muted-foreground'>{userRole} - {sppgName}</p>
                     </div>
                     <Avatar className="h-9 w-9">
                         <AvatarImage src={userAvatar} alt={`@${userName}`} />
