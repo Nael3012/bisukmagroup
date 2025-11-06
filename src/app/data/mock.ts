@@ -29,6 +29,93 @@ export type B3Data = {
   sppgId: string;
 };
 
+type DayOfWeek = 'Senin' | 'Selasa' | 'Rabu' | 'Kamis' | 'Jumat';
+type Nutrient = { id: number; source: string; amount: string };
+type MenuData = {
+  menuName: string;
+  imageUrl: string;
+  largePortion: Nutrient[];
+  smallPortion: Nutrient[];
+};
+type SppgId = 'all' | 'sppg-al-ikhlas' | 'sppg-bina-umat' | 'sppg-nurul-hidayah';
+
+type WeeklyMenu = {
+    weekStatus: Record<DayOfWeek, boolean>;
+    menuData: Record<DayOfWeek, MenuData | null>;
+}
+
+export const menuDataBySppg: Record<SppgId, WeeklyMenu> = {
+    'all': {
+        weekStatus: { Senin: false, Selasa: false, Rabu: false, Kamis: false, Jumat: false },
+        menuData: { Senin: null, Selasa: null, Rabu: null, Kamis: null, Jumat: null }
+    },
+    'sppg-al-ikhlas': {
+        weekStatus: { Senin: true, Selasa: false, Rabu: true, Kamis: true, Jumat: false },
+        menuData: {
+            Senin: {
+                menuName: 'Nasi Ayam Goreng Spesial (Al-Ikhlas)',
+                imageUrl: 'https://picsum.photos/seed/1/600/400',
+                largePortion: [{ id: 1, source: 'protein', amount: '150' }, { id: 2, source: 'karbohidrat', amount: '200' }],
+                smallPortion: [{ id: 1, source: 'protein', amount: '100' }, { id: 2, source: 'karbohidrat', amount: '150' }],
+            },
+            Rabu: {
+                menuName: 'Ikan Bakar & Sayur Sop (Al-Ikhlas)',
+                imageUrl: 'https://picsum.photos/seed/2/600/400',
+                largePortion: [{ id: 1, source: 'protein', amount: '180' }, { id: 2, source: 'zat-besi', amount: '20' }],
+                smallPortion: [{ id: 1, source: 'protein', amount: '120' }, { id: 2, source: 'zat-besi', amount: '15' }],
+            },
+            Kamis: {
+                menuName: 'Daging Rendang & Tumis Kangkung (Al-Ikhlas)',
+                imageUrl: 'https://picsum.photos/seed/3/600/400',
+                largePortion: [{ id: 1, source: 'protein', amount: '200' }, { id: 2, source: 'lemak', amount: '50' }],
+                smallPortion: [{ id: 1, source: 'protein', amount: '130' }, { id: 2, source: 'lemak', amount: '35' }],
+            },
+            Selasa: null,
+            Jumat: null
+        }
+    },
+    'sppg-bina-umat': {
+        weekStatus: { Senin: true, Selasa: true, Rabu: false, Kamis: false, Jumat: false },
+        menuData: {
+            Senin: {
+                menuName: 'Soto Ayam Lamongan (Bina Umat)',
+                imageUrl: 'https://picsum.photos/seed/4/600/400',
+                largePortion: [{ id: 1, source: 'protein', amount: '160' }, { id: 2, source: 'energi', amount: '300' }],
+                smallPortion: [{ id: 1, source: 'protein', amount: '110' }, { id: 2, source: 'energi', amount: '250' }],
+            },
+            Selasa: {
+                 menuName: 'Gado-gado Siram (Bina Umat)',
+                 imageUrl: 'https://picsum.photos/seed/5/600/400',
+                largePortion: [{ id: 1, source: 'protein', amount: '100' }, { id: 2, source: 'lemak', amount: '40' }],
+                smallPortion: [{ id: 1, source: 'protein', amount: '70' }, { id: 2, source: 'lemak', amount: '25' }],
+            },
+            Rabu: null,
+            Kamis: null,
+            Jumat: null
+        }
+    },
+    'sppg-nurul-hidayah': {
+        weekStatus: { Senin: false, Selasa: false, Rabu: false, Kamis: true, Jumat: true },
+        menuData: {
+            Kamis: {
+                menuName: 'Nasi Uduk Komplit (Nurul Hidayah)',
+                imageUrl: 'https://picsum.photos/seed/6/600/400',
+                largePortion: [{ id: 1, source: 'karbohidrat', amount: '250' }, { id: 2, source: 'protein', amount: '140' }],
+                smallPortion: [{ id: 1, source: 'karbohidrat', amount: '180' }, { id: 2, source: 'protein', amount: '90' }],
+            },
+            Jumat: {
+                menuName: 'Bubur Ayam Sehat (Nurul Hidayah)',
+                imageUrl: 'https://picsum.photos/seed/7/600/400',
+                largePortion: [{ id: 1, source: 'karbohidrat', amount: '200' }, { id: 2, source: 'energi', amount: '280' }],
+                smallPortion: [{ id: 1, source: 'karbohidrat', amount: '150' }, { id: 2, source: 'energi', amount: '220' }],
+            },
+            Senin: null,
+            Selasa: null,
+            Rabu: null,
+        }
+    }
+};
+
 export const semuaDaftarSekolah: Sekolah[] = [
   {
     id: 'sekolah-1',
@@ -157,3 +244,5 @@ export const getSppgListWithDynamicPM = (): SppgData[] => {
         };
     });
 };
+
+    
