@@ -84,7 +84,6 @@ export default function ClientPage({ user, sppgList, sekolahList, b3List }: Clie
   const router = useRouter();
   const [activeMenu, setActiveMenu] = useState<Menu>('Dashboard');
 
-  // This is a placeholder for actual role management
   const userRole = user.user_metadata?.role || 'SPPG';
   const userSppgId = user.user_metadata?.sppgId;
   const userName = user.user_metadata?.full_name || user.email;

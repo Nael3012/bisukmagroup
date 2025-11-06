@@ -2,7 +2,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
-import ClientPage from './client-page';
+import ClientProvider from './client-provider';
 
 export default async function Page() {
   const cookieStore = cookies()
@@ -53,7 +53,7 @@ export default async function Page() {
   const { data: b3Data } = await supabase.from('b3').select()
 
   return (
-    <ClientPage
+    <ClientProvider
       user={user}
       sppgList={sppgData || []}
       sekolahList={sekolahData || []}
@@ -61,3 +61,4 @@ export default async function Page() {
     />
   )
 }
+
