@@ -33,15 +33,15 @@ export default function KeuanganPage() {
   const [date, setDate] = useState<Date | undefined>(new Date());
 
   return (
-    <div className="space-y-6">
-      <Card className="max-w-2xl mx-auto">
-        <CardHeader>
-          <CardTitle>Laporan Keuangan</CardTitle>
-          <CardDescription>
-            Pilih SPPG dan tanggal untuk membuat laporan keuangan harian.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
+    <div className="space-y-6 max-w-2xl mx-auto">
+        <div className="space-y-2">
+            <h2 className="text-2xl font-bold">Laporan Keuangan</h2>
+            <p className="text-muted-foreground">
+                Pilih SPPG dan tanggal untuk membuat laporan keuangan harian.
+            </p>
+        </div>
+
+        <div className="space-y-6">
           <div className="grid gap-2">
             <Label htmlFor="sppg-select">Pilih SPPG</Label>
             <Select onValueChange={(v) => setSelectedSppg(v as SppgId)} value={selectedSppg}>
@@ -87,13 +87,12 @@ export default function KeuanganPage() {
               </PopoverContent>
             </Popover>
           </div>
-        </CardContent>
-        <CardFooter className="flex justify-end">
+        </div>
+        <div className="flex justify-end">
           <Button>
             Buat Laporan Keuangan Hari Ini
           </Button>
-        </CardFooter>
-      </Card>
+        </div>
     </div>
   );
 }
