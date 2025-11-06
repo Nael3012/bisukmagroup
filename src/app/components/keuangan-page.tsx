@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -12,7 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, FilePlus, Info, Save } from 'lucide-react';
+import { CalendarIcon, FilePlus, Info, Save, Download } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { format, startOfWeek, addDays } from 'date-fns';
@@ -24,10 +23,17 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const sppgOptions = [
-  { value: 'sppg-al-ikhlas', label: 'SPPG Al-Ikhlas', address: 'Jl. Merdeka No. 1, Jakarta' },
-  { value: 'sppg-bina-umat', label: 'SPPG Bina Umat', address: 'Jl. Pahlawan No. 10, Surabaya' },
-  { value: 'sppg-nurul-hidayah', label: 'SPPG Nurul Hidayah', address: 'Jl. Sudirman No. 5, Bandung' },
+  { value: 'sppg-al-ikhlas', label: 'SPPG Al-Ikhlas', address: 'Jl. Merdeka No. 1, Jakarta', yayasan: "Yayasan Bisukma Bangun Bangsa" },
+  { value: 'sppg-bina-umat', label: 'SPPG Bina Umat', address: 'Jl. Pahlawan No. 10, Surabaya', yayasan: "Yayasan Patriot Generasi Emas Indonesia" },
+  { value: 'sppg-nurul-hidayah', label: 'SPPG Nurul Hidayah', address: 'Jl. Sudirman No. 5, Bandung', yayasan: "Yayasan Bisukma Hita Mangula" },
 ];
+
+const yayasanLogos: Record<string, string> = {
+    "Yayasan Bisukma Bangun Bangsa": "https://oilvtefzzupggnstgpsa.supabase.co/storage/v1/object/public/logos/1762413828035_Bisukma%20Bangun%20Bangsa.png",
+    "Yayasan Patriot Generasi Emas Indonesia": "https://oilvtefzzupggnstgpsa.supabase.co/storage/v1/object/public/logos/1762413871003_Patriot%20Generasi%20Emas%20Indonesia.png",
+    "Yayasan Bisukma Hita Mangula": "https://oilvtefzzupggnstgpsa.supabase.co/storage/v1/object/public/logos/1762413915579_Bisukma%20Hita%20Mangula.png",
+    "Yayasan Bisukma Generasi Emas Indonesia": "https://oilvtefzzupggnstgpsa.supabase.co/storage/v1/object/public/logos/1762413958140_Bisukma%20Generasi%20Emas%20Indonesia.png"
+};
 
 const menuDataBySppg: any = {}; // This will be populated by props
 
@@ -55,6 +61,21 @@ export default function KeuanganPage({ userRole, userSppgId }: KeuanganPageProps
   const handleBuatLaporanClick = () => {
     setShowPorsiInput(true);
   }
+
+  const selectedSppgDetails = useMemo(() => {
+    return sppgOptions.find(option => option.value === selectedSppg);
+  }, [selectedSppg]);
+
+  const handleDownloadLogo = () => {
+    if (selectedSppgDetails && selectedSppgDetails.yayasan && yayasanLogos[selectedSppgDetails.yayasan]) {
+      const link = document.createElement('a');
+      link.href = yayasanLogos[selectedSppgDetails.yayasan];
+      link.download = `${selectedSppgDetails.label}-logo.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
 
   const missingMenuDays = useMemo(() => {
     if (!selectedSppg || !menuDataBySppg[selectedSppg]) {
@@ -106,25 +127,31 @@ export default function KeuanganPage({ userRole, userSppgId }: KeuanganPageProps
        )}
 
       <div className="space-y-6">
-        <div className="flex flex-col md:flex-row gap-4">
+        <div className="flex flex-col md:flex-row gap-4 items-end">
             {userRole === 'Admin Pusat' && (
                 <div className="grid gap-2 flex-1">
                     <Label htmlFor="sppg-select">Pilih SPPG</Label>
-                    <Select onValueChange={(v) => setSelectedSppg(v as SppgId)} value={selectedSppg}>
-                    <SelectTrigger id="sppg-select">
-                        <SelectValue placeholder="Pilih SPPG" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {sppgOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                            <div>
-                            <p className="font-medium">{option.label}</p>
-                            {option.address && <p className="text-xs text-muted-foreground">{option.address}</p>}
-                            </div>
-                        </SelectItem>
-                        ))}
-                    </SelectContent>
-                    </Select>
+                    <div className="flex items-center gap-2">
+                        <Select onValueChange={(v) => setSelectedSppg(v as SppgId)} value={selectedSppg}>
+                        <SelectTrigger id="sppg-select">
+                            <SelectValue placeholder="Pilih SPPG" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {sppgOptions.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                                <div>
+                                <p className="font-medium">{option.label}</p>
+                                {option.address && <p className="text-xs text-muted-foreground">{option.address}</p>}
+                                </div>
+                            </SelectItem>
+                            ))}
+                        </SelectContent>
+                        </Select>
+                        <Button variant="outline" size="icon" onClick={handleDownloadLogo}>
+                            <Download className="h-4 w-4" />
+                            <span className="sr-only">Download Logo</span>
+                        </Button>
+                    </div>
                 </div>
             )}
           <div className="grid gap-2 flex-1">
@@ -251,5 +278,3 @@ export default function KeuanganPage({ userRole, userSppgId }: KeuanganPageProps
     </div>
   );
 }
-
-    
