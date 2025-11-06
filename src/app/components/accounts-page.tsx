@@ -108,18 +108,15 @@ const AccountForm = ({ account }: { account?: Account | null }) => {
                     <Label htmlFor="email">Email</Label>
                     <Input id="email" type="email" placeholder="contoh@email.com" defaultValue={account?.email} />
                 </div>
-                { !account && (
-                    <>
-                        <div className="grid gap-2">
-                            <Label htmlFor="password">Password</Label>
-                            <Input id="password" type="password" />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="retype-password">Ulangi Password</Label>
-                            <Input id="retype-password" type="password" />
-                        </div>
-                    </>
-                )}
+                
+                <div className="grid gap-2">
+                    <Label htmlFor="password">{account ? 'Password Baru (Opsional)' : 'Password'}</Label>
+                    <Input id="password" type="password" />
+                </div>
+                <div className="grid gap-2">
+                    <Label htmlFor="retype-password">{account ? 'Ulangi Password Baru' : 'Ulangi Password'}</Label>
+                    <Input id="retype-password" type="password" />
+                </div>
             </div>
 
             <Separator orientation="vertical" className="h-auto hidden md:block" />
@@ -330,4 +327,5 @@ export default function AccountsPage() {
   );
 }
 
+    
     
