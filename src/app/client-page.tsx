@@ -6,7 +6,7 @@ import SppgPage from './components/sppg-page';
 import MitraPage from './components/mitra-page';
 import MenuPage from './components/menu-page';
 import DashboardPage from './components/dashboard-page';
-import AccountsPage from './components/accounts-page';
+import AccountsPage, { type UserProfile } from './components/accounts-page';
 import ReportsPage from './components/reports-page';
 import { cn } from '@/lib/utils';
 import { LogOut, PanelLeft, UserCircle } from 'lucide-react';
@@ -78,7 +78,7 @@ type ClientPageProps = {
   sppgList: SppgData[];
   sekolahList: Sekolah[];
   b3List: B3Data[];
-  assignedUsers: User[];
+  assignedUsers: UserProfile[];
 }
 
 export default function ClientPage({ user, sppgList, sekolahList, b3List, assignedUsers }: ClientPageProps) {

@@ -1,7 +1,9 @@
+
 'use client';
 
 import ClientPage from './client-page';
 import type { User } from '@supabase/supabase-js';
+import type { UserProfile } from './actions/accounts';
 
 type SppgData = {
   id: string;
@@ -42,7 +44,7 @@ type ClientProviderProps = {
   sppgList: SppgData[];
   sekolahList: Sekolah[];
   b3List: B3Data[];
-  assignedUsers: User[];
+  assignedUsers: UserProfile[];
 }
 
 export default function ClientProvider(props: ClientProviderProps) {
