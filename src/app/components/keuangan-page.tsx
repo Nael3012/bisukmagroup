@@ -41,50 +41,52 @@ export default function KeuanganPage() {
         </div>
 
         <div className="space-y-6">
-          <div className="grid gap-2">
-            <Label htmlFor="sppg-select">Pilih SPPG</Label>
-            <Select onValueChange={(v) => setSelectedSppg(v as SppgId)} value={selectedSppg}>
-              <SelectTrigger id="sppg-select">
-                <SelectValue placeholder="Pilih SPPG" />
-              </SelectTrigger>
-              <SelectContent>
-                {sppgOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    <div>
-                      <p className="font-medium">{option.label}</p>
-                      {option.address && <p className="text-xs text-muted-foreground">{option.address}</p>}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid gap-2">
-            <Label>Pilih Tanggal</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  id="date"
-                  variant={"outline"}
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !date && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {date ? format(date, "d LLL y", { locale: id }) : <span>Pilih tanggal</span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  initialFocus
-                  mode="single"
-                  selected={date}
-                  onSelect={setDate}
-                  locale={id}
-                />
-              </PopoverContent>
-            </Popover>
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="grid gap-2 flex-1">
+              <Label htmlFor="sppg-select">Pilih SPPG</Label>
+              <Select onValueChange={(v) => setSelectedSppg(v as SppgId)} value={selectedSppg}>
+                <SelectTrigger id="sppg-select">
+                  <SelectValue placeholder="Pilih SPPG" />
+                </SelectTrigger>
+                <SelectContent>
+                  {sppgOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      <div>
+                        <p className="font-medium">{option.label}</p>
+                        {option.address && <p className="text-xs text-muted-foreground">{option.address}</p>}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2 flex-1">
+              <Label>Pilih Tanggal</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    id="date"
+                    variant={"outline"}
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !date && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {date ? format(date, "d LLL y", { locale: id }) : <span>Pilih tanggal</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    initialFocus
+                    mode="single"
+                    selected={date}
+                    onSelect={setDate}
+                    locale={id}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
           </div>
         </div>
         <div className="flex justify-end">
