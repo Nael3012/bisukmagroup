@@ -46,6 +46,11 @@ type Jenjang = 'PAUD' | 'TK' | 'SD' | 'SMP' | 'SMA' | '';
 type SortableKeysSekolah = keyof Omit<Sekolah, 'id' | 'sppgId'>;
 type SortableKeysB3 = keyof Omit<B3Data, 'id' | 'jenis' | 'sppgId'>;
 
+type Wilayah = {
+  id: string;
+  name: string;
+};
+
 const sppgOptions = [
   {
     value: 'sppg-al-ikhlas',
@@ -71,6 +76,123 @@ const DetailItem = ({ label, value }: { label: string; value: React.ReactNode })
   </div>
 );
 
+const WilayahSelector = ({ onWilayahChange }: { onWilayahChange: (wilayah: any) => void }) => {
+    const [provinces, setProvinces] = useState<Wilayah[]>([]);
+    const [regencies, setRegencies] = useState<Wilayah[]>([]);
+    const [districts, setDistricts] = useState<Wilayah[]>([]);
+    const [villages, setVillages] = useState<Wilayah[]>([]);
+    
+    const [selectedProvince, setSelectedProvince] = useState('');
+    const [selectedRegency, setSelectedRegency] = useState('');
+    const [selectedDistrict, setSelectedDistrict] = useState('');
+    const [selectedVillage, setSelectedVillage] = useState('');
+
+    useEffect(() => {
+        fetch('https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json')
+            .then(response => response.json())
+            .then(data => setProvinces(data));
+    }, []);
+
+    useEffect(() => {
+        if (selectedProvince) {
+            fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/regencies/${selectedProvince}.json`)
+                .then(response => response.json())
+                .then(data => {
+                    setRegencies(data);
+                    setDistricts([]);
+                    setVillages([]);
+                    setSelectedRegency('');
+                    setSelectedDistrict('');
+                    setSelectedVillage('');
+                });
+        }
+    }, [selectedProvince]);
+
+    useEffect(() => {
+        if (selectedRegency) {
+            fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/districts/${selectedRegency}.json`)
+                .then(response => response.json())
+                .then(data => {
+                    setDistricts(data);
+                    setVillages([]);
+                    setSelectedDistrict('');
+                    setSelectedVillage('');
+                });
+        }
+    }, [selectedRegency]);
+    
+    useEffect(() => {
+        if (selectedDistrict) {
+            fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/villages/${selectedDistrict}.json`)
+                .then(response => response.json())
+                .then(data => {
+                    setVillages(data);
+                    setSelectedVillage('');
+                });
+        }
+    }, [selectedDistrict]);
+    
+    useEffect(() => {
+        onWilayahChange({
+            province: selectedProvince,
+            regency: selectedRegency,
+            district: selectedDistrict,
+            village: selectedVillage
+        })
+    }, [selectedProvince, selectedRegency, selectedDistrict, selectedVillage, onWilayahChange]);
+
+
+    return (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">
+            <div className="grid gap-1.5">
+                <Label htmlFor="provinsi" className="text-xs">Provinsi</Label>
+                <Select value={selectedProvince} onValueChange={setSelectedProvince}>
+                    <SelectTrigger id="provinsi" className="text-xs h-9">
+                        <SelectValue placeholder="Pilih Provinsi" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {provinces.map(p => <SelectItem key={p.id} value={p.id} className="text-xs">{p.name}</SelectItem>)}
+                    </SelectContent>
+                </Select>
+            </div>
+            <div className="grid gap-1.5">
+                <Label htmlFor="kabupaten" className="text-xs">Kabupaten/Kota</Label>
+                <Select value={selectedRegency} onValueChange={setSelectedRegency} disabled={!selectedProvince}>
+                    <SelectTrigger id="kabupaten" className="text-xs h-9">
+                        <SelectValue placeholder="Pilih Kabupaten/Kota" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {regencies.map(r => <SelectItem key={r.id} value={r.id} className="text-xs">{r.name}</SelectItem>)}
+                    </SelectContent>
+                </Select>
+            </div>
+            <div className="grid gap-1.5">
+                <Label htmlFor="kecamatan" className="text-xs">Kecamatan</Label>
+                <Select value={selectedDistrict} onValueChange={setSelectedDistrict} disabled={!selectedRegency}>
+                    <SelectTrigger id="kecamatan" className="text-xs h-9">
+                        <SelectValue placeholder="Pilih Kecamatan" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {districts.map(d => <SelectItem key={d.id} value={d.id} className="text-xs">{d.name}</SelectItem>)}
+                    </SelectContent>
+                </Select>
+            </div>
+            <div className="grid gap-1.5">
+                <Label htmlFor="desa" className="text-xs">Desa/Kelurahan</Label>
+                <Select value={selectedVillage} onValueChange={setSelectedVillage} disabled={!selectedDistrict}>
+                    <SelectTrigger id="desa" className="text-xs h-9">
+                        <SelectValue placeholder="Pilih Desa/Kelurahan" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {villages.map(v => <SelectItem key={v.id} value={v.id} className="text-xs">{v.name}</SelectItem>)}
+                    </SelectContent>
+                </Select>
+            </div>
+        </div>
+    )
+}
+
+
 const SekolahForm = ({ sekolah }: { sekolah?: Sekolah | null }) => {
   const [selectedJenjang, setSelectedJenjang] = useState<Jenjang>(
     (sekolah?.jenjang as Jenjang) || ''
@@ -81,30 +203,30 @@ const SekolahForm = ({ sekolah }: { sekolah?: Sekolah | null }) => {
       case 'PAUD':
       case 'TK':
         return (
-          <div className="grid gap-2">
-            <Label htmlFor="porsi-kecil">Jumlah Porsi Kecil</Label>
-            <Input id="porsi-kecil" type="number" placeholder="Contoh: 50" />
+          <div className="grid gap-1.5">
+            <Label htmlFor="porsi-kecil" className="text-xs">Jumlah Porsi Kecil</Label>
+            <Input id="porsi-kecil" type="number" placeholder="Contoh: 50" className="text-xs h-9" />
           </div>
         );
       case 'SD':
         return (
           <>
-            <div className="grid gap-2">
-              <Label htmlFor="porsi-kecil">Jumlah Porsi Kecil (Kelas 1-3)</Label>
-              <Input id="porsi-kecil" type="number" placeholder="Contoh: 30" />
+            <div className="grid gap-1.5">
+              <Label htmlFor="porsi-kecil" className="text-xs">Jumlah Porsi Kecil (Kelas 1-3)</Label>
+              <Input id="porsi-kecil" type="number" placeholder="Contoh: 30" className="text-xs h-9" />
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="porsi-besar">Jumlah Porsi Besar (Kelas 4-6)</Label>
-              <Input id="porsi-besar" type="number" placeholder="Contoh: 20" />
+            <div className="grid gap-1.5">
+              <Label htmlFor="porsi-besar" className="text-xs">Jumlah Porsi Besar (Kelas 4-6)</Label>
+              <Input id="porsi-besar" type="number" placeholder="Contoh: 20" className="text-xs h-9" />
             </div>
           </>
         );
       case 'SMP':
       case 'SMA':
         return (
-          <div className="grid gap-2">
-            <Label htmlFor="porsi-besar">Jumlah Porsi Besar</Label>
-            <Input id="porsi-besar" type="number" placeholder="Contoh: 80" />
+          <div className="grid gap-1.5">
+            <Label htmlFor="porsi-besar" className="text-xs">Jumlah Porsi Besar</Label>
+            <Input id="porsi-besar" type="number" placeholder="Contoh: 80" className="text-xs h-9" />
           </div>
         );
       default:
@@ -113,51 +235,52 @@ const SekolahForm = ({ sekolah }: { sekolah?: Sekolah | null }) => {
   };
 
   return (
-    <div className="flex flex-col md:flex-row gap-8 py-4">
-      <div className="flex-1 space-y-4">
-        <h3 className="text-lg font-semibold text-muted-foreground">
+    <div className="flex flex-col md:flex-row gap-6 py-4">
+      <div className="flex-1 space-y-3">
+        <h3 className="text-base font-semibold text-muted-foreground">
           Data Umum
         </h3>
-        <div className="grid gap-2">
-          <Label htmlFor="nama-sekolah">Nama Sekolah</Label>
-          <Input id="nama-sekolah" placeholder="Contoh: SD Negeri 1" defaultValue={sekolah?.nama} />
+        <div className="grid gap-1.5">
+          <Label htmlFor="nama-sekolah" className="text-xs">Nama Sekolah</Label>
+          <Input id="nama-sekolah" placeholder="Contoh: SD Negeri 1" defaultValue={sekolah?.nama} className="text-xs h-9" />
         </div>
-        <div className="grid gap-2">
-          <Label htmlFor="alamat-sekolah">Alamat Sekolah</Label>
-          <Input id="alamat-sekolah" placeholder="Contoh: Jl. Pendidikan No. 1" defaultValue={sekolah?.alamat} />
+        <WilayahSelector onWilayahChange={() => {}}/>
+        <div className="grid gap-1.5">
+          <Label htmlFor="alamat-sekolah" className="text-xs">Alamat Detail</Label>
+          <Input id="alamat-sekolah" placeholder="Contoh: Jl. Pendidikan No. 1" defaultValue={sekolah?.alamat} className="text-xs h-9" />
         </div>
-        <div className="grid gap-2">
-          <Label htmlFor="jenjang">Jenjang</Label>
+        <div className="grid gap-1.5">
+          <Label htmlFor="jenjang" className="text-xs">Jenjang</Label>
           <Select onValueChange={(value) => setSelectedJenjang(value as Jenjang)} value={selectedJenjang}>
-            <SelectTrigger id="jenjang">
+            <SelectTrigger id="jenjang" className="text-xs h-9">
               <SelectValue placeholder="Pilih Jenjang" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="PAUD">PAUD</SelectItem>
-              <SelectItem value="TK">TK</SelectItem>
-              <SelectItem value="SD">SD</SelectItem>
-              <SelectItem value="SMP">SMP</SelectItem>
-              <SelectItem value="SMA">SMA</SelectItem>
+              <SelectItem value="PAUD" className="text-xs">PAUD</SelectItem>
+              <SelectItem value="TK" className="text-xs">TK</SelectItem>
+              <SelectItem value="SD" className="text-xs">SD</SelectItem>
+              <SelectItem value="SMP" className="text-xs">SMP</SelectItem>
+              <SelectItem value="SMA" className="text-xs">SMA</SelectItem>
             </SelectContent>
           </Select>
         </div>
       </div>
       <Separator orientation="vertical" className="h-auto hidden md:block" />
-      <div className="flex-1 space-y-4">
-        <h3 className="text-lg font-semibold text-muted-foreground">
+      <div className="flex-1 space-y-3">
+        <h3 className="text-base font-semibold text-muted-foreground">
           Data Personel & Porsi
         </h3>
-        <div className="grid gap-2">
-          <Label htmlFor="nama-kepala-sekolah">Nama Kepala Sekolah</Label>
-          <Input id="nama-kepala-sekolah" placeholder="Contoh: Budi Santoso" />
+        <div className="grid gap-1.5">
+          <Label htmlFor="nama-kepala-sekolah" className="text-xs">Nama Kepala Sekolah</Label>
+          <Input id="nama-kepala-sekolah" placeholder="Contoh: Budi Santoso" className="text-xs h-9" />
         </div>
-        <div className="grid gap-2">
-          <Label htmlFor="nama-pic">Nama PIC</Label>
-          <Input id="nama-pic" placeholder="Contoh: Siti Aminah" />
+        <div className="grid gap-1.5">
+          <Label htmlFor="nama-pic" className="text-xs">Nama PIC</Label>
+          <Input id="nama-pic" placeholder="Contoh: Siti Aminah" className="text-xs h-9" />
         </div>
-        <div className="grid gap-2">
-            <Label htmlFor="telp-pic">Nomor Telepon PIC</Label>
-            <Input id="telp-pic" type="tel" placeholder="0812..." />
+        <div className="grid gap-1.5">
+            <Label htmlFor="telp-pic" className="text-xs">Nomor Telepon PIC</Label>
+            <Input id="telp-pic" type="tel" placeholder="0812..." className="text-xs h-9" />
         </div>
         {renderPorsiInputs()}
       </div>
@@ -167,44 +290,45 @@ const SekolahForm = ({ sekolah }: { sekolah?: Sekolah | null }) => {
 
 const B3Form = ({ b3 }: { b3?: B3Data | null }) => {
     return (
-        <div className="flex flex-col md:flex-row gap-8 py-4">
-            <div className="flex-1 space-y-4">
-                <h3 className="text-lg font-semibold text-muted-foreground">
+        <div className="flex flex-col md:flex-row gap-6 py-4">
+            <div className="flex-1 space-y-3">
+                <h3 className="text-base font-semibold text-muted-foreground">
                     Data Umum
                 </h3>
-                <div className="grid gap-2">
-                    <Label htmlFor="nama-desa">Nama Desa/Kelurahan</Label>
-                    <Input id="nama-desa" placeholder="Contoh: Desa Makmur" defaultValue={b3?.namaDesa} />
+                <div className="grid gap-1.5">
+                    <Label htmlFor="nama-desa" className="text-xs">Nama Posyandu/Puskesmas</Label>
+                    <Input id="nama-desa" placeholder="Contoh: Posyandu Melati" defaultValue={b3?.namaDesa} className="text-xs h-9" />
                 </div>
-                <div className="grid gap-2">
-                    <Label htmlFor="alamat-b3">Alamat</Label>
-                    <Input id="alamat-b3" placeholder="Contoh: Jl. Sejahtera No. 1" defaultValue={b3?.alamat} />
+                 <WilayahSelector onWilayahChange={() => {}}/>
+                <div className="grid gap-1.5">
+                    <Label htmlFor="alamat-b3" className="text-xs">Alamat Detail</Label>
+                    <Input id="alamat-b3" placeholder="Contoh: Jl. Sejahtera No. 1" defaultValue={b3?.alamat} className="text-xs h-9" />
                 </div>
-                <div className="grid gap-2">
-                    <Label htmlFor="nama-pic-b3">Nama PIC</Label>
-                    <Input id="nama-pic-b3" placeholder="Contoh: Dewi Lestari" />
+                <div className="grid gap-1.5">
+                    <Label htmlFor="nama-pic-b3" className="text-xs">Nama PIC</Label>
+                    <Input id="nama-pic-b3" placeholder="Contoh: Dewi Lestari" className="text-xs h-9" />
                 </div>
-                 <div className="grid gap-2">
-                    <Label htmlFor="telp-pic-b3">Nomor Telepon PIC</Label>
-                    <Input id="telp-pic-b3" type="tel" placeholder="0812..." />
+                 <div className="grid gap-1.5">
+                    <Label htmlFor="telp-pic-b3" className="text-xs">Nomor Telepon PIC</Label>
+                    <Input id="telp-pic-b3" type="tel" placeholder="0812..." className="text-xs h-9" />
                 </div>
             </div>
             <Separator orientation="vertical" className="h-auto hidden md:block" />
-            <div className="flex-1 space-y-4">
-                <h3 className="text-lg font-semibold text-muted-foreground">
+            <div className="flex-1 space-y-3">
+                <h3 className="text-base font-semibold text-muted-foreground">
                     Data Penerima Manfaat
                 </h3>
-                <div className="grid gap-2">
-                    <Label htmlFor="jumlah-bumil">Ibu Hamil (Bumil)</Label>
-                    <Input id="jumlah-bumil" type="number" placeholder="0" defaultValue={b3?.jenis.bumil} />
+                <div className="grid gap-1.5">
+                    <Label htmlFor="jumlah-bumil" className="text-xs">Ibu Hamil (Bumil)</Label>
+                    <Input id="jumlah-bumil" type="number" placeholder="0" defaultValue={b3?.jenis.bumil} className="text-xs h-9" />
                 </div>
-                <div className="grid gap-2">
-                    <Label htmlFor="jumlah-busui">Ibu Menyusui (Busui)</Label>
-                    <Input id="jumlah-busui" type="number" placeholder="0" defaultValue={b3?.jenis.busui} />
+                <div className="grid gap-1.5">
+                    <Label htmlFor="jumlah-busui" className="text-xs">Ibu Menyusui (Busui)</Label>
+                    <Input id="jumlah-busui" type="number" placeholder="0" defaultValue={b3?.jenis.busui} className="text-xs h-9" />
                 </div>
-                <div className="grid gap-2">
-                    <Label htmlFor="jumlah-balita">Balita</Label>
-                    <Input id="jumlah-balita" type="number" placeholder="0" defaultValue={b3?.jenis.balita} />
+                <div className="grid gap-1.5">
+                    <Label htmlFor="jumlah-balita" className="text-xs">Balita</Label>
+                    <Input id="jumlah-balita" type="number" placeholder="0" defaultValue={b3?.jenis.balita} className="text-xs h-9" />
                 </div>
             </div>
         </div>
@@ -747,6 +871,8 @@ export default function MitraPage() {
     </>
   );
 }
+
+    
 
     
 
