@@ -21,7 +21,7 @@ export default async function Page() {
     const isAdmin = user.user_metadata?.role === 'Admin Pusat';
     
     if (!isAdmin) {
-      supabase.auth.admin.updateUserById(
+      await supabase.auth.admin.updateUserById(
         user.id,
         { user_metadata: { ...user.user_metadata, sppgId: 'admin-pusat', role: 'Admin Pusat', full_name: 'Admin Utama' } }
       ).catch(console.error); 

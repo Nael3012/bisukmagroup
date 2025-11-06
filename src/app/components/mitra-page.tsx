@@ -268,7 +268,7 @@ export default function MitraPage({ userRole, userSppgId, semuaDaftarSekolah, se
 
 
   const selectedSppgDetails = useMemo(() => {
-    if (selectedSppg === 'all') return { value: 'all', label: 'Semua SPPG', address: '', yayasan: '' };
+    if (selectedSppg === 'all') return null;
     return sppgList.find(option => option.id === selectedSppg);
   }, [selectedSppg, sppgList]);
 
@@ -447,7 +447,7 @@ export default function MitraPage({ userRole, userSppgId, semuaDaftarSekolah, se
                 <div className="w-full max-w-xs">
                 <Select onValueChange={handleSppgChange} value={selectedSppg}>
                     <SelectTrigger>
-                        <SelectValue placeholder="Pilih SPPG">{selectedSppg === 'all' ? 'Semua SPPG' : selectedSppgDetails?.nama || 'Pilih SPPG'}</SelectValue>
+                        <SelectValue placeholder="Pilih SPPG">{selectedSppg === 'all' ? 'Semua SPPG' : (selectedSppgDetails?.nama || 'Pilih SPPG')}</SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="all">
@@ -499,55 +499,57 @@ export default function MitraPage({ userRole, userSppgId, semuaDaftarSekolah, se
           </TabsList>
           
           <TabsContent value="sekolah">
-            <div className="px-4 pb-4 pt-6 space-y-4">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-muted/50">
-                    <TableHead>
-                      <Button variant="ghost" onClick={() => requestSortSekolah('nama')}>
-                        Nama Sekolah
-                        {getSortIndicatorSekolah('nama')}
-                      </Button>
-                    </TableHead>
-                    <TableHead>
-                      <Button variant="ghost" onClick={() => requestSortSekolah('alamat')}>
-                        Alamat Sekolah
-                        {getSortIndicatorSekolah('alamat')}
-                      </Button>
-                    </TableHead>
-                    <TableHead>
-                       <Button variant="ghost" onClick={() => requestSortSekolah('jenjang')}>
-                        Jenjang
-                        {getSortIndicatorSekolah('jenjang')}
-                      </Button>
-                    </TableHead>
-                    <TableHead>
-                       <Button variant="ghost" onClick={() => requestSortSekolah('jumlahPM')}>
-                        Jumlah PM
-                        {getSortIndicatorSekolah('jumlahPM')}
-                      </Button>
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {paginatedSekolah.length > 0 ? (
-                    paginatedSekolah.map((sekolah) => (
-                      <TableRow key={sekolah.id} onClick={() => handleSekolahRowClick(sekolah)} className="cursor-pointer">
-                        <TableCell>{sekolah.nama}</TableCell>
-                        <TableCell>{sekolah.alamat}</TableCell>
-                        <TableCell>{sekolah.jenjang}</TableCell>
-                        <TableCell>{sekolah.jumlahPM}</TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={4} className="text-center">
-                        Tidak ada data sekolah untuk SPPG ini.
-                      </TableCell>
+            <div className="px-1 sm:px-4 pb-4 pt-6 space-y-4">
+              <div className='overflow-x-auto'>
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/50">
+                      <TableHead>
+                        <Button variant="ghost" onClick={() => requestSortSekolah('nama')}>
+                          Nama Sekolah
+                          {getSortIndicatorSekolah('nama')}
+                        </Button>
+                      </TableHead>
+                      <TableHead>
+                        <Button variant="ghost" onClick={() => requestSortSekolah('alamat')}>
+                          Alamat Sekolah
+                          {getSortIndicatorSekolah('alamat')}
+                        </Button>
+                      </TableHead>
+                      <TableHead>
+                        <Button variant="ghost" onClick={() => requestSortSekolah('jenjang')}>
+                          Jenjang
+                          {getSortIndicatorSekolah('jenjang')}
+                        </Button>
+                      </TableHead>
+                      <TableHead>
+                        <Button variant="ghost" onClick={() => requestSortSekolah('jumlahPM')}>
+                          Jumlah PM
+                          {getSortIndicatorSekolah('jumlahPM')}
+                        </Button>
+                      </TableHead>
                     </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {paginatedSekolah.length > 0 ? (
+                      paginatedSekolah.map((sekolah) => (
+                        <TableRow key={sekolah.id} onClick={() => handleSekolahRowClick(sekolah)} className="cursor-pointer">
+                          <TableCell>{sekolah.nama}</TableCell>
+                          <TableCell>{sekolah.alamat}</TableCell>
+                          <TableCell>{sekolah.jenjang}</TableCell>
+                          <TableCell>{sekolah.jumlahPM}</TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-center h-24">
+                          Tidak ada data sekolah untuk SPPG ini.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
               <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-4">
                  <div className="flex items-center gap-2">
                     <Label htmlFor="items-per-page-sekolah">Tampilkan</Label>
@@ -578,13 +580,13 @@ export default function MitraPage({ userRole, userSppgId, semuaDaftarSekolah, se
                        <span className="sr-only">Sebelumnya</span>
                     </Button>
                     <span className="text-sm text-muted-foreground">
-                      Halaman {currentPageSekolah} dari {totalPagesSekolah}
+                      Halaman {currentPageSekolah} dari {totalPagesSekolah || 1}
                     </span>
                     <Button
                       variant="ghost"
                       size="icon"
                       onClick={() => setCurrentPageSekolah((prev) => Math.min(prev + 1, totalPagesSekolah))}
-                      disabled={currentPageSekolah === totalPagesSekolah}
+                      disabled={currentPageSekolah === totalPagesSekolah || totalPagesSekolah === 0}
                     >
                       <ChevronRight className="h-4 w-4" />
                        <span className="sr-only">Selanjutnya</span>
@@ -593,7 +595,7 @@ export default function MitraPage({ userRole, userSppgId, semuaDaftarSekolah, se
                 
                 <Dialog>
                   <DialogTrigger asChild>
-                    <Button>Tambah Sekolah</Button>
+                    <Button className="w-full sm:w-auto">Tambah Sekolah</Button>
                   </DialogTrigger>
                   <DialogContent className="max-w-4xl">
                     <DialogHeader>
@@ -609,56 +611,58 @@ export default function MitraPage({ userRole, userSppgId, semuaDaftarSekolah, se
             </div>
           </TabsContent>
           <TabsContent value="b3">
-             <div className="px-4 pb-4 pt-6 space-y-4">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-muted/50">
-                      <TableHead>
-                        <Button variant="ghost" onClick={() => requestSortB3('namaDesa')}>
-                          Nama Desa/Kelurahan
-                          {getSortIndicatorB3('namaDesa')}
-                        </Button>
-                      </TableHead>
-                      <TableHead>
-                        <Button variant="ghost" onClick={() => requestSortB3('alamat')}>
-                          Alamat
-                          {getSortIndicatorB3('alamat')}
-                        </Button>
-                      </TableHead>
-                      <TableHead>
-                        Jenis
-                      </TableHead>
-                      <TableHead>
-                        <Button variant="ghost" onClick={() => requestSortB3('jumlah')}>
-                          Jumlah
-                          {getSortIndicatorB3('jumlah')}
-                        </Button>
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {paginatedB3.length > 0 ? (
-                      paginatedB3.map((item) => (
-                        <TableRow key={item.id} onClick={() => handleB3RowClick(item)} className="cursor-pointer">
-                          <TableCell>{item.namaDesa}</TableCell>
-                          <TableCell>{item.alamat}</TableCell>
-                          <TableCell>
-                            <div>Bumil: {item.jenis.bumil}</div>
-                            <div>Busui: {item.jenis.busui}</div>
-                            <div>Balita: {item.jenis.balita}</div>
-                          </TableCell>
-                          <TableCell>{item.jumlah}</TableCell>
-                        </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={4} className="text-center">
-                          Tidak ada data B3 untuk SPPG ini.
-                        </TableCell>
+             <div className="px-1 sm:px-4 pb-4 pt-6 space-y-4">
+                <div className='overflow-x-auto'>
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-muted/50">
+                        <TableHead>
+                          <Button variant="ghost" onClick={() => requestSortB3('namaDesa')}>
+                            Nama Desa/Kelurahan
+                            {getSortIndicatorB3('namaDesa')}
+                          </Button>
+                        </TableHead>
+                        <TableHead>
+                          <Button variant="ghost" onClick={() => requestSortB3('alamat')}>
+                            Alamat
+                            {getSortIndicatorB3('alamat')}
+                          </Button>
+                        </TableHead>
+                        <TableHead>
+                          Jenis
+                        </TableHead>
+                        <TableHead>
+                          <Button variant="ghost" onClick={() => requestSortB3('jumlah')}>
+                            Jumlah
+                            {getSortIndicatorB3('jumlah')}
+                          </Button>
+                        </TableHead>
                       </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {paginatedB3.length > 0 ? (
+                        paginatedB3.map((item) => (
+                          <TableRow key={item.id} onClick={() => handleB3RowClick(item)} className="cursor-pointer">
+                            <TableCell>{item.namaDesa}</TableCell>
+                            <TableCell>{item.alamat}</TableCell>
+                            <TableCell>
+                              <div>Bumil: {item.jenis.bumil}</div>
+                              <div>Busui: {item.jenis.busui}</div>
+                              <div>Balita: {item.jenis.balita}</div>
+                            </TableCell>
+                            <TableCell>{item.jumlah}</TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={4} className="text-center h-24">
+                            Tidak ada data B3 untuk SPPG ini.
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
                 <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-4">
                   <div className="flex items-center gap-2">
                     <Label htmlFor="items-per-page-b3">Tampilkan</Label>
@@ -688,13 +692,13 @@ export default function MitraPage({ userRole, userSppgId, semuaDaftarSekolah, se
                        <span className="sr-only">Sebelumnya</span>
                     </Button>
                     <span className="text-sm text-muted-foreground">
-                      Halaman {currentPageB3} dari {totalPagesB3}
+                      Halaman {currentPageB3} dari {totalPagesB3 || 1}
                     </span>
                     <Button
                       variant="ghost"
                       size="icon"
                       onClick={() => setCurrentPageB3((prev) => Math.min(prev + 1, totalPagesB3))}
-                      disabled={currentPageB3 === totalPagesB3}
+                      disabled={currentPageB3 === totalPagesB3 || totalPagesB3 === 0}
                     >
                       <ChevronRight className="h-4 w-4" />
                       <span className="sr-only">Selanjutnya</span>
@@ -702,7 +706,7 @@ export default function MitraPage({ userRole, userSppgId, semuaDaftarSekolah, se
                   </div>
                   <Dialog>
                     <DialogTrigger asChild>
-                      <Button>Tambah B3</Button>
+                      <Button className="w-full sm:w-auto">Tambah B3</Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-4xl">
                       <DialogHeader>

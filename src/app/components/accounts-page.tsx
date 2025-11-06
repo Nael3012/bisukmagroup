@@ -69,11 +69,20 @@ const createUserFormSchema = baseSchema.extend({
     path: ["confirmPassword"],
 });
 
+// For updating a pending user, 'email' field holds the user ID, so no email validation needed.
 const updateUserFormSchema = baseSchema.extend({
-    email: z.string().min(1, "Harap pilih akun pending."), // Now holds the user ID
+    email: z.string().min(1, "Harap pilih akun pending."),
 });
 
-const editUserFormSchema = baseSchema;
+// For editing an existing user, no password validation unless provided.
+const editUserFormSchema = baseSchema.extend({
+     email: z.string().email(), // email is read-only here
+     password: z.string().optional(),
+     confirmPassword: z.string().optional(),
+}).refine(data => data.password === data.confirmPassword, {
+    message: "Password tidak cocok",
+    path: ["confirmPassword"],
+});
 
 
 type CreateUserFormValues = z.infer<typeof createUserFormSchema>;
@@ -118,6 +127,8 @@ const AccountForm = ({
                 role: account.user_metadata?.role || 'SPPG',
                 sppgId: account.user_metadata?.sppgId || '',
                 position: account.user_metadata?.position || '',
+                password: '',
+                confirmPassword: '',
             }
         }
         return {
@@ -146,7 +157,7 @@ const AccountForm = ({
         const user = pendingUsers.find(u => u.id === userId);
         if (user) {
             const fullName = user.user_metadata?.full_name || user.email?.split('@')[0] || '';
-            setValue('email', user.id); // IMPORTANT: set the ID to the email field
+            setValue('email', user.id); // IMPORTANT: set the ID to the email field for the form
             setValue('full_name', fullName, { shouldValidate: true });
             setSelectedPendingData({ id: user.id, email: user.email || '', name: fullName });
         }
@@ -394,6 +405,7 @@ export default function AccountsPage({ accountList, sppgList }: AccountsPageProp
 
         if (usePendingAccount && !selectedAccount) {
             const updateData = data as UpdateUserFormValues;
+            // The 'email' field in the form holds the user ID for pending users
             const userId = updateData.email; 
             if (!userId) {
                 toast({ variant: "destructive", title: "Error", description: "Pengguna pending tidak valid." });
@@ -403,8 +415,8 @@ export default function AccountsPage({ accountList, sppgList }: AccountsPageProp
              result = await updateUserMetadata(userId, metadata);
 
         } else if (selectedAccount) {
-            const editData = data as EditUserFormValues;
-             result = await updateUserMetadata(selectedAccount.id, editData);
+             const editData = data as EditUserFormValues;
+             result = await updateUserMetadata(selectedAccount.id, metadata);
         } else {
             const createData = data as CreateUserFormValues;
             if (!createData.password) {
