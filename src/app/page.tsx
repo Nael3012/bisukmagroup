@@ -15,16 +15,49 @@ export default async function Page() {
   }
 
   // Ambil profil pengguna dari tabel public.user_profiles
-  const { data: userProfile, error: profileError } = await supabase
+  let { data: userProfile, error: profileError } = await supabase
     .from('user_profiles')
     .select('*')
     .eq('id', user.id)
     .single();
 
-  // Jika tidak ada profil, arahkan ke halaman pending
+  // Jika profil tidak ditemukan, cek apakah itu admin dari metadata lama
+  // dan buat profilnya jika perlu.
   if (!userProfile || profileError) {
-    console.error('Profile error or not found:', profileError?.message);
-    return redirect('/pending');
+    console.warn('User profile not found in user_profiles table. Checking old metadata for admin role.', { userId: user.id });
+    
+    // Periksa metadata lama (legacy)
+    const isLegacyAdmin = user.user_metadata?.role === 'Admin Pusat';
+    
+    if (isLegacyAdmin) {
+        console.log('Legacy Admin Pusat detected. Creating new profile in user_profiles table.');
+        const { data: newProfile, error: insertError } = await supabase
+            .from('user_profiles')
+            .insert({
+                id: user.id,
+                nama: user.user_metadata?.nama || user.email?.split('@')[0] || 'Admin',
+                email: user.email!,
+                role: 'Admin Pusat',
+                sppg_id: 'admin-pusat', // SPPG ID khusus untuk admin pusat
+                avatar_url: user.user_metadata?.avatar_url,
+            })
+            .select()
+            .single();
+
+        if (insertError) {
+            console.error('Failed to create profile for legacy admin:', insertError.message);
+            // Jika gagal membuat, tetap arahkan ke pending sebagai fallback
+            return redirect('/pending');
+        }
+
+        console.log('Successfully created profile for legacy admin.');
+        userProfile = newProfile; // Gunakan profil yang baru dibuat
+
+    } else {
+        // Jika bukan legacy admin, arahkan ke halaman pending
+        console.log('User is not a legacy admin. Redirecting to /pending.');
+        return redirect('/pending');
+    }
   }
   
   // Gabungkan metadata dari profil ke objek user untuk konsistensi
