@@ -1,3 +1,4 @@
+
 'use server';
 
 import { createAdminClient } from '@/utils/supabase/admin';
@@ -5,22 +6,31 @@ import { z } from 'zod';
 
 // Skema validasi untuk metadata pengguna
 const metadataSchema = z.object({
+  full_name: z.string().min(1, 'Nama lengkap harus diisi'),
   role: z.enum(['Admin Pusat', 'SPPG']),
   sppgId: z.string().min(1, 'SPPG ID harus diisi'),
-  full_name: z.string().min(1, 'Nama lengkap harus diisi'),
   position: z.string().optional(),
   phone: z.string().optional(),
 });
+
+// Skema validasi untuk pembuatan pengguna baru
+const createUserSchema = z.object({
+    email: z.string().email('Email tidak valid'),
+    password: z.string().min(6, 'Password minimal 6 karakter'),
+}).merge(metadataSchema);
 
 
 export async function getPendingUsers() {
   const supabase = createAdminClient();
 
-  const { data: { users }, error } = await supabase.auth.admin.listUsers();
+  const { data: { users }, error } = await supabase.auth.admin.listUsers({
+      perPage: 1000 // Ambil lebih banyak pengguna jika diperlukan
+  });
 
   if (error) {
     console.error('Error fetching users:', error);
-    throw new Error(`Supabase admin error: ${error.message}`);
+    // Di lingkungan produksi, Anda mungkin ingin melempar error yang lebih umum
+    throw new Error('Gagal mengambil data pengguna dari server.');
   }
 
   // Filter pengguna yang belum punya role atau sppgId
@@ -32,7 +42,7 @@ export async function getPendingUsers() {
 }
 
 
-export async function updateUserMetadata(userId: string, metadata: z.infer<typeof metadataSchema>) {
+export async function updateUserMetadata(userId: string, metadata: unknown) {
     try {
         const validatedMetadata = metadataSchema.parse(metadata);
         const supabase = createAdminClient();
@@ -42,35 +52,38 @@ export async function updateUserMetadata(userId: string, metadata: z.infer<typeo
         );
 
         if (error) {
+            console.error('Supabase update error:', error);
             throw new Error(error.message);
         }
 
         return { success: true, data };
     } catch (e: any) {
-        // Handle Zod validation errors or Supabase errors
+        // Tangani error validasi Zod atau error dari Supabase
         const errorMessage = e.errors ? e.errors.map((err: any) => err.message).join(', ') : e.message;
+        console.error('Update user metadata failed:', errorMessage);
         return { success: false, error: errorMessage };
     }
 }
 
 
-export async function createUser(userData: any) {
+export async function createUser(userData: unknown) {
      const supabase = createAdminClient();
-     const { email, password, ...metadata } = userData;
-
+     
     try {
-        // 1. Validasi metadata
-        const validatedMetadata = metadataSchema.parse(metadata);
+        // 1. Validasi semua data termasuk email dan password
+        const validatedData = createUserSchema.parse(userData);
+        const { email, password, ...metadata } = validatedData;
 
         // 2. Buat pengguna baru
         const { data: newUser, error: creationError } = await supabase.auth.admin.createUser({
             email,
             password,
             email_confirm: true, // Otomatis konfirmasi email
-            user_metadata: validatedMetadata,
+            user_metadata: metadata,
         });
 
         if (creationError) {
+            console.error('Supabase creation error:', creationError);
             throw new Error(creationError.message);
         }
 
@@ -78,6 +91,7 @@ export async function createUser(userData: any) {
 
     } catch (e: any) {
         const errorMessage = e.errors ? e.errors.map((err: any) => err.message).join(', ') : e.message;
+        console.error('Create user failed:', errorMessage);
         return { success: false, error: errorMessage };
     }
 }
