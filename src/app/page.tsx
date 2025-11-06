@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ThemeToggle } from '@/components/theme-toggle';
+import KeuanganPage from './components/keuangan-page';
 
 
 type Menu = 'Dashboard' | 'SPPG' | 'Mitra' | 'Menu' | 'Keuangan' | 'Laporan' | 'Kelola Penanggung Jawab';
@@ -56,6 +57,8 @@ export default function Home() {
         return <MitraPage />;
       case 'Menu':
         return <MenuPage />;
+      case 'Keuangan':
+        return <KeuanganPage />;
       case 'Laporan':
         return <ReportsPage />;
       case 'Kelola Penanggung Jawab':
