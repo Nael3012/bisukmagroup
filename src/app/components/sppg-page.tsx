@@ -64,6 +64,13 @@ const yayasanOptions = [
     "Yayasan Bisukma Generasi Emas Indonesia"
 ];
 
+const yayasanLogoMap: { [key: string]: string } = {
+    "Yayasan Bisukma Bangun Bangsa": "Bisukma Bangun Bangsa.png",
+    "Yayasan Patriot Generasi Emas Indonesia": "Patriot Generasi Emas Indonesia.png",
+    "Yayasan Bisukma Hita Mangula": "Bisukma Hita Mangula.png",
+    "Yayasan Bisukma Generasi Emas Indonesia": "Bisukma Generasi Emas Indonesia.png"
+};
+
 const SppgForm = ({ sppg }: { sppg?: SppgData | null }) => {
     const [selectedYayasan, setSelectedYayasan] = useState(sppg?.yayasan || '');
 
@@ -71,7 +78,7 @@ const SppgForm = ({ sppg }: { sppg?: SppgData | null }) => {
         setSelectedYayasan(sppg?.yayasan || '');
     }, [sppg]);
 
-    const logoUrl = selectedYayasan ? `/Yayasan logo/${selectedYayasan}.png` : null;
+    const logoUrl = selectedYayasan ? `/Yayasan logo/${yayasanLogoMap[selectedYayasan]}` : null;
 
     return (
         <div className="flex flex-col md:flex-row gap-8 py-4">
