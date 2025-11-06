@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Select,
   SelectContent,
@@ -12,6 +12,7 @@ import {
 import { useState, useMemo, useEffect } from 'react';
 import { Users, Utensils, Building, Soup, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import Image from 'next/image';
 
 const yayasanLogos: Record<string, string> = {
     "Yayasan Bisukma Bangun Bangsa": "https://oilvtefzzupggnstgpsa.supabase.co/storage/v1/object/public/logos/1762413828035_Bisukma%20Bangun%20Bangsa.png",
@@ -27,6 +28,7 @@ type SppgData = {
   nama: string;
   yayasan: string;
   alamat: string;
+  logo_url: string | null;
 };
 
 type SppgId = 'all' | string;
@@ -72,24 +74,22 @@ export default function DashboardPage({ userRole, userSppgId, sppgList }: Dashbo
     return sppgList.find(option => option.id === selectedSppg);
   }, [selectedSppg, sppgList]);
 
-  const handleDownloadLogo = async () => {
-    const yayasan = selectedSppgDetails?.yayasan;
-    if (yayasan && yayasanLogos[yayasan]) {
-      try {
-        const response = await fetch(yayasanLogos[yayasan]);
-        if (!response.ok) throw new Error('Network response was not ok.');
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `${yayasan.replace(/ /g, '_')}-logo.png`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-      } catch (error) {
-        console.error("Download failed:", error);
-      }
+  const handleDownloadLogo = async (url: string | null, yayasan: string | undefined) => {
+    if (!url || !yayasan) return;
+    try {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Network response was not ok.');
+      const blob = await response.blob();
+      const link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blob);
+      link.download = `${yayasan.replace(/ /g, '_')}-logo.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(link.href);
+    } catch (error) {
+      console.error("Download failed:", error);
+      // You could add a toast notification here to inform the user.
     }
   };
 
@@ -121,17 +121,45 @@ export default function DashboardPage({ userRole, userSppgId, sppgList }: Dashbo
               </Select>
           </div>
           {selectedSppg !== 'all' && (
-            <Button variant="outline" size="icon" onClick={handleDownloadLogo} disabled={!selectedSppgDetails?.yayasan}>
+            <Button variant="outline" size="icon" onClick={() => handleDownloadLogo(selectedSppgDetails?.logo_url || yayasanLogos[selectedSppgDetails?.yayasan || ''], selectedSppgDetails?.yayasan)} disabled={!selectedSppgDetails?.yayasan}>
               <Download className="h-4 w-4" />
               <span className="sr-only">Download Logo</span>
             </Button>
           )}
         </div>
       )}
+
+      {userRole === 'SPPG' && selectedSppgDetails && (
+        <Card className='max-w-sm'>
+            <CardHeader>
+                <CardTitle>Logo Yayasan</CardTitle>
+                <CardDescription>{selectedSppgDetails.yayasan}</CardDescription>
+            </CardHeader>
+            <CardContent>
+                {selectedSppgDetails.logo_url && (
+                    <div className="relative w-full aspect-video rounded-lg overflow-hidden border">
+                         <Image 
+                            src={selectedSppgDetails.logo_url} 
+                            alt={`Logo ${selectedSppgDetails.yayasan}`} 
+                            fill
+                            className="object-contain p-4" 
+                        />
+                    </div>
+                )}
+            </CardContent>
+            <CardFooter>
+                 <Button className='w-full' onClick={() => handleDownloadLogo(selectedSppgDetails.logo_url, selectedSppgDetails.yayasan)} disabled={!selectedSppgDetails.logo_url}>
+                    <Download className="mr-2 h-4 w-4" />
+                    Unduh Logo
+                </Button>
+            </CardFooter>
+        </Card>
+      )}
+
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Jumlah SPPG"
-          value={currentData.totalSppg}
+          value={userRole === 'Admin Pusat' ? (selectedSppg === 'all' ? sppgList.length : 1) : 1}
           icon={Building}
           description={selectedSppg === 'all' ? 'Total semua SPPG terdaftar' : 'SPPG yang sedang ditampilkan'}
         />
