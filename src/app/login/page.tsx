@@ -75,7 +75,7 @@ export default function LoginPage() {
             </h1>
             <Alert>
                 <Info className="h-4 w-4" />
-                <AlertDescription className="text-xs">
+                <AlertDescription className="text-xs text-left">
                     Masukkan email dan password jika sudah memiliki akun, dan login dengan akun, atau login dengan akun Google
                 </AlertDescription>
             </Alert>
