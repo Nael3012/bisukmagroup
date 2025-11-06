@@ -24,6 +24,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -31,13 +32,16 @@ import { ChevronLeft, ChevronRight, Edit, Trash2 } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { DialogDescription } from '@/components/ui/dialog';
+import { Separator } from '@/components/ui/separator';
 
 type Account = {
   id: string;
   name: string;
   email: string;
+  phone?: string;
   role: 'Admin Pusat' | 'SPPG';
   sppgManaged: string | null; // SPPG ID
+  position?: 'Ka. SPPG' | 'Ahli Gizi' | 'Akuntan' | 'Asisten Lapangan';
 };
 
 const accountList: Account[] = [
@@ -45,6 +49,7 @@ const accountList: Account[] = [
     id: 'user-1',
     name: 'Admin BGN',
     email: 'admin.pusat@bgn.com',
+    phone: '081234567890',
     role: 'Admin Pusat',
     sppgManaged: null,
   },
@@ -52,15 +57,19 @@ const accountList: Account[] = [
     id: 'user-2',
     name: 'John Doe',
     email: 'johndoe@example.com',
+    phone: '081234567891',
     role: 'SPPG',
     sppgManaged: 'SPPG Al-Ikhlas',
+    position: 'Ka. SPPG',
   },
   {
     id: 'user-3',
     name: 'Jane Smith',
     email: 'janesmith@example.com',
+    phone: '081234567892',
     role: 'SPPG',
     sppgManaged: 'SPPG Bina Umat',
+    position: 'Akuntan',
   },
 ];
 
@@ -70,8 +79,11 @@ const sppgOptions = [
     { value: 'SPPG Nurul Hidayah', label: 'SPPG Nurul Hidayah' },
 ];
 
+const positionOptions = ['Ka. SPPG', 'Ahli Gizi', 'Akuntan', 'Asisten Lapangan'];
+
+
 const AccountForm = ({ account }: { account?: Account | null }) => {
-    const [role, setRole] = useState(account?.role || '');
+    const [role, setRole] = useState(account?.role || 'SPPG');
 
     useEffect(() => {
         if(account?.role) {
@@ -80,48 +92,85 @@ const AccountForm = ({ account }: { account?: Account | null }) => {
     }, [account]);
     
     return (
-        <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-                <Label htmlFor="name">Nama Lengkap</Label>
-                <Input id="name" placeholder="Contoh: Budi Santoso" defaultValue={account?.name} />
-            </div>
-            <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" placeholder="contoh@email.com" defaultValue={account?.email} />
-            </div>
-            { !account && (
-                 <div className="grid gap-2">
-                    <Label htmlFor="password">Password</Label>
-                    <Input id="password" type="password" />
-                </div>
-            )}
-            <div className="grid gap-2">
-                <Label htmlFor="role">Role</Label>
-                <Select value={role} onValueChange={setRole}>
-                <SelectTrigger id="role">
-                    <SelectValue placeholder="Pilih Role" />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="Admin Pusat">Admin Pusat</SelectItem>
-                    <SelectItem value="SPPG">SPPG</SelectItem>
-                </SelectContent>
-                </Select>
-            </div>
-            { role === 'SPPG' && (
+        <div className="flex flex-col md:flex-row gap-8 py-4">
+            {/* Segment 1: Data Pribadi */}
+            <div className="flex-1 space-y-4">
+                <h3 className="text-lg font-semibold text-muted-foreground">Data Pribadi</h3>
                 <div className="grid gap-2">
-                    <Label htmlFor="sppg">SPPG yang Dikelola</Label>
-                    <Select defaultValue={account?.sppgManaged || undefined}>
-                        <SelectTrigger id="sppg">
-                        <SelectValue placeholder="Pilih SPPG" />
-                        </SelectTrigger>
-                        <SelectContent>
-                        {sppgOptions.map(opt => (
-                            <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                        ))}
-                        </SelectContent>
+                    <Label htmlFor="name">Nama Lengkap</Label>
+                    <Input id="name" placeholder="Contoh: Budi Santoso" defaultValue={account?.name} />
+                </div>
+                 <div className="grid gap-2">
+                    <Label htmlFor="phone">Nomor Telepon</Label>
+                    <Input id="phone" type="tel" placeholder="0812..." defaultValue={account?.phone} />
+                </div>
+                <div className="grid gap-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input id="email" type="email" placeholder="contoh@email.com" defaultValue={account?.email} />
+                </div>
+                { !account && (
+                    <>
+                        <div className="grid gap-2">
+                            <Label htmlFor="password">Password</Label>
+                            <Input id="password" type="password" />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="retype-password">Ulangi Password</Label>
+                            <Input id="retype-password" type="password" />
+                        </div>
+                    </>
+                )}
+            </div>
+
+            <Separator orientation="vertical" className="h-auto hidden md:block" />
+
+            {/* Segment 2: Penugasan & Role */}
+            <div className="flex-1 space-y-4">
+                 <h3 className="text-lg font-semibold text-muted-foreground">Penugasan & Role</h3>
+                 <div className="grid gap-2">
+                    <Label htmlFor="role">Role</Label>
+                    <Select value={role} onValueChange={setRole}>
+                    <SelectTrigger id="role">
+                        <SelectValue placeholder="Pilih Role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="Admin Pusat">Admin Pusat</SelectItem>
+                        <SelectItem value="SPPG">SPPG</SelectItem>
+                    </SelectContent>
                     </Select>
                 </div>
-            )}
+
+                { role === 'SPPG' && (
+                    <>
+                        <div className="grid gap-2">
+                            <Label htmlFor="sppg">SPPG yang Dikelola</Label>
+                            <Select defaultValue={account?.sppgManaged || undefined}>
+                                <SelectTrigger id="sppg">
+                                <SelectValue placeholder="Pilih SPPG" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                {sppgOptions.map(opt => (
+                                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                                ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="position">Jabatan</Label>
+                            <Select defaultValue={account?.position || undefined}>
+                                <SelectTrigger id="position">
+                                <SelectValue placeholder="Pilih Jabatan" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                {positionOptions.map(opt => (
+                                    <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                                ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </>
+                )}
+            </div>
         </div>
     )
 }
@@ -130,6 +179,7 @@ export default function AccountsPage() {
   const [itemsPerPage, setItemsPerPage] = useState(15);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
+  const [isAddOpen, setIsAddOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
 
   useEffect(() => {
@@ -147,6 +197,12 @@ export default function AccountsPage() {
   const handleEditClick = (account: Account) => {
     setSelectedAccount(account);
     setIsEditOpen(true);
+  }
+
+  const handleCloseDialogs = () => {
+    setIsAddOpen(false);
+    setIsEditOpen(false);
+    setSelectedAccount(null); // Clear selection on close
   }
 
   return (
@@ -238,26 +294,26 @@ export default function AccountsPage() {
           </Button>
         </div>
         
-        <Dialog>
+        <Dialog open={isAddOpen} onOpenChange={(open) => !open && handleCloseDialogs()}>
           <DialogTrigger asChild>
-            <Button>Tambah Akun</Button>
+            <Button onClick={() => setIsAddOpen(true)}>Tambah Akun</Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-4xl">
             <DialogHeader>
               <DialogTitle>Tambah Akun Baru</DialogTitle>
             </DialogHeader>
             <AccountForm />
-            <div className="flex justify-end">
+            <DialogFooter>
               <Button type="submit">Simpan Akun</Button>
-            </div>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
     </div>
     
     {/* Edit Dialog */}
-    <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-      <DialogContent>
+    <Dialog open={isEditOpen} onOpenChange={(open) => !open && handleCloseDialogs()}>
+      <DialogContent className="max-w-4xl">
         <DialogHeader>
           <DialogTitle>Edit Akun & Penugasan</DialogTitle>
           <DialogDescription>
@@ -265,11 +321,13 @@ export default function AccountsPage() {
           </DialogDescription>
         </DialogHeader>
         <AccountForm account={selectedAccount} />
-        <div className="flex justify-end">
+        <DialogFooter>
           <Button type="submit">Simpan Perubahan</Button>
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
     </>
   );
 }
+
+    
