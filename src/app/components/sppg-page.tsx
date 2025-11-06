@@ -30,9 +30,11 @@ import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Info, ChevronLeft, ChevronRight, Pencil, Image as ImageIcon } from 'lucide-react';
+import { Info, ChevronLeft, ChevronRight, Pencil, ImageIcon } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 import { WilayahSelector } from './wilayah-selector';
+import Image from 'next/image';
+
 
 type SppgData = {
   id: string;
@@ -63,6 +65,14 @@ const yayasanOptions = [
 ];
 
 const SppgForm = ({ sppg }: { sppg?: SppgData | null }) => {
+    const [selectedYayasan, setSelectedYayasan] = useState(sppg?.yayasan || '');
+
+    useEffect(() => {
+        setSelectedYayasan(sppg?.yayasan || '');
+    }, [sppg]);
+
+    const logoUrl = selectedYayasan ? `/Yayasan logo/${selectedYayasan}.png` : null;
+
     return (
         <div className="flex flex-col md:flex-row gap-8 py-4">
             {/* Left Segment */}
@@ -90,7 +100,7 @@ const SppgForm = ({ sppg }: { sppg?: SppgData | null }) => {
                 </div>
                 <div className="grid gap-2">
                     <Label htmlFor="yayasan">Yayasan</Label>
-                    <Select defaultValue={sppg?.yayasan}>
+                    <Select value={selectedYayasan} onValueChange={setSelectedYayasan}>
                         <SelectTrigger id="yayasan">
                             <SelectValue placeholder="Pilih Yayasan" />
                         </SelectTrigger>
@@ -129,10 +139,23 @@ const SppgForm = ({ sppg }: { sppg?: SppgData | null }) => {
                 <Input id="asisten-lapangan" placeholder="Contoh: Joko" defaultValue={sppg?.asistenLapangan} />
                 </div>
                  <div className="grid gap-2">
-                  <Label>Foto Struktur Organisasi</Label>
-                  <div className="w-full aspect-[16/9] border-2 border-dashed rounded-lg flex flex-col justify-center items-center text-muted-foreground">
-                    <ImageIcon className="h-10 w-10 mb-2" />
-                    <span className="text-sm">Area gambar 1920x1080px</span>
+                  <Label>Logo Yayasan</Label>
+                  <div className="relative w-full aspect-[16/9] border-2 border-dashed rounded-lg flex flex-col justify-center items-center text-muted-foreground bg-muted/20">
+                     {logoUrl ? (
+                          <Image
+                            src={logoUrl}
+                            alt={`Logo ${selectedYayasan}`}
+                            layout="fill"
+                            objectFit="contain"
+                            className="p-2"
+                            unoptimized // Required for local static images if loader is not configured
+                          />
+                     ) : (
+                        <>
+                            <ImageIcon className="h-10 w-10 mb-2" />
+                            <span className="text-sm text-center">Pilih yayasan untuk melihat logo</span>
+                        </>
+                     )}
                   </div>
                 </div>
             </div>
