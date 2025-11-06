@@ -14,6 +14,11 @@ export default async function Page() {
     return redirect('/login')
   }
 
+  // Redirect to pending page if user has no SPPG assigned
+  if (!user.user_metadata?.sppgId) {
+    return redirect('/pending');
+  }
+
   const { data: sppgData } = await supabase.from('sppg').select()
   const { data: sekolahData } = await supabase.from('sekolah').select()
   const { data: b3Data } = await supabase.from('b3').select()
