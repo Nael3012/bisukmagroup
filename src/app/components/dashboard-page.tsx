@@ -19,32 +19,7 @@ const sppgOptions = [
   { value: 'sppg-nurul-hidayah', label: 'SPPG Nurul Hidayah', address: 'Jl. Sudirman No. 5, Bandung' },
 ];
 
-const dashboardData: Record<string, any> = {
-  all: {
-    totalSppg: 3,
-    totalPenerimaManfaat: 455,
-    porsiHariIni: 310,
-    porsiMingguan: 1550,
-  },
-  'sppg-al-ikhlas': {
-    totalSppg: 1,
-    totalPenerimaManfaat: 160,
-    porsiHariIni: 80,
-    porsiMingguan: 400,
-  },
-  'sppg-bina-umat': {
-    totalSppg: 1,
-    totalPenerimaManfaat: 160,
-    porsiHariIni: 115,
-    porsiMingguan: 575,
-  },
-  'sppg-nurul-hidayah': {
-    totalSppg: 1,
-    totalPenerimaManfaat: 135,
-    porsiHariIni: 100,
-    porsiMingguan: 500,
-  },
-}
+const dashboardData: Record<string, any> = {};
 
 
 type SppgId = 'all' | 'sppg-al-ikhlas' | 'sppg-bina-umat' | 'sppg-nurul-hidayah';
@@ -82,7 +57,7 @@ export default function DashboardPage({ userRole, userSppgId }: DashboardPagePro
 
 
   const currentData = useMemo(() => {
-    return dashboardData[selectedSppg] || dashboardData.all;
+    return dashboardData[selectedSppg] || { totalSppg: 0, totalPenerimaManfaat: 0, porsiHariIni: 0, porsiMingguan: 0 };
   }, [selectedSppg]);
 
   const selectedSppgLabel = useMemo(() => {

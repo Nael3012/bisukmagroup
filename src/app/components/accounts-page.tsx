@@ -45,34 +45,7 @@ type Account = {
   position?: 'Ka. SPPG' | 'Ahli Gizi' | 'Akuntan' | 'Asisten Lapangan';
 };
 
-const accountList: Account[] = [
-  {
-    id: 'user-1',
-    name: 'Admin BGN',
-    email: 'admin.pusat@bgn.com',
-    phone: '081234567890',
-    role: 'Admin Pusat',
-    sppgManaged: null,
-  },
-  {
-    id: 'user-2',
-    name: 'John Doe',
-    email: 'johndoe@example.com',
-    phone: '081234567891',
-    role: 'SPPG',
-    sppgManaged: 'SPPG Al-Ikhlas',
-    position: 'Ka. SPPG',
-  },
-  {
-    id: 'user-3',
-    name: 'Jane Smith',
-    email: 'janesmith@example.com',
-    phone: '081234567892',
-    role: 'SPPG',
-    sppgManaged: 'SPPG Bina Umat',
-    position: 'Akuntan',
-  },
-];
+const accountList: Account[] = [];
 
 const sppgOptions = [
     { value: 'sppg-al-ikhlas', label: 'SPPG Al-Ikhlas' },

@@ -367,26 +367,11 @@ export default function MenuPage({ userRole, userSppgId }: MenuPageProps) {
   const currentWeeklyMenu: WeeklyMenu = useMemo(() => {
     // This will be replaced with real data fetching
     return {
-        weekStatus: { Senin: true, Selasa: false, Rabu: true, Kamis: true, Jumat: false },
+        weekStatus: { Senin: false, Selasa: false, Rabu: false, Kamis: false, Jumat: false },
         menuData: {
-            Senin: {
-                menuName: 'Nasi Ayam Goreng Spesial (Al-Ikhlas)',
-                imageUrl: 'https://picsum.photos/seed/1/600/400',
-                largePortion: [{ id: 1, source: 'protein', amount: '150' }, { id: 2, source: 'karbohidrat', amount: '200' }],
-                smallPortion: [{ id: 1, source: 'protein', amount: '100' }, { id: 2, source: 'karbohidrat', amount: '150' }],
-            },
-            Rabu: {
-                menuName: 'Ikan Bakar &amp; Sayur Sop (Al-Ikhlas)',
-                imageUrl: 'https://picsum.photos/seed/2/600/400',
-                largePortion: [{ id: 1, source: 'protein', amount: '180' }, { id: 2, source: 'zat-besi', amount: '20' }],
-                smallPortion: [{ id: 1, source: 'protein', amount: '120' }, { id: 2, source: 'zat-besi', amount: '15' }],
-            },
-            Kamis: {
-                menuName: 'Daging Rendang &amp; Tumis Kangkung (Al-Ikhlas)',
-                imageUrl: 'https://picsum.photos/seed/3/600/400',
-                largePortion: [{ id: 1, source: 'protein', amount: '200' }, { id: 2, source: 'lemak', amount: '50' }],
-                smallPortion: [{ id: 1, source: 'protein', amount: '130' }, { id: 2, source: 'lemak', amount: '35' }],
-            },
+            Senin: null,
+            Rabu: null,
+            Kamis: null,
             Selasa: null,
             Jumat: null
         }
