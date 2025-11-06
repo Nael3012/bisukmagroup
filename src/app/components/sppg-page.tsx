@@ -66,6 +66,13 @@ const yayasanOptions = [
     "Yayasan Bisukma Generasi Emas Indonesia"
 ];
 
+const yayasanLogos: Record<string, string> = {
+    "Yayasan Bisukma Bangun Bangsa": "https://oilvtefzzupggnstgpsa.supabase.co/storage/v1/object/public/logos/1762413828035_Bisukma%20Bangun%20Bangsa.png",
+    "Yayasan Patriot Generasi Emas Indonesia": "https://oilvtefzzupggnstgpsa.supabase.co/storage/v1/object/public/logos/1762413871003_Patriot%20Generasi%20Emas%20Indonesia.png",
+    "Yayasan Bisukma Hita Mangula": "https://oilvtefzzupggnstgpsa.supabase.co/storage/v1/object/public/logos/1762413915579_Bisukma%20Hita%20Mangula.png",
+    "Yayasan Bisukma Generasi Emas Indonesia": "https://oilvtefzzupggnstgpsa.supabase.co/storage/v1/object/public/logos/1762413958140_Bisukma%20Generasi%20Emas%20Indonesia.png"
+};
+
 const SppgForm = ({ sppg, onSave }: { sppg?: SppgData | null, onSave: () => void }) => {
     const [selectedYayasan, setSelectedYayasan] = useState(sppg?.yayasan || '');
     const [logoFile, setLogoFile] = useState<File | null>(null);
@@ -77,6 +84,15 @@ const SppgForm = ({ sppg, onSave }: { sppg?: SppgData | null, onSave: () => void
         setImagePreview(sppg?.logo_url || null);
         setLogoFile(null);
     }, [sppg]);
+
+    const handleYayasanChange = (yayasan: string) => {
+        setSelectedYayasan(yayasan);
+        // Automatically set the logo if one is available and no logo is currently set
+        if (yayasanLogos[yayasan] && !imagePreview) {
+            setImagePreview(yayasanLogos[yayasan]);
+            setLogoFile(null); // It's a pre-existing URL, not a new file
+        }
+    };
 
     const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -91,17 +107,18 @@ const SppgForm = ({ sppg, onSave }: { sppg?: SppgData | null, onSave: () => void
     };
     
     const handleSave = async () => {
-        let logoUrlToSave = sppg?.logo_url || null;
+        let logoUrlToSave = imagePreview; // Start with current preview
 
+        // If a new file was selected, upload it
         if (logoFile) {
             const fileName = `${Date.now()}_${logoFile.name}`;
             const { data, error } = await supabase.storage
-                .from('logos') // Pastikan bucket 'logos' ada di Supabase Storage
+                .from('logos')
                 .upload(fileName, logoFile);
 
             if (error) {
                 console.error('Error uploading logo:', error);
-                // Tambahkan notifikasi error jika perlu
+                // Handle error notification to user here
                 return;
             }
 
@@ -149,7 +166,7 @@ const SppgForm = ({ sppg, onSave }: { sppg?: SppgData | null, onSave: () => void
                 </div>
                 <div className="grid gap-2">
                     <Label htmlFor="yayasan">Yayasan</Label>
-                    <Select value={selectedYayasan} onValueChange={setSelectedYayasan}>
+                    <Select value={selectedYayasan} onValueChange={handleYayasanChange}>
                         <SelectTrigger id="yayasan">
                             <SelectValue placeholder="Pilih Yayasan" />
                         </SelectTrigger>
