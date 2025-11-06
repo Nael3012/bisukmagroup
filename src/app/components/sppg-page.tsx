@@ -143,7 +143,7 @@ export default function SppgPage() {
           <CardContent>
             <Table>
               <TableHeader>
-                <TableRow>
+                <TableRow className="bg-muted/50">
                   <TableHead>Nama SPPG</TableHead>
                   <TableHead>Yayasan</TableHead>
                   <TableHead>Alamat</TableHead>
