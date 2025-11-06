@@ -136,16 +136,14 @@ export default function LoginPage() {
             </Button>
         </div>
       </div>
-      <div className="hidden bg-muted lg:flex flex-col items-center justify-center p-8 gap-6 text-center">
-        <div>
+      <div className="hidden bg-gradient-to-br from-blue-500 to-purple-600 lg:flex flex-col items-center justify-center p-8 gap-6 text-center">
+        <div className="text-white">
             <h1 className="text-7xl font-bold tracking-tighter">
-                <span className="animate-gradient bg-gradient-to-r from-blue-500 via-purple-500 to-orange-500 bg-clip-text text-transparent bg-[length:200%_auto]">
-                    BETA
-                </span>
+                BETA
             </h1>
             <p className="text-4xl font-light tracking-wide">report</p>
         </div>
-        <p className="text-lg text-muted-foreground max-w-md">
+        <p className="text-lg text-blue-100 max-w-md">
             Aplikasi pelaporan terpusat untuk memonitor dan mengelola data program gizi dari semua SPPG secara efisien.
         </p>
       </div>
