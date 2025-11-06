@@ -85,7 +85,7 @@ export default function ClientPage({ user, sppgList, sekolahList, b3List }: Clie
   const [activeMenu, setActiveMenu] = useState<Menu>('Dashboard');
 
   // This is a placeholder for actual role management
-  const userRole = user.email?.includes('admin') ? 'Admin Pusat' : 'SPPG';
+  const userRole = user.user_metadata?.role || 'SPPG';
   const userSppgId = user.user_metadata?.sppgId;
   const userName = user.user_metadata?.full_name || user.email;
   const userAvatar = user.user_metadata?.avatar_url;
@@ -97,7 +97,6 @@ export default function ClientPage({ user, sppgList, sekolahList, b3List }: Clie
   const handleLogout = async () => {
     await supabase.auth.signOut();
     router.push('/login');
-    router.refresh();
   };
 
   const availableMenus = allMenuItems.filter(menu => {
