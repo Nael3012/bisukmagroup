@@ -18,9 +18,10 @@ import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
-import type { DateRange } from 'react-day-picker';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const sppgOptions = [
   { value: 'all', label: 'Semua SPPG' },
@@ -36,6 +37,7 @@ const reportTypeOptions = [
 ]
 
 type ReportType = 'mitra' | 'menu' | 'keuangan' | '';
+type MenuReportType = 'harian' | 'mingguan';
 
 const ReportPreviewDialog = ({
   isOpen,
@@ -87,11 +89,17 @@ const ReportPreviewDialog = ({
 export default function ReportsPage() {
   const [selectedSppg, setSelectedSppg] = useState('all');
   const [selectedReport, setSelectedReport] = useState<ReportType>('');
-  const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [date, setDate] = useState<Date | undefined>();
+  const [menuReportType, setMenuReportType] = useState<MenuReportType>('harian');
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-
+  
   const showDatePicker = selectedReport === 'menu' || selectedReport === 'keuangan';
-  const isButtonDisabled = !selectedSppg || !selectedReport;
+
+  const isButtonDisabled = 
+    !selectedSppg || 
+    !selectedReport ||
+    (showDatePicker && !date);
+
 
   const handleDownload = async () => {
     if (isButtonDisabled) return;
@@ -163,10 +171,26 @@ export default function ReportsPage() {
                 </SelectContent>
               </Select>
             </div>
+            
+            {selectedReport === 'menu' && (
+                <div className="grid gap-3">
+                    <Label>Pilih Tipe Laporan Menu</Label>
+                    <RadioGroup defaultValue="harian" onValueChange={(value: string) => setMenuReportType(value as MenuReportType)} className="flex gap-4">
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="harian" id="harian" />
+                            <Label htmlFor="harian">Harian</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="mingguan" id="mingguan" />
+                            <Label htmlFor="mingguan">Mingguan</Label>
+                        </div>
+                    </RadioGroup>
+                </div>
+            )}
 
             {showDatePicker && (
               <div className="grid gap-2">
-                  <Label>Pilih Rentang Tanggal</Label>
+                  <Label>Pilih Tanggal</Label>
                   <Popover>
                       <PopoverTrigger asChild>
                       <Button
@@ -174,38 +198,34 @@ export default function ReportsPage() {
                           variant={"outline"}
                           className={cn(
                           "w-full justify-start text-left font-normal",
-                          !dateRange && "text-muted-foreground"
+                          !date && "text-muted-foreground"
                           )}
                       >
                           <CalendarIcon className="mr-2 h-4 w-4" />
-                          {dateRange?.from ? (
-                          dateRange.to ? (
-                              <>
-                              {format(dateRange.from, "d LLL y", { locale: id })} -{" "}
-                              {format(dateRange.to, "d LLL y", { locale: id })}
-                              </>
-                          ) : (
-                              format(dateRange.from, "d LLL y", { locale: id })
-                          )
-                          ) : (
-                          <span>Pilih tanggal</span>
-                          )}
+                          {date ? format(date, "d LLL y", { locale: id }) : <span>Pilih tanggal</span>}
                       </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0" align="start">
                       <Calendar
                           initialFocus
-                          mode="range"
-                          defaultMonth={dateRange?.from}
-                          selected={dateRange}
-                          onSelect={setDateRange}
-                          numberOfMonths={2}
+                          mode="single"
+                          selected={date}
+                          onSelect={setDate}
                           locale={id}
                       />
                       </PopoverContent>
                   </Popover>
               </div>
             )}
+            
+            {isButtonDisabled && selectedReport && (
+                <Alert variant="destructive">
+                    <AlertDescription>
+                        Harap lengkapi semua pilihan yang diperlukan untuk melanjutkan.
+                    </AlertDescription>
+                </Alert>
+            )}
+
           </CardContent>
           <CardFooter className='flex justify-end gap-2'>
               <Button variant="outline" disabled={isButtonDisabled} onClick={() => setIsPreviewOpen(true)}>
