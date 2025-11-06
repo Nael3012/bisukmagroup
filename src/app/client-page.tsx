@@ -237,7 +237,7 @@ export default function ClientPage({ user, sppgList, sekolahList, b3List, assign
             </DropdownMenuContent>
           </DropdownMenu>
         </header>
-        <main className="flex-1 p-6">{renderContent()}</main>
+        <main className="flex-1 p-4 sm:p-6">{renderContent()}</main>
       </div>
     </div>
   );

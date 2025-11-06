@@ -259,30 +259,32 @@ export default function SppgPage({ sppgList }: SppgPageProps) {
             <CardTitle>Daftar SPPG</CardTitle>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/50">
-                  <TableHead>Nama SPPG</TableHead>
-                  <TableHead>Yayasan</TableHead>
-                  <TableHead>Alamat</TableHead>
-                  <TableHead>Penerima Manfaat</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {paginatedSppg.map((sppg) => (
-                  <TableRow 
-                    key={sppg.id} 
-                    onClick={() => handleRowClick(sppg)}
-                    className="cursor-pointer"
-                  >
-                    <TableCell>{sppg.nama}</TableCell>
-                    <TableCell>{sppg.yayasan}</TableCell>
-                    <TableCell>{sppg.alamat}</TableCell>
-                    <TableCell>{sppg.penerimaManfaat}</TableCell>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead>Nama SPPG</TableHead>
+                    <TableHead>Yayasan</TableHead>
+                    <TableHead>Alamat</TableHead>
+                    <TableHead>Penerima Manfaat</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {paginatedSppg.map((sppg) => (
+                    <TableRow 
+                      key={sppg.id} 
+                      onClick={() => handleRowClick(sppg)}
+                      className="cursor-pointer"
+                    >
+                      <TableCell>{sppg.nama}</TableCell>
+                      <TableCell>{sppg.yayasan}</TableCell>
+                      <TableCell>{sppg.alamat}</TableCell>
+                      <TableCell>{sppg.penerimaManfaat}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4">

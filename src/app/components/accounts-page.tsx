@@ -23,9 +23,10 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogFooter,
   DialogClose,
+  DialogTrigger,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -120,7 +121,7 @@ const AccountForm = ({
             }
         }
         return {
-             full_name: '', email: '', phone: '', role: 'SPPG', sppgId: '', position: ''
+             full_name: '', email: '', password: '', confirmPassword: '', phone: '', role: 'SPPG', sppgId: '', position: ''
         }
     }, [account]);
 
@@ -440,50 +441,52 @@ export default function AccountsPage({ accountList, sppgList }: AccountsPageProp
           <CardTitle>Daftar Akun Penanggung Jawab</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-muted/50">
-                <TableHead>Nama</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>SPPG yang Dikelola</TableHead>
-                <TableHead>Aksi</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {paginatedAccounts.map((account) => (
-                <TableRow key={account.id}>
-                  <TableCell className="font-medium">{account.user_metadata.full_name || account.email}</TableCell>
-                  <TableCell>{account.email}</TableCell>
-                  <TableCell>
-                    <Badge variant={account.user_metadata.role === 'Admin Pusat' ? 'secondary' : 'default'}>
-                      {account.user_metadata.role}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{sppgList.find(s => s.id === account.user_metadata.sppgId)?.nama || account.user_metadata.sppgId || '-'}</TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                        <Button variant="ghost" size="icon" onClick={() => handleEditClick(account)}>
-                            <Edit className="h-4 w-4" />
-                            <span className="sr-only">Edit Akun</span>
-                        </Button>
-                        <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
-                            <Trash2 className="h-4 w-4" />
-                            <span className="sr-only">Hapus Akun</span>
-                        </Button>
-                    </div>
-                  </TableCell>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50">
+                  <TableHead>Nama</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>SPPG yang Dikelola</TableHead>
+                  <TableHead>Aksi</TableHead>
                 </TableRow>
-              ))}
-                {paginatedAccounts.length === 0 && (
-                    <TableRow>
-                        <TableCell colSpan={5} className="text-center h-24">
-                            Belum ada akun penanggung jawab yang ditugaskan.
-                        </TableCell>
-                    </TableRow>
-                )}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {paginatedAccounts.map((account) => (
+                  <TableRow key={account.id}>
+                    <TableCell className="font-medium">{account.user_metadata.full_name || account.email}</TableCell>
+                    <TableCell>{account.email}</TableCell>
+                    <TableCell>
+                      <Badge variant={account.user_metadata.role === 'Admin Pusat' ? 'secondary' : 'default'}>
+                        {account.user_metadata.role}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{sppgList.find(s => s.id === account.user_metadata.sppgId)?.nama || account.user_metadata.sppgId || '-'}</TableCell>
+                    <TableCell>
+                      <div className="flex gap-2">
+                          <Button variant="ghost" size="icon" onClick={() => handleEditClick(account)}>
+                              <Edit className="h-4 w-4" />
+                              <span className="sr-only">Edit Akun</span>
+                          </Button>
+                          <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                              <Trash2 className="h-4 w-4" />
+                              <span className="sr-only">Hapus Akun</span>
+                          </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+                  {paginatedAccounts.length === 0 && (
+                      <TableRow>
+                          <TableCell colSpan={5} className="text-center h-24">
+                              Belum ada akun penanggung jawab yang ditugaskan.
+                          </TableCell>
+                      </TableRow>
+                  )}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
