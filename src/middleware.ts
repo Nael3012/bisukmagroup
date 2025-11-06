@@ -1,26 +1,71 @@
+
 import { NextResponse, type NextRequest } from 'next/server'
-import { createClient } from '@/utils/supabase/middleware'
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
 
 export async function middleware(request: NextRequest) {
-  const { supabase, response } = createClient(request)
-  const { data: { session } } = await supabase.auth.getSession()
+  let response = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
+  })
 
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return request.cookies.get(name)?.value
+        },
+        set(name: string, value: string, options: CookieOptions) {
+          request.cookies.set({
+            name,
+            value,
+            ...options,
+          })
+          response = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          })
+          response.cookies.set({
+            name,
+            value,
+            ...options,
+          })
+        },
+        remove(name: string, options: CookieOptions) {
+          request.cookies.set({
+            name,
+            value: '',
+            ...options,
+          })
+          response = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          })
+          response.cookies.set({
+            name,
+            value: '',
+            ...options,
+          })
+        },
+      },
+    }
+  )
+
+  const { data: { session } } = await supabase.auth.getSession()
   const { pathname } = request.nextUrl
 
-  // Jika pengguna belum login dan mencoba mengakses halaman selain yang ada di matcher,
-  // mereka akan dialihkan oleh logika di page.tsx, jadi middleware bisa fokus pada
-  // penyegaran token.
-  if (!session) {
-    // Jika tidak ada sesi dan pengguna bukan di halaman login, biarkan Next.js
-    // yang menangani redirect ke /login melalui komponen server.
-    // Ini menghindari loop redirect di middleware.
-    if (pathname !== '/login') {
-       // Untuk halaman selain login, biarkan penanganan redirect di level halaman (page.tsx)
-    }
+  if (!session && pathname !== '/login') {
+    // If no session, and not on the login page, redirect to login
+    // This is a more direct approach in middleware.
+    return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  // Jika pengguna sudah login dan mencoba mengakses halaman login, alihkan.
   if (session && pathname === '/login') {
+    // If there is a session and user is on login page, redirect to home
     return NextResponse.redirect(new URL('/', request.url))
   }
 
@@ -34,9 +79,10 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - /login (halaman login)
-     * - /auth/callback (Supabase auth callback)
+     *
+     * We remove /login and /auth/callback from the negative lookahead
+     * to ensure the middleware runs on them for redirection logic.
      */
-    '/((?!_next/static|_next/image|favicon.ico|login|auth/callback).*)',
+    '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
 }
