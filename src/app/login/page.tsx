@@ -10,6 +10,14 @@ import { Label } from '@/components/ui/label';
 import { supabase } from '@/utils/supabase/client';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
+import Image from 'next/image';
+
+const yayasanLogos = [
+    { name: "Bisukma Bangun Bangsa", url: "https://oilvtefzzupggnstgpsa.supabase.co/storage/v1/object/public/logos/1762413828035_Bisukma%20Bangun%20Bangsa.png"},
+    { name: "Patriot Generasi Emas Indonesia", url: "https://oilvtefzzupggnstgpsa.supabase.co/storage/v1/object/public/logos/1762413871003_Patriot%20Generasi%20Emas%20Indonesia.png"},
+    { name: "Bisukma Hita Mangula", url: "https://oilvtefzzupggnstgpsa.supabase.co/storage/v1/object/public/logos/1762413915579_Bisukma%20Hita%20Mangula.png"},
+    { name: "Bisukma Generasi Emas Indonesia", url: "https://oilvtefzzupggnstgpsa.supabase.co/storage/v1/object/public/logos/1762413958140_Bisukma%20Generasi%20Emas%20Indonesia.png"}
+];
 
 export default function LoginPage() {
   const router = useRouter();
@@ -102,10 +110,27 @@ export default function LoginPage() {
           </form>
         </div>
       </div>
-      <div className="hidden lg:flex items-center justify-center bg-gradient-to-br from-blue-600 via-purple-600 to-orange-500 p-8">
-        <div className="text-white text-center">
-            <h1 className="text-7xl font-bold tracking-tighter">BETA</h1>
+      <div className="hidden bg-muted lg:flex flex-col items-center justify-center p-8 gap-10">
+        <div className="text-center">
+            <h1 className="text-7xl font-bold tracking-tighter">
+                <span className="animate-gradient bg-gradient-to-r from-blue-500 via-purple-500 to-orange-500 bg-clip-text text-transparent bg-[length:200%_auto]">
+                    BETA
+                </span>
+            </h1>
             <p className="text-4xl font-light tracking-wide">report</p>
+        </div>
+        <div className="grid grid-cols-2 gap-8">
+            {yayasanLogos.map((logo) => (
+                <div key={logo.name} className="relative h-20 w-40">
+                    <Image
+                        src={logo.url}
+                        alt={logo.name}
+                        fill
+                        className="object-contain"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    />
+                </div>
+            ))}
         </div>
       </div>
     </div>
