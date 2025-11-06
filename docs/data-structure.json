@@ -7,7 +7,17 @@
       "nama": { "type": "string", "description": "Nama lengkap SPPG, cth: 'SPPG Al-Ikhlas'" },
       "yayasan": { "type": "string", "description": "Nama yayasan yang menaungi SPPG." },
       "alamat": { "type": "string", "description": "Alamat lengkap SPPG." },
-      "penerimaManfaat": { "type": "number", "description": "Total jumlah penerima manfaat yang dilayani." }
+      "penerimaManfaat": { "type": "number", "description": "Total jumlah penerima manfaat yang dilayani." },
+      "wilayah": {
+        "type": "object",
+        "description": "Data wilayah administratif.",
+        "properties": {
+          "province": { "type": "string", "description": "ID Provinsi" },
+          "regency": { "type": "string", "description": "ID Kabupaten/Kota" },
+          "district": { "type": "string", "description": "ID Kecamatan" },
+          "village": { "type": "string", "description": "ID Desa/Kelurahan" }
+        }
+      }
     }
   },
   "mitra": {
@@ -26,7 +36,17 @@
       "alamat": { "type": "string", "description": "Alamat sekolah." },
       "jenjang": { "type": "string", "enum": ["PAUD", "TK", "SD", "SMP", "SMA"], "description": "Jenjang pendidikan sekolah." },
       "jumlahPM": { "type": "number", "description": "Jumlah penerima manfaat di sekolah tersebut." },
-      "sppgId": { "type": "string", "description": "ID SPPG yang melayani sekolah ini." }
+      "sppgId": { "type": "string", "description": "ID SPPG yang melayani sekolah ini." },
+       "wilayah": {
+        "type": "object",
+        "description": "Data wilayah administratif.",
+        "properties": {
+          "province": { "type": "string", "description": "ID Provinsi" },
+          "regency": { "type": "string", "description": "ID Kabupaten/Kota" },
+          "district": { "type": "string", "description": "ID Kecamatan" },
+          "village": { "type": "string", "description": "ID Desa/Kelurahan" }
+        }
+      }
     }
   },
   "b3": {
@@ -45,7 +65,17 @@
         }
       },
       "jumlah": { "type": "number", "description": "Total jumlah dari semua jenis B3." },
-      "sppgId": { "type": "string", "description": "ID SPPG yang melayani B3 ini." }
+      "sppgId": { "type": "string", "description": "ID SPPG yang melayani B3 ini." },
+       "wilayah": {
+        "type": "object",
+        "description": "Data wilayah administratif.",
+        "properties": {
+          "province": { "type": "string", "description": "ID Provinsi" },
+          "regency": { "type": "string", "description": "ID Kabupaten/Kota" },
+          "district": { "type": "string", "description": "ID Kecamatan" },
+          "village": { "type": "string", "description": "ID Desa/Kelurahan" }
+        }
+      }
     }
   },
   "menu": {

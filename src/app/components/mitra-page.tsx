@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -41,15 +40,12 @@ import { ArrowUpDown, ChevronLeft, ChevronRight, Edit, Pencil } from 'lucide-rea
 import { cn } from '@/lib/utils';
 import type { Sekolah, B3Data } from '../data/mock';
 import { semuaDaftarSekolah, semuaDaftarB3 } from '../data/mock';
+import { WilayahSelector } from './wilayah-selector';
+
 
 type Jenjang = 'PAUD' | 'TK' | 'SD' | 'SMP' | 'SMA' | '';
 type SortableKeysSekolah = keyof Omit<Sekolah, 'id' | 'sppgId'>;
 type SortableKeysB3 = keyof Omit<B3Data, 'id' | 'jenis' | 'sppgId'>;
-
-type Wilayah = {
-  id: string;
-  name: string;
-};
 
 const sppgOptions = [
   {
@@ -75,123 +71,6 @@ const DetailItem = ({ label, value }: { label: string; value: React.ReactNode })
     <dd className="font-medium col-span-2">{value || '-'}</dd>
   </div>
 );
-
-const WilayahSelector = ({ onWilayahChange }: { onWilayahChange: (wilayah: any) => void }) => {
-    const [provinces, setProvinces] = useState<Wilayah[]>([]);
-    const [regencies, setRegencies] = useState<Wilayah[]>([]);
-    const [districts, setDistricts] = useState<Wilayah[]>([]);
-    const [villages, setVillages] = useState<Wilayah[]>([]);
-    
-    const [selectedProvince, setSelectedProvince] = useState('');
-    const [selectedRegency, setSelectedRegency] = useState('');
-    const [selectedDistrict, setSelectedDistrict] = useState('');
-    const [selectedVillage, setSelectedVillage] = useState('');
-
-    useEffect(() => {
-        fetch('https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json')
-            .then(response => response.json())
-            .then(data => setProvinces(data));
-    }, []);
-
-    useEffect(() => {
-        if (selectedProvince) {
-            fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/regencies/${selectedProvince}.json`)
-                .then(response => response.json())
-                .then(data => {
-                    setRegencies(data);
-                    setDistricts([]);
-                    setVillages([]);
-                    setSelectedRegency('');
-                    setSelectedDistrict('');
-                    setSelectedVillage('');
-                });
-        }
-    }, [selectedProvince]);
-
-    useEffect(() => {
-        if (selectedRegency) {
-            fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/districts/${selectedRegency}.json`)
-                .then(response => response.json())
-                .then(data => {
-                    setDistricts(data);
-                    setVillages([]);
-                    setSelectedDistrict('');
-                    setSelectedVillage('');
-                });
-        }
-    }, [selectedRegency]);
-    
-    useEffect(() => {
-        if (selectedDistrict) {
-            fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/villages/${selectedDistrict}.json`)
-                .then(response => response.json())
-                .then(data => {
-                    setVillages(data);
-                    setSelectedVillage('');
-                });
-        }
-    }, [selectedDistrict]);
-    
-    useEffect(() => {
-        onWilayahChange({
-            province: selectedProvince,
-            regency: selectedRegency,
-            district: selectedDistrict,
-            village: selectedVillage
-        })
-    }, [selectedProvince, selectedRegency, selectedDistrict, selectedVillage, onWilayahChange]);
-
-
-    return (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">
-            <div className="grid gap-1.5">
-                <Label htmlFor="provinsi" className="text-xs">Provinsi</Label>
-                <Select value={selectedProvince} onValueChange={setSelectedProvince}>
-                    <SelectTrigger id="provinsi" className="text-xs h-9">
-                        <SelectValue placeholder="Pilih Provinsi" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {provinces.map(p => <SelectItem key={p.id} value={p.id} className="text-xs">{p.name}</SelectItem>)}
-                    </SelectContent>
-                </Select>
-            </div>
-            <div className="grid gap-1.5">
-                <Label htmlFor="kabupaten" className="text-xs">Kabupaten/Kota</Label>
-                <Select value={selectedRegency} onValueChange={setSelectedRegency} disabled={!selectedProvince}>
-                    <SelectTrigger id="kabupaten" className="text-xs h-9">
-                        <SelectValue placeholder="Pilih Kabupaten/Kota" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {regencies.map(r => <SelectItem key={r.id} value={r.id} className="text-xs">{r.name}</SelectItem>)}
-                    </SelectContent>
-                </Select>
-            </div>
-            <div className="grid gap-1.5">
-                <Label htmlFor="kecamatan" className="text-xs">Kecamatan</Label>
-                <Select value={selectedDistrict} onValueChange={setSelectedDistrict} disabled={!selectedRegency}>
-                    <SelectTrigger id="kecamatan" className="text-xs h-9">
-                        <SelectValue placeholder="Pilih Kecamatan" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {districts.map(d => <SelectItem key={d.id} value={d.id} className="text-xs">{d.name}</SelectItem>)}
-                    </SelectContent>
-                </Select>
-            </div>
-            <div className="grid gap-1.5">
-                <Label htmlFor="desa" className="text-xs">Desa/Kelurahan</Label>
-                <Select value={selectedVillage} onValueChange={setSelectedVillage} disabled={!selectedDistrict}>
-                    <SelectTrigger id="desa" className="text-xs h-9">
-                        <SelectValue placeholder="Pilih Desa/Kelurahan" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {villages.map(v => <SelectItem key={v.id} value={v.id} className="text-xs">{v.name}</SelectItem>)}
-                    </SelectContent>
-                </Select>
-            </div>
-        </div>
-    )
-}
-
 
 const SekolahForm = ({ sekolah }: { sekolah?: Sekolah | null }) => {
   const [selectedJenjang, setSelectedJenjang] = useState<Jenjang>(
@@ -244,7 +123,7 @@ const SekolahForm = ({ sekolah }: { sekolah?: Sekolah | null }) => {
           <Label htmlFor="nama-sekolah" className="text-xs">Nama Sekolah</Label>
           <Input id="nama-sekolah" placeholder="Contoh: SD Negeri 1" defaultValue={sekolah?.nama} className="text-xs h-9" />
         </div>
-        <WilayahSelector onWilayahChange={() => {}}/>
+        <WilayahSelector onWilayahChange={() => {}} initialData={sekolah?.wilayah} />
         <div className="grid gap-1.5">
           <Label htmlFor="alamat-sekolah" className="text-xs">Alamat Detail</Label>
           <Input id="alamat-sekolah" placeholder="Contoh: Jl. Pendidikan No. 1" defaultValue={sekolah?.alamat} className="text-xs h-9" />
@@ -268,7 +147,7 @@ const SekolahForm = ({ sekolah }: { sekolah?: Sekolah | null }) => {
       <Separator orientation="vertical" className="h-auto hidden md:block" />
       <div className="flex-1 space-y-3">
         <h3 className="text-base font-semibold text-muted-foreground">
-          Data Personel & Porsi
+          Data Personel &amp; Porsi
         </h3>
         <div className="grid gap-1.5">
           <Label htmlFor="nama-kepala-sekolah" className="text-xs">Nama Kepala Sekolah</Label>
@@ -299,7 +178,7 @@ const B3Form = ({ b3 }: { b3?: B3Data | null }) => {
                     <Label htmlFor="nama-desa" className="text-xs">Nama Posyandu/Puskesmas</Label>
                     <Input id="nama-desa" placeholder="Contoh: Posyandu Melati" defaultValue={b3?.namaDesa} className="text-xs h-9" />
                 </div>
-                 <WilayahSelector onWilayahChange={() => {}}/>
+                 <WilayahSelector onWilayahChange={() => {}} initialData={b3?.wilayah} />
                 <div className="grid gap-1.5">
                     <Label htmlFor="alamat-b3" className="text-xs">Alamat Detail</Label>
                     <Input id="alamat-b3" placeholder="Contoh: Jl. Sejahtera No. 1" defaultValue={b3?.alamat} className="text-xs h-9" />

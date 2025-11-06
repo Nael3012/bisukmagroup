@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -35,6 +34,7 @@ import { Info, ChevronLeft, ChevronRight, Pencil } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 import type { SppgData } from '../data/mock';
 import { getSppgListWithDynamicPM } from '../data/mock';
+import { WilayahSelector } from './wilayah-selector';
 
 
 const DetailItem = ({ label, value }: { label: string, value: React.ReactNode }) => (
@@ -63,7 +63,11 @@ const SppgForm = ({ sppg }: { sppg?: SppgData | null }) => {
                 <Input id="nama-sppg" placeholder="Contoh: SPPG Sejahtera" defaultValue={sppg?.nama} />
                 </div>
                 <div className="grid gap-2">
-                <Label htmlFor="alamat">Alamat</Label>
+                  <Label>Wilayah</Label>
+                  <WilayahSelector onWilayahChange={() => {}} initialData={sppg?.wilayah} />
+                </div>
+                <div className="grid gap-2">
+                <Label htmlFor="alamat">Alamat Detail</Label>
                 <Input id="alamat" placeholder="Contoh: Jl. Pembangunan No. 123" defaultValue={sppg?.alamat} />
                 </div>
                 <div className="grid gap-2">
@@ -131,6 +135,13 @@ export default function SppgPage() {
   const handleEditClick = () => {
     setIsDetailOpen(false);
     setIsEditOpen(true);
+  }
+
+  const handleCloseDialogs = () => {
+    setIsAddOpen(false);
+    setIsEditOpen(false);
+    setIsDetailOpen(false);
+    setSelectedSppg(null);
   }
 
   return (
@@ -210,9 +221,9 @@ export default function SppgPage() {
             </Button>
           </div>
           
-          <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+          <Dialog open={isAddOpen} onOpenChange={(open) => !open && handleCloseDialogs()}>
             <DialogTrigger asChild>
-              <Button>Tambah SPPG</Button>
+              <Button onClick={() => setIsAddOpen(true)}>Tambah SPPG</Button>
             </DialogTrigger>
             <DialogContent className="max-w-4xl">
               <DialogHeader>
@@ -229,7 +240,7 @@ export default function SppgPage() {
       
       {/* Detail Dialog */}
       {selectedSppg && (
-        <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
+        <Dialog open={isDetailOpen} onOpenChange={(open) => !open && handleCloseDialogs()}>
             <DialogContent className="max-w-2xl">
                 <DialogHeader>
                     <DialogTitle>{selectedSppg.nama}</DialogTitle>
@@ -270,7 +281,7 @@ export default function SppgPage() {
 
       {/* Edit Dialog */}
        {selectedSppg && (
-         <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+         <Dialog open={isEditOpen} onOpenChange={(open) => !open && handleCloseDialogs()}>
             <DialogContent className="max-w-4xl">
               <DialogHeader>
                 <DialogTitle>Edit Data SPPG</DialogTitle>

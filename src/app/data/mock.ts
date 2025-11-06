@@ -1,3 +1,9 @@
+type WilayahSelection = {
+  province?: string;
+  regency?: string;
+  district?: string;
+  village?: string;
+}
 
 export type SppgData = {
   id: string;
@@ -9,6 +15,7 @@ export type SppgData = {
   namaAkuntan: string;
   ahliGizi: string;
   asistenLapangan: string;
+  wilayah: WilayahSelection;
 };
 
 export type Sekolah = {
@@ -18,6 +25,7 @@ export type Sekolah = {
   jenjang: string;
   jumlahPM: number;
   sppgId: string;
+  wilayah: WilayahSelection;
 };
 
 export type B3Data = {
@@ -27,6 +35,7 @@ export type B3Data = {
   jenis: { bumil: number; busui: number; balita: number };
   jumlah: number;
   sppgId: string;
+  wilayah: WilayahSelection;
 };
 
 type DayOfWeek = 'Senin' | 'Selasa' | 'Rabu' | 'Kamis' | 'Jumat';
@@ -59,13 +68,13 @@ export const menuDataBySppg: Record<SppgId, WeeklyMenu> = {
                 smallPortion: [{ id: 1, source: 'protein', amount: '100' }, { id: 2, source: 'karbohidrat', amount: '150' }],
             },
             Rabu: {
-                menuName: 'Ikan Bakar & Sayur Sop (Al-Ikhlas)',
+                menuName: 'Ikan Bakar &amp; Sayur Sop (Al-Ikhlas)',
                 imageUrl: 'https://picsum.photos/seed/2/600/400',
                 largePortion: [{ id: 1, source: 'protein', amount: '180' }, { id: 2, source: 'zat-besi', amount: '20' }],
                 smallPortion: [{ id: 1, source: 'protein', amount: '120' }, { id: 2, source: 'zat-besi', amount: '15' }],
             },
             Kamis: {
-                menuName: 'Daging Rendang & Tumis Kangkung (Al-Ikhlas)',
+                menuName: 'Daging Rendang &amp; Tumis Kangkung (Al-Ikhlas)',
                 imageUrl: 'https://picsum.photos/seed/3/600/400',
                 largePortion: [{ id: 1, source: 'protein', amount: '200' }, { id: 2, source: 'lemak', amount: '50' }],
                 smallPortion: [{ id: 1, source: 'protein', amount: '130' }, { id: 2, source: 'lemak', amount: '35' }],
@@ -130,6 +139,7 @@ export const semuaDaftarSekolah: Sekolah[] = [
     jenjang: 'SD',
     jumlahPM: 50,
     sppgId: 'sppg-al-ikhlas',
+    wilayah: { province: '31', regency: '3173', district: '3173040', village: '3173040003' }
   },
   {
     id: 'sekolah-2',
@@ -138,6 +148,7 @@ export const semuaDaftarSekolah: Sekolah[] = [
     jenjang: 'SMP',
     jumlahPM: 60,
     sppgId: 'sppg-al-ikhlas',
+    wilayah: { province: '31', regency: '3173', district: '3173040', village: '3173040003' }
   },
   {
     id: 'sekolah-3',
@@ -146,6 +157,7 @@ export const semuaDaftarSekolah: Sekolah[] = [
     jenjang: 'SMP',
     jumlahPM: 75,
     sppgId: 'sppg-bina-umat',
+    wilayah: { province: '32', regency: '3273', district: '3273180', village: '3273180001' }
   },
   {
     id: 'sekolah-4',
@@ -154,6 +166,7 @@ export const semuaDaftarSekolah: Sekolah[] = [
     jenjang: 'SMA', // Changed from SMK to SMA to match Jenjang type
     jumlahPM: 90,
     sppgId: 'sppg-bina-umat',
+    wilayah: { province: '32', regency: '3273', district: '3273180', village: '3273180001' }
   },
   {
     id: 'sekolah-5',
@@ -162,6 +175,7 @@ export const semuaDaftarSekolah: Sekolah[] = [
     jenjang: 'SMA',
     jumlahPM: 100,
     sppgId: 'sppg-nurul-hidayah',
+    wilayah: { province: '35', regency: '3578', district: '3578020', village: '3578020002' }
   },
    {
     id: 'sekolah-6',
@@ -170,6 +184,7 @@ export const semuaDaftarSekolah: Sekolah[] = [
     jenjang: 'SD',
     jumlahPM: 45,
     sppgId: 'sppg-nurul-hidayah',
+    wilayah: { province: '35', regency: '3578', district: '3578020', village: '3578020002' }
   },
 ];
 
@@ -181,6 +196,7 @@ export const semuaDaftarB3: B3Data[] = [
     jenis: { bumil: 10, busui: 15, balita: 25 },
     jumlah: 50,
     sppgId: 'sppg-al-ikhlas',
+    wilayah: { province: '31', regency: '3173', district: '3173040', village: '3173040003' }
   },
   {
     id: 'b3-2',
@@ -189,6 +205,7 @@ export const semuaDaftarB3: B3Data[] = [
     jenis: { bumil: 5, busui: 10, balita: 20 },
     jumlah: 35,
     sppgId: 'sppg-bina-umat',
+    wilayah: { province: '32', regency: '3273', district: '3273180', village: '3273180001' }
   },
     {
     id: 'b3-3',
@@ -197,6 +214,7 @@ export const semuaDaftarB3: B3Data[] = [
     jenis: { bumil: 8, busui: 12, balita: 30 },
     jumlah: 50,
     sppgId: 'sppg-nurul-hidayah',
+    wilayah: { province: '35', regency: '3578', district: '3578020', village: '3578020002' }
   },
 ];
 
@@ -210,6 +228,7 @@ const sppgListRaw: Omit<SppgData, 'penerimaManfaat'>[] = [
     namaAkuntan: 'Siti Rahma',
     ahliGizi: 'Dr. Ani Wijaya',
     asistenLapangan: 'Joko Susilo',
+    wilayah: { province: '31', regency: '3173', district: '3173040', village: '3173040003' }
   },
   {
     id: 'sppg-bina-umat',
@@ -220,6 +239,7 @@ const sppgListRaw: Omit<SppgData, 'penerimaManfaat'>[] = [
     namaAkuntan: 'Dewi Sartika',
     ahliGizi: 'Dr. Rina Puspita',
     asistenLapangan: 'Agus Salim',
+    wilayah: { province: '32', regency: '3273', district: '3273180', village: '3273180001' }
   },
   {
     id: 'sppg-nurul-hidayah',
@@ -230,6 +250,7 @@ const sppgListRaw: Omit<SppgData, 'penerimaManfaat'>[] = [
     namaAkuntan: 'Lina Marlina',
     ahliGizi: 'Dr. Hendra Gunawan',
     asistenLapangan: 'Rudi Hartono',
+    wilayah: { province: '35', regency: '3578', district: '3578020', village: '3578020002' }
   },
 ];
 
