@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Select,
   SelectContent,
@@ -11,15 +12,17 @@ import {
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, FilePlus, Save } from 'lucide-react';
+import { CalendarIcon, FilePlus, Info, Save } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
+import { format, startOfWeek, addDays } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { menuDataBySppg } from '../data/mock';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const sppgOptions = [
   { value: 'all', label: 'Semua SPPG' },
@@ -35,7 +38,7 @@ type KeuanganPageProps = {
 }
 
 export default function KeuanganPage({ userRole }: KeuanganPageProps) {
-  const [selectedSppg, setSelectedSppg] = useState<SppgId>('all');
+  const [selectedSppg, setSelectedSppg] = useState<SppgId>('sppg-al-ikhlas');
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [showPorsiInput, setShowPorsiInput] = useState(false);
   const [isAdminMode, setIsAdminMode] = useState(false);
@@ -43,6 +46,29 @@ export default function KeuanganPage({ userRole }: KeuanganPageProps) {
   const handleBuatLaporanClick = () => {
     setShowPorsiInput(true);
   }
+
+  const missingMenuDays = useMemo(() => {
+    if (selectedSppg === 'all' || !menuDataBySppg[selectedSppg]) {
+        return [];
+    }
+
+    const currentWeekStart = startOfWeek(new Date(), { weekStartsOn: 1 }); // Monday
+    const weekStatus = menuDataBySppg[selectedSppg].weekStatus;
+    const missingDays: { day: string; date: string }[] = [];
+
+    (Object.keys(weekStatus) as (keyof typeof weekStatus)[]).forEach((day, index) => {
+        if (!weekStatus[day]) {
+            const dateOfDay = addDays(currentWeekStart, index);
+            missingDays.push({
+                day: day,
+                date: format(dateOfDay, 'd MMMM yyyy', { locale: id }),
+            });
+        }
+    });
+
+    return missingDays;
+  }, [selectedSppg]);
+
 
   const renderRegularMode = () => (
     <>
@@ -52,6 +78,23 @@ export default function KeuanganPage({ userRole }: KeuanganPageProps) {
           Pilih SPPG dan tanggal untuk membuat laporan keuangan harian.
         </p>
       </div>
+
+       {missingMenuDays.length > 0 && (
+         <Alert variant="destructive">
+            <Info className="h-4 w-4" />
+            <AlertTitle>Data Menu Belum Lengkap</AlertTitle>
+            <AlertDescription>
+                Terdapat data menu yang belum diinput untuk SPPG ini pada minggu ini. Harap lengkapi data untuk hari berikut:
+                <ul className="list-disc pl-5 mt-2">
+                    {missingMenuDays.map(item => (
+                        <li key={item.day}>
+                           <span className="font-semibold">{item.day}</span>, {item.date}
+                        </li>
+                    ))}
+                </ul>
+            </AlertDescription>
+        </Alert>
+       )}
 
       <div className="space-y-6">
         <div className="flex flex-col md:flex-row gap-4">
@@ -63,7 +106,7 @@ export default function KeuanganPage({ userRole }: KeuanganPageProps) {
               </SelectTrigger>
               <SelectContent>
                 {sppgOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
+                  <SelectItem key={option.value} value={option.value} disabled={option.value === 'all'}>
                     <div>
                       <p className="font-medium">{option.label}</p>
                       {option.address && <p className="text-xs text-muted-foreground">{option.address}</p>}
@@ -197,3 +240,5 @@ export default function KeuanganPage({ userRole }: KeuanganPageProps) {
     </div>
   );
 }
+
+    
