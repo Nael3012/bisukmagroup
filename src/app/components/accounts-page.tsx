@@ -33,9 +33,7 @@ import { Badge } from '@/components/ui/badge';
 import { DialogDescription } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { supabase } from '@/utils/supabase/client';
 import type { User } from '@supabase/supabase-js';
-import { Switch } from '@/components/ui/switch';
 
 type Account = {
   id: string;
@@ -58,21 +56,16 @@ const sppgOptions = [
 const positionOptions = ['Ka. SPPG', 'Ahli Gizi', 'Akuntan', 'Asisten Lapangan'];
 
 
-const AccountForm = ({ account, pendingUsers }: { account?: Account | null, pendingUsers: User[] }) => {
+const AccountForm = ({ account }: { account?: Account | null }) => {
     const [role, setRole] = useState<'Admin Pusat' | 'SPPG'>(account?.role || 'SPPG');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [passwordError, setPasswordError] = useState('');
-    const [email, setEmail] = useState(account?.email || '');
-    const [selectFromPending, setSelectFromPending] = useState(false);
 
     useEffect(() => {
         if(account?.role) {
             setRole(account.role);
         }
-        setEmail(account?.email || '');
-        // Reset switch on form open/change
-        setSelectFromPending(false);
     }, [account]);
 
     useEffect(() => {
@@ -82,13 +75,6 @@ const AccountForm = ({ account, pendingUsers }: { account?: Account | null, pend
             setPasswordError('');
         }
     }, [password, confirmPassword]);
-
-    const handlePendingUserSelect = (userId: string) => {
-        const selectedUser = pendingUsers.find(u => u.id === userId);
-        if (selectedUser) {
-            setEmail(selectedUser.email || '');
-        }
-    }
     
     return (
         <div className="flex flex-col md:flex-row gap-8 py-4">
@@ -101,35 +87,10 @@ const AccountForm = ({ account, pendingUsers }: { account?: Account | null, pend
                     <Input id="name" placeholder="Contoh: Budi Santoso" defaultValue={account?.name} />
                 </div>
 
-                 {!account && pendingUsers.length > 0 && (
-                     <div className="flex items-center space-x-2 pt-2">
-                        <Switch id="pending-switch" checked={selectFromPending} onCheckedChange={setSelectFromPending} />
-                        <Label htmlFor="pending-switch">Pilih dari Akun Pending</Label>
-                    </div>
-                 )}
-
-                {selectFromPending ? (
-                    <div className="grid gap-2">
-                        <Label htmlFor="pending-user-select">Email Akun Pending</Label>
-                        <Select onValueChange={handlePendingUserSelect}>
-                        <SelectTrigger id="pending-user-select">
-                            <SelectValue placeholder="Pilih email dari daftar..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {pendingUsers.map(user => (
-                                <SelectItem key={user.id} value={user.id}>
-                                    {user.email}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                        </Select>
-                    </div>
-                ) : (
-                    <div className="grid gap-2">
-                        <Label htmlFor="email">Email</Label>
-                        <Input id="email" type="email" placeholder="contoh@email.com" value={email} onChange={(e) => setEmail(e.target.value)} disabled={!!account} />
-                    </div>
-                )}
+                <div className="grid gap-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input id="email" type="email" placeholder="contoh@email.com" defaultValue={account?.email} disabled={!!account} />
+                </div>
 
                  <div className="grid gap-2">
                     <Label htmlFor="phone">Nomor Telepon</Label>
@@ -217,45 +178,15 @@ const AccountForm = ({ account, pendingUsers }: { account?: Account | null, pend
 }
 
 export default function AccountsPage() {
-  const [itemsPerPage, setItemsPerPage] = useState(15);
+  const [itemsPerPage, setClientItemsPerPage] = useState(15);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
-  const [pendingUsers, setPendingUsers] = useState<User[]>([]);
 
   useEffect(() => {
     setCurrentPage(1);
   }, [itemsPerPage]);
-  
-  // Fetch pending users when the add dialog is opened
-  useEffect(() => {
-    const fetchPendingUsers = async () => {
-      // NOTE: This call requires admin privileges and should not be done from the client.
-      // It is wrapped in a try/catch to prevent the app from crashing.
-      // To implement this feature correctly, this logic must be moved to a server-side function.
-      try {
-        const { data: { users }, error } = await supabase.auth.admin.listUsers({
-            perPage: 1000 // Adjust as needed
-        });
-
-        if (error) {
-            console.error("Error fetching users (expected in browser, as this is an admin action):", error);
-            // Don't throw, just log it, so the rest of the UI doesn't break.
-            return;
-        }
-        
-        const pending = users.filter(user => !user.user_metadata?.sppgId);
-        setPendingUsers(pending);
-      } catch (error) {
-         console.error("Caught an error during admin user fetch (this is expected on the client):", error);
-      }
-    };
-
-    if (isAddOpen) {
-        fetchPendingUsers();
-    }
-  }, [isAddOpen]);
 
   const paginatedAccounts = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -328,7 +259,7 @@ export default function AccountsPage() {
             <Label htmlFor="items-per-page-accounts">Tampilkan</Label>
             <Select
               value={String(itemsPerPage)}
-              onValueChange={(value) => setItemsPerPage(Number(value))}
+              onValueChange={(value) => setClientItemsPerPage(Number(value))}
             >
               <SelectTrigger id="items-per-page-accounts" className="w-20">
                 <SelectValue />
@@ -373,7 +304,7 @@ export default function AccountsPage() {
             <DialogHeader>
               <DialogTitle>Tambah Akun Baru</DialogTitle>
             </DialogHeader>
-            <AccountForm pendingUsers={pendingUsers} />
+            <AccountForm />
             <DialogFooter>
               <Button type="submit">Simpan Akun</Button>
             </DialogFooter>
@@ -391,7 +322,7 @@ export default function AccountsPage() {
             Ubah detail akun dan penugasan untuk {selectedAccount?.name}.
           </DialogDescription>
         </DialogHeader>
-        <AccountForm account={selectedAccount} pendingUsers={[]} />
+        <AccountForm account={selectedAccount} />
         <DialogFooter>
           <Button type="submit">Simpan Perubahan</Button>
         </DialogFooter>
