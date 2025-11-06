@@ -6,8 +6,7 @@ import ClientProvider from './client-provider';
 import { getUsers } from './actions/accounts';
 
 export default async function Page() {
-  const cookieStore = cookies()
-  const supabase = createClient(cookieStore)
+  const supabase = createClient(cookies())
 
   const { data: { user } } = await supabase.auth.getUser()
 
