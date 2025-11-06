@@ -7,6 +7,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { createClient } from '@/utils/supabase/client';
 import { AlertCircle, LogOut } from 'lucide-react';
 
+export const dynamic = 'force-dynamic'
+
 const WhatsAppIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg
       xmlns="http://www.w3.org/2000/svg"
