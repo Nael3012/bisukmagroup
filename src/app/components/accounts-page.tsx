@@ -66,29 +66,29 @@ const sppgOptions = [
 const positionOptions = ['Ka. SPPG', 'Ahli Gizi', 'Akuntan', 'Asisten Lapangan'];
 
 
-const formSchema = z.object({
+const baseSchema = z.object({
     full_name: z.string().min(1, 'Nama lengkap harus diisi'),
-    email: z.string().email('Email tidak valid'),
     phone: z.string().optional(),
-    password: z.string().optional(),
-    confirmPassword: z.string().optional(),
     role: z.enum(['Admin Pusat', 'SPPG'], { required_error: 'Role harus dipilih' }),
     sppgId: z.string().min(1, 'SPPG harus dipilih'),
     position: z.string().optional(),
-}).refine(data => {
-    // Password required only for new users not from pending list
-    if (!data.email.includes('@') && !data.password) return false;
-    return true;
-}, {
-    message: "Password harus diisi untuk akun baru.",
-    path: ["password"],
+});
+
+const createUserFormSchema = baseSchema.extend({
+    email: z.string().email('Email tidak valid'),
+    password: z.string().min(6, 'Password minimal 6 karakter'),
+    confirmPassword: z.string(),
 }).refine(data => data.password === data.confirmPassword, {
     message: "Password tidak cocok",
     path: ["confirmPassword"],
 });
 
+const updateUserFormSchema = baseSchema.extend({
+    email: z.string(), // For pending user ID, validation is not as email
+});
 
-type FormValues = z.infer<typeof formSchema>;
+
+type FormValues = z.infer<typeof createUserFormSchema> | z.infer<typeof updateUserFormSchema>;
 
 
 const AccountForm = ({ 
@@ -105,6 +105,14 @@ const AccountForm = ({
     onFormSubmit: SubmitHandler<FormValues>
 }) => {
     const [selectedPendingData, setSelectedPendingData] = useState<{id: string, email: string, name: string} | null>(null);
+
+    const formSchema = useMemo(() => {
+        if (usePending && !account) {
+            return updateUserFormSchema;
+        }
+        return createUserFormSchema;
+    }, [usePending, account]);
+
 
     const { register, handleSubmit, control, watch, setValue, formState: { errors } } = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -201,7 +209,7 @@ const AccountForm = ({
 
                     <div className="grid gap-2">
                         <Label htmlFor="name">Nama Lengkap</Label>
-                        <Input id="name" placeholder="Contoh: Budi Santoso" {...register('full_name')} disabled={usePending}/>
+                        <Input id="name" placeholder="Contoh: Budi Santoso" {...register('full_name')} disabled={usePending && !account}/>
                          {errors.full_name && <p className="text-sm text-destructive">{errors.full_name.message}</p>}
                     </div>
 
@@ -391,13 +399,15 @@ export default function AccountsPage() {
             // mode edit existing account
              result = await updateUserMetadata(selectedAccount.id, metadata);
         } else {
+            // This is type casting to access properties specific to createUserFormSchema
+            const createData = data as z.infer<typeof createUserFormSchema>;
             // mode create new account
-            if (!data.password) {
+            if (!createData.password) {
                  toast({ variant: "destructive", title: "Error", description: "Password harus diisi untuk akun baru." });
                  setIsLoading(false);
                 return;
             }
-            result = await createUser({ email: data.email, password: data.password, ...metadata });
+            result = await createUser({ email: createData.email, password: createData.password, ...metadata });
         }
         
         if (result.success) {
