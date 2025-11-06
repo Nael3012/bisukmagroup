@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -218,7 +217,8 @@ export default function AccountsPage() {
   useEffect(() => {
     const fetchPendingUsers = async () => {
       // NOTE: This requires admin privileges on the Supabase client.
-      // Make sure RLS is configured to allow admins to list users.
+      // This call is disabled to prevent client-side admin privilege errors.
+      /*
       const { data: { users }, error } = await supabase.auth.admin.listUsers({
           perPage: 1000 // Adjust as needed
       });
@@ -230,10 +230,11 @@ export default function AccountsPage() {
       
       const pending = users.filter(user => !user.user_metadata?.sppgId);
       setPendingUsers(pending);
+      */
     };
 
     if (isAddOpen) {
-        fetchPendingUsers();
+        // fetchPendingUsers(); // Temporarily disabled
     }
   }, [isAddOpen]);
 
@@ -380,6 +381,8 @@ export default function AccountsPage() {
     </>
   );
 }
+
+    
 
     
 
