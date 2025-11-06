@@ -28,9 +28,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ThemeToggle } from '@/components/theme-toggle';
 
 
-type Menu = 'Dashboard' | 'SPPG' | 'Mitra' | 'Menu' | 'Keuangan' | 'Kelola Penanggung Jawab';
+type Menu = 'Dashboard' | 'SPPG' | 'Mitra' | 'Menu' | 'Keuangan' | 'Laporan' | 'Kelola Penanggung Jawab';
 
-const menuItems: Menu[] = ['Dashboard', 'SPPG', 'Mitra', 'Menu', 'Keuangan', 'Kelola Penanggung Jawab'];
+const menuItems: Menu[] = ['Dashboard', 'SPPG', 'Mitra', 'Menu', 'Keuangan', 'Laporan', 'Kelola Penanggung Jawab'];
 
 
 // Mock user data
@@ -55,6 +55,8 @@ export default function Home() {
         return <MitraPage />;
       case 'Menu':
         return <MenuPage />;
+      case 'Laporan':
+        return <div>Halaman Laporan</div>;
       case 'Kelola Penanggung Jawab':
         return <AccountsPage />;
       case 'Dashboard':
