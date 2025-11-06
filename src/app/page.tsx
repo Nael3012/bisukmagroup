@@ -1,12 +1,11 @@
 
 import { createClient } from '@/utils/supabase/server'
-import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import ClientProvider from './client-provider';
 import { getUsers } from './actions/accounts';
 
 export default async function Page() {
-  const supabase = createClient(cookies())
+  const supabase = createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
 

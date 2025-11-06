@@ -1,14 +1,13 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { NextResponse, type NextRequest } from 'next/server'
-import { cookies } from 'next/headers'
 
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
 
   if (code) {
-    const supabase = createClient(cookies())
+    const supabase = createClient()
     await supabase.auth.exchangeCodeForSession(code)
   }
 
