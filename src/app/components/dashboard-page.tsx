@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/select';
 import { useState, useMemo } from 'react';
 import { Users, Utensils, Building, Soup } from 'lucide-react';
+import { getSppgListWithDynamicPM, mockKeuanganData } from '../data/mock';
 
 // Mock data (can be replaced with API calls)
 const sppgOptions = [
@@ -20,32 +21,35 @@ const sppgOptions = [
   { value: 'sppg-nurul-hidayah', label: 'SPPG Nurul Hidayah', address: 'Jl. Sudirman No. 5, Bandung' },
 ];
 
-const dashboardData: Record<string, any> = {
-  all: {
-    totalSppg: 3,
-    totalPenerimaManfaat: 480, // 160 + 200 + 120
-    porsiHariIni: 310, // 80 + 100 + 130
-    porsiMingguan: 1550, // 400 + 500 + 650
-  },
-  'sppg-al-ikhlas': {
-    totalSppg: 1,
-    totalPenerimaManfaat: 160, 
-    porsiHariIni: 80,
-    porsiMingguan: 400,
-  },
-  'sppg-bina-umat': {
-    totalSppg: 1,
-    totalPenerimaManfaat: 200, 
-    porsiHariIni: 100,
-    porsiMingguan: 500,
-  },
-  'sppg-nurul-hidayah': {
-    totalSppg: 1,
-    totalPenerimaManfaat: 120, 
-    porsiHariIni: 130,
-    porsiMingguan: 650,
-  },
-};
+const sppgList = getSppgListWithDynamicPM();
+
+const calculateDashboardData = () => {
+    const allData = {
+        totalSppg: sppgList.length,
+        totalPenerimaManfaat: sppgList.reduce((acc, sppg) => acc + sppg.penerimaManfaat, 0),
+        porsiHariIni: Object.values(mockKeuanganData).reduce((acc, data) => acc + data.porsiBesar + data.porsiKecil, 0),
+        porsiMingguan: Object.values(mockKeuanganData).reduce((acc, data) => acc + (data.porsiBesar + data.porsiKecil) * 5, 0), // Asumsi 5 hari kerja
+    };
+
+    const dashboardData: Record<string, any> = {
+        all: allData
+    };
+
+    sppgList.forEach(sppg => {
+        const keuangan = mockKeuanganData[sppg.id];
+        dashboardData[sppg.id] = {
+            totalSppg: 1,
+            totalPenerimaManfaat: sppg.penerimaManfaat,
+            porsiHariIni: keuangan ? keuangan.porsiBesar + keuangan.porsiKecil : 0,
+            porsiMingguan: keuangan ? (keuangan.porsiBesar + keuangan.porsiKecil) * 5 : 0, // Asumsi 5 hari kerja
+        };
+    });
+
+    return dashboardData;
+}
+
+const dashboardData = calculateDashboardData();
+
 
 type SppgId = 'all' | 'sppg-al-ikhlas' | 'sppg-bina-umat' | 'sppg-nurul-hidayah';
 

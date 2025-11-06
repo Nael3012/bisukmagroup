@@ -116,6 +116,12 @@ export const menuDataBySppg: Record<SppgId, WeeklyMenu> = {
     }
 };
 
+export const mockKeuanganData: Record<string, { porsiBesar: number, porsiKecil: number }> = {
+    'sppg-al-ikhlas': { porsiBesar: 50, porsiKecil: 30 },
+    'sppg-bina-umat': { porsiBesar: 70, porsiKecil: 45 },
+    'sppg-nurul-hidayah': { porsiBesar: 60, porsiKecil: 40 },
+}
+
 export const semuaDaftarSekolah: Sekolah[] = [
   {
     id: 'sekolah-1',

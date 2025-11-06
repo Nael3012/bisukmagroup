@@ -22,7 +22,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { semuaDaftarSekolah, semuaDaftarB3, type Sekolah, type B3Data, menuDataBySppg as allMenuData } from '../data/mock';
+import { semuaDaftarSekolah, semuaDaftarB3, type Sekolah, type B3Data, menuDataBySppg as allMenuData, mockKeuanganData } from '../data/mock';
 
 
 const sppgOptions = [
@@ -37,13 +37,6 @@ const reportTypeOptions = [
     { value: 'menu', label: 'Laporan Menu' },
     { value: 'keuangan', label: 'Laporan Keuangan' },
 ]
-
-// Mock data keuangan, bisa diganti dengan data asli
-const mockKeuanganData: Record<string, { porsiBesar: number, porsiKecil: number }> = {
-    'sppg-al-ikhlas': { porsiBesar: 50, porsiKecil: 30 },
-    'sppg-bina-umat': { porsiBesar: 70, porsiKecil: 45 },
-    'sppg-nurul-hidayah': { porsiBesar: 60, porsiKecil: 40 },
-}
 
 
 type ReportType = 'mitra' | 'menu' | 'keuangan' | '';
@@ -370,7 +363,7 @@ export default function ReportsPage() {
                     .filter(item => item.menu);
             } else {
                 const menuForDay = allMenuData[selectedSppg]?.menuData[dayName as keyof typeof allMenuData[SppgId]['menuData']];
-                if (menuForDay) data = [{ menu: menuForDay }];
+                if (menuForDay) data = [{ menu: menuForDay, sppgName: sppgOptions.find(opt => opt.value === selectedSppg)?.label }];
             }
         } else if (menuReportType === 'mingguan') {
             if (selectedSppg === 'all') {
@@ -439,8 +432,8 @@ export default function ReportsPage() {
         if (menuReportType === 'harian') {
             dataToDownload.push(['SPPG', 'Nama Menu', 'Kandungan Gizi Porsi Besar', 'Kandungan Gizi Porsi Kecil']);
             data.forEach(item => {
-                const largePortionStr = Array.isArray(item.menu.largePortion) ? item.menu.largePortion.map((n:any) => `${n.source}: ${n.amount}`).join('\n') : '';
-                const smallPortionStr = Array.isArray(item.menu.smallPortion) ? item.menu.smallPortion.map((n:any) => `${n.source}: ${n.amount}`).join('\n') : '';
+                const largePortionStr = Array.isArray(item.menu.largePortion) ? item.menu.largePortion.map((n:any) => `${n.source.replace('-',' ')}: ${n.amount}`).join('\n') : '';
+                const smallPortionStr = Array.isArray(item.menu.smallPortion) ? item.menu.smallPortion.map((n:any) => `${n.source.replace('-',' ')}: ${n.amount}`).join('\n') : '';
                 dataToDownload.push([item.sppgName || sppgTitle, item.menu.menuName, largePortionStr, smallPortionStr]);
             });
         } else if (menuReportType === 'mingguan') {
