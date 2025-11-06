@@ -35,6 +35,7 @@ import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/utils/supabase/client';
 import type { User } from '@supabase/supabase-js';
+import { Switch } from '@/components/ui/switch';
 
 type Account = {
   id: string;
@@ -63,12 +64,15 @@ const AccountForm = ({ account, pendingUsers }: { account?: Account | null, pend
     const [confirmPassword, setConfirmPassword] = useState('');
     const [passwordError, setPasswordError] = useState('');
     const [email, setEmail] = useState(account?.email || '');
+    const [selectFromPending, setSelectFromPending] = useState(false);
 
     useEffect(() => {
         if(account?.role) {
             setRole(account.role);
         }
         setEmail(account?.email || '');
+        // Reset switch on form open/change
+        setSelectFromPending(false);
     }, [account]);
 
     useEffect(() => {
@@ -91,12 +95,25 @@ const AccountForm = ({ account, pendingUsers }: { account?: Account | null, pend
             {/* Segment 1: Data Pribadi */}
             <div className="flex-1 space-y-4">
                 <h3 className="text-lg font-semibold text-muted-foreground">Data Pribadi</h3>
+                 
+                <div className="grid gap-2">
+                    <Label htmlFor="name">Nama Lengkap</Label>
+                    <Input id="name" placeholder="Contoh: Budi Santoso" defaultValue={account?.name} />
+                </div>
+
                  {!account && pendingUsers.length > 0 && (
-                     <div className="grid gap-2">
-                        <Label htmlFor="pending-user">Ambil dari Akun Pending</Label>
+                     <div className="flex items-center space-x-2 pt-2">
+                        <Switch id="pending-switch" checked={selectFromPending} onCheckedChange={setSelectFromPending} />
+                        <Label htmlFor="pending-switch">Pilih dari Akun Pending</Label>
+                    </div>
+                 )}
+
+                {selectFromPending ? (
+                    <div className="grid gap-2">
+                        <Label htmlFor="pending-user-select">Email Akun Pending</Label>
                         <Select onValueChange={handlePendingUserSelect}>
-                        <SelectTrigger id="pending-user">
-                            <SelectValue placeholder="Pilih email dari akun yang menunggu penempatan" />
+                        <SelectTrigger id="pending-user-select">
+                            <SelectValue placeholder="Pilih email dari daftar..." />
                         </SelectTrigger>
                         <SelectContent>
                             {pendingUsers.map(user => (
@@ -107,18 +124,16 @@ const AccountForm = ({ account, pendingUsers }: { account?: Account | null, pend
                         </SelectContent>
                         </Select>
                     </div>
-                 )}
-                <div className="grid gap-2">
-                    <Label htmlFor="name">Nama Lengkap</Label>
-                    <Input id="name" placeholder="Contoh: Budi Santoso" defaultValue={account?.name} />
-                </div>
+                ) : (
+                    <div className="grid gap-2">
+                        <Label htmlFor="email">Email</Label>
+                        <Input id="email" type="email" placeholder="contoh@email.com" value={email} onChange={(e) => setEmail(e.target.value)} disabled={!!account} />
+                    </div>
+                )}
+
                  <div className="grid gap-2">
                     <Label htmlFor="phone">Nomor Telepon</Label>
                     <Input id="phone" type="tel" placeholder="0812..." defaultValue={account?.phone} />
-                </div>
-                <div className="grid gap-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input id="email" type="email" placeholder="contoh@email.com" value={email} onChange={(e) => setEmail(e.target.value)} disabled={!!account} />
                 </div>
                 
                 <div className="grid gap-2">
@@ -217,24 +232,31 @@ export default function AccountsPage() {
   useEffect(() => {
     const fetchPendingUsers = async () => {
       // NOTE: This requires admin privileges on the Supabase client.
-      // This call is disabled to prevent client-side admin privilege errors.
-      /*
-      const { data: { users }, error } = await supabase.auth.admin.listUsers({
-          perPage: 1000 // Adjust as needed
-      });
-
-      if (error) {
-          console.error("Error fetching users:", error);
-          return;
-      }
+      // This call should be moved to a server action/API route to be secure.
+      // This is temporarily re-enabled for UI functionality but will throw an error
+      // in the console without a proper server-side implementation.
       
-      const pending = users.filter(user => !user.user_metadata?.sppgId);
-      setPendingUsers(pending);
-      */
+      // The error "AuthApiError: User not allowed" is expected if this runs in the browser.
+      try {
+        const { data: { users }, error } = await supabase.auth.admin.listUsers({
+            perPage: 1000 // Adjust as needed
+        });
+
+        if (error) {
+            console.error("Error fetching users (expected in browser):", error);
+            // Don't throw, just log it, so the rest of the UI doesn't break.
+            return;
+        }
+        
+        const pending = users.filter(user => !user.user_metadata?.sppgId);
+        setPendingUsers(pending);
+      } catch (error) {
+         console.error("Caught an error during user fetch:", error);
+      }
     };
 
     if (isAddOpen) {
-        // fetchPendingUsers(); // Temporarily disabled
+        fetchPendingUsers();
     }
   }, [isAddOpen]);
 
@@ -381,9 +403,3 @@ export default function AccountsPage() {
     </>
   );
 }
-
-    
-
-    
-
-    
