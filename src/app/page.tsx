@@ -14,7 +14,7 @@ export default async function Page() {
     return redirect('/login')
   }
 
-  // --- START OF SUPER ADMIN LOGIC FOR TESTING ---
+  // --- START OF SUPER ADMIN LOGIC ---
   // If the logged-in user is naelsianipar544@gmail.com, grant them super admin privileges.
   // This gives them an 'sppgId' to bypass the pending page and ensures they get the 'Admin Pusat' role.
   if (user.email === 'naelsianipar544@gmail.com') {
