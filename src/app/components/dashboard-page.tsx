@@ -21,8 +21,6 @@ const yayasanLogos: Record<string, string> = {
     "Yayasan Bisukma Generasi Emas Indonesia": "https://oilvtefzzupggnstgpsa.supabase.co/storage/v1/object/public/logos/1762413958140_Bisukma%20Generasi%20Emas%20Indonesia.png"
 };
 
-const dashboardData: Record<string, any> = {};
-
 type SppgData = {
   id: string;
   nama: string;
@@ -56,6 +54,7 @@ const StatCard = ({ title, value, icon: Icon, description }: { title: string; va
 
 export default function DashboardPage({ userRole, userSppgId, sppgList }: DashboardPageProps) {
   const [selectedSppg, setSelectedSppg] = useState<SppgId>(userRole === 'Admin Pusat' ? 'all' : userSppgId || 'all');
+  const [currentData, setCurrentData] = useState({ totalPenerimaManfaat: 0, porsiHariIni: 0, porsiMingguan: 0 });
   
   useEffect(() => {
     if (userRole === 'SPPG' && userSppgId) {
@@ -65,10 +64,12 @@ export default function DashboardPage({ userRole, userSppgId, sppgList }: Dashbo
     }
   }, [userRole, userSppgId]);
 
-
-  const currentData = useMemo(() => {
-    return dashboardData[selectedSppg] || { totalSppg: 0, totalPenerimaManfaat: 0, porsiHariIni: 0, porsiMingguan: 0 };
+  useEffect(() => {
+    // TODO: Fetch real dashboard data based on selectedSppg
+    // For now, setting to 0 to avoid using mock data
+    setCurrentData({ totalPenerimaManfaat: 0, porsiHariIni: 0, porsiMingguan: 0 });
   }, [selectedSppg]);
+
 
   const selectedSppgDetails = useMemo(() => {
     return sppgList.find(option => option.id === selectedSppg);

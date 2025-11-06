@@ -388,7 +388,8 @@ export default function MenuPage({ userRole, userSppgId, sppgList }: MenuPagePro
   }, [userRole, userSppgId]);
   
   const currentWeeklyMenu: WeeklyMenu = useMemo(() => {
-    // This will be replaced with real data fetching
+    // TODO: This will be replaced with real data fetching from the database
+    // Returning an empty/default state to avoid using mock data
     return {
         weekStatus: { Senin: false, Selasa: false, Rabu: false, Kamis: false, Jumat: false },
         menuData: {

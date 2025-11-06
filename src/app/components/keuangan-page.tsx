@@ -30,8 +30,6 @@ const yayasanLogos: Record<string, string> = {
     "Yayasan Bisukma Generasi Emas Indonesia": "https://oilvtefzzupggnstgpsa.supabase.co/storage/v1/object/public/logos/1762413958140_Bisukma%20Generasi%20Emas%20Indonesia.png"
 };
 
-const menuDataBySppg: any = {}; // This will be populated by props
-
 type SppgData = {
   id: string;
   nama: string;
@@ -53,6 +51,7 @@ export default function KeuanganPage({ userRole, userSppgId, sppgList }: Keuanga
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [showPorsiInput, setShowPorsiInput] = useState(false);
   const [isAdminMode, setIsAdminMode] = useState(false);
+  const [missingMenuDays, setMissingMenuDays] = useState<{ day: string; date: string }[]>([]);
   
   useEffect(() => {
     if (userRole === 'SPPG' && userSppgId) {
@@ -90,26 +89,35 @@ export default function KeuanganPage({ userRole, userSppgId, sppgList }: Keuanga
     }
   };
 
-  const missingMenuDays = useMemo(() => {
-    if (!selectedSppg || !menuDataBySppg[selectedSppg]) {
-        return [];
-    }
-
-    const currentWeekStart = startOfWeek(new Date(), { weekStartsOn: 1 }); // Monday
-    const weekStatus = menuDataBySppg[selectedSppg].weekStatus;
-    const missingDays: { day: string; date: string }[] = [];
-
-    (Object.keys(weekStatus) as (keyof typeof weekStatus)[]).forEach((day, index) => {
-        if (!weekStatus[day]) {
-            const dateOfDay = addDays(currentWeekStart, index);
-            missingDays.push({
-                day: String(day),
-                date: format(dateOfDay, 'd MMMM yyyy', { locale: id }),
-            });
+  useEffect(() => {
+    // TODO: Fetch real menu data for the selected SPPG and week
+    // This is just a placeholder to show the logic
+    const fetchMenuData = async () => {
+        if (!selectedSppg) {
+            setMissingMenuDays([]);
+            return;
         }
-    });
 
-    return missingDays;
+        // Simulating a fetch for weekStatus
+        // In a real app, you would fetch this from your database
+        const weekStatusFromDb = { Senin: false, Selasa: true, Rabu: false, Kamis: true, Jumat: true };
+
+        const currentWeekStart = startOfWeek(new Date(), { weekStartsOn: 1 }); // Monday
+        const missingDays: { day: string; date: string }[] = [];
+
+        (Object.keys(weekStatusFromDb) as (keyof typeof weekStatusFromDb)[]).forEach((day, index) => {
+            if (!weekStatusFromDb[day]) {
+                const dateOfDay = addDays(currentWeekStart, index);
+                missingDays.push({
+                    day: String(day),
+                    date: format(dateOfDay, 'd MMMM yyyy', { locale: id }),
+                });
+            }
+        });
+        setMissingMenuDays(missingDays);
+    }
+    
+    fetchMenuData();
   }, [selectedSppg]);
 
 
