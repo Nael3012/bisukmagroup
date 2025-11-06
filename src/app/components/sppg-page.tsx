@@ -30,7 +30,7 @@ import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Info, ChevronLeft, ChevronRight, Pencil } from 'lucide-react';
+import { Info, ChevronLeft, ChevronRight, Pencil, Image as ImageIcon } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 import { WilayahSelector } from './wilayah-selector';
 
@@ -127,6 +127,13 @@ const SppgForm = ({ sppg }: { sppg?: SppgData | null }) => {
                 <div className="grid gap-2">
                 <Label htmlFor="asisten-lapangan">Asisten Lapangan</Label>
                 <Input id="asisten-lapangan" placeholder="Contoh: Joko" defaultValue={sppg?.asistenLapangan} />
+                </div>
+                 <div className="grid gap-2">
+                  <Label>Foto Struktur Organisasi</Label>
+                  <div className="w-full aspect-[16/9] border-2 border-dashed rounded-lg flex flex-col justify-center items-center text-muted-foreground">
+                    <ImageIcon className="h-10 w-10 mb-2" />
+                    <span className="text-sm">Area gambar 1920x1080px</span>
+                  </div>
                 </div>
             </div>
         </div>
