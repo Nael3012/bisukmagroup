@@ -5,7 +5,7 @@ import ClientProvider from './client-provider';
 import { getUsers } from './actions/accounts';
 
 export default async function Page() {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
 
