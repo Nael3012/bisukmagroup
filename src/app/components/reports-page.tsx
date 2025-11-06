@@ -134,16 +134,28 @@ const ReportPreviewDialog = ({
                     <TableHeader>
                         <TableRow>
                             <TableHead>Nama Menu</TableHead>
-                            <TableHead>Porsi Besar (Protein)</TableHead>
-                            <TableHead>Porsi Kecil (Protein)</TableHead>
+                            <TableHead>Porsi Besar</TableHead>
+                            <TableHead>Porsi Kecil</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                          {data.map((item, index) => (
                             <TableRow key={index}>
-                                <TableCell>{item.menuName}</TableCell>
-                                <TableCell>{item.largePortion.find(n => n.source === 'protein')?.amount || '-'}</TableCell>
-                                <TableCell>{item.smallPortion.find(n => n.source === 'protein')?.amount || '-'}</TableCell>
+                                <TableCell className="font-medium">{item.menuName}</TableCell>
+                                <TableCell>
+                                    <ul className="list-disc list-inside space-y-1">
+                                        {item.largePortion.map((nutrient: any) => (
+                                            <li key={nutrient.id}><span className="capitalize">{nutrient.source.replace('-', ' ')}</span>: {nutrient.amount}</li>
+                                        ))}
+                                    </ul>
+                                </TableCell>
+                                <TableCell>
+                                    <ul className="list-disc list-inside space-y-1">
+                                        {item.smallPortion.map((nutrient: any) => (
+                                            <li key={nutrient.id}><span className="capitalize">{nutrient.source.replace('-', ' ')}</span>: {nutrient.amount}</li>
+                                        ))}
+                                    </ul>
+                                </TableCell>
                             </TableRow>
                          ))}
                     </TableBody>
