@@ -1,9 +1,11 @@
+
 'use server';
 
 import { createClient } from '@/utils/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 
+// Skema disesuaikan dengan nama kolom di database (snake_case)
 const SppgSchema = z.object({
   id: z.string().optional(), // optional for creation
   nama: z.string().min(1, 'Nama SPPG harus diisi'),
@@ -14,12 +16,12 @@ const SppgSchema = z.object({
     regency: z.string().optional(),
     district: z.string().optional(),
     village: z.string().optional(),
-  }),
-  logo_url: z.string().url().nullable(),
-  namaKaSppg: z.string().optional(),
-  namaAkuntan: z.string().optional(),
-  ahliGizi: z.string().optional(),
-  asistenLapangan: z.string().optional(),
+  }).nullable(),
+  logo_url: z.string().url().nullable().optional(),
+  nama_ka_sppg: z.string().optional(),
+  nama_akuntan: z.string().optional(),
+  ahli_gizi: z.string().optional(),
+  asisten_lapangan: z.string().optional(),
 });
 
 export type SppgFormState = {
@@ -33,10 +35,10 @@ export type SppgFormState = {
         alamat?: string[];
         wilayah?: string[];
         logo_url?: string[];
-        namaKaSppg?: string[];
-        namaAkuntan?: string[];
-        ahliGizi?: string[];
-        asistenLapangan?: string[];
+        nama_ka_sppg?: string[];
+        nama_akuntan?: string[];
+        ahli_gizi?: string[];
+        asisten_lapangan?: string[];
         _form?: string[];
     };
 };
@@ -47,7 +49,8 @@ export async function saveSppg(
 ): Promise<SppgFormState> {
   const supabase = await createClient();
 
-  const validatedFields = SppgSchema.safeParse({
+  // Merakit data dari FormData secara manual
+  const dataToValidate = {
     id: formData.get('id') || undefined,
     nama: formData.get('nama'),
     yayasan: formData.get('yayasan'),
@@ -59,11 +62,13 @@ export async function saveSppg(
         village: formData.get('wilayah.village'),
     },
     logo_url: formData.get('logo_url') || null,
-    namaKaSppg: formData.get('namaKaSppg'),
-    namaAkuntan: formData.get('namaAkuntan'),
-    ahliGizi: formData.get('ahliGizi'),
-    asistenLapangan: formData.get('asistenLapangan'),
-  });
+    nama_ka_sppg: formData.get('nama_ka_sppg'),
+    nama_akuntan: formData.get('nama_akuntan'),
+    ahli_gizi: formData.get('ahli_gizi'),
+    asisten_lapangan: formData.get('asisten_lapangan'),
+  };
+
+  const validatedFields = SppgSchema.safeParse(dataToValidate);
 
   if (!validatedFields.success) {
     console.error('Validation errors:', validatedFields.error.flatten().fieldErrors);
@@ -86,10 +91,10 @@ export async function saveSppg(
       .single();
   } else {
     // Create new SPPG
-    const newId = sppgData.nama.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const newId = (sppgData.nama || 'sppg').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
     result = await supabase
       .from('sppg')
-      .insert({ ...sppgData, id: newId, penerimaManfaat: 0 }) // Set penerimaManfaat to 0 for new SPPG
+      .insert({ ...sppgData, id: newId })
       .select('id')
       .single();
   }

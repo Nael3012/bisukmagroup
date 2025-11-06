@@ -47,11 +47,11 @@ type SppgData = {
   nama: string;
   yayasan: string;
   alamat: string;
-  penerimaManfaat: number;
-  namaKaSppg: string;
-  namaAkuntan: string;
-  ahliGizi: string;
-  asistenLapangan: string;
+  penerimamanfaat: number;
+  nama_ka_sppg: string;
+  nama_akuntan: string;
+  ahli_gizi: string;
+  asisten_lapangan: string;
   wilayah: any;
   logo_url: string | null;
 };
@@ -238,20 +238,20 @@ const SppgForm = ({ sppg, onSaveSuccess }: { sppg?: SppgData | null, onSaveSucce
                     Data Personel
                     </h3>
                     <div className="grid gap-2">
-                    <Label htmlFor="nama-ka-sppg">Nama Ka. SPPG</Label>
-                    <Input id="nama-ka-sppg" name="namaKaSppg" placeholder="Contoh: Budi Santoso" defaultValue={sppg?.namaKaSppg} />
+                    <Label htmlFor="nama_ka_sppg">Nama Ka. SPPG</Label>
+                    <Input id="nama_ka_sppg" name="nama_ka_sppg" placeholder="Contoh: Budi Santoso" defaultValue={sppg?.nama_ka_sppg} />
                     </div>
                     <div className="grid gap-2">
-                    <Label htmlFor="nama-akuntan">Nama Akuntan</Label>
-                    <Input id="nama-akuntan" name="namaAkuntan" placeholder="Contoh: Siti Aminah" defaultValue={sppg?.namaAkuntan} />
+                    <Label htmlFor="nama_akuntan">Nama Akuntan</Label>
+                    <Input id="nama_akuntan" name="nama_akuntan" placeholder="Contoh: Siti Aminah" defaultValue={sppg?.nama_akuntan} />
                     </div>
                     <div className="grid gap-2">
-                    <Label htmlFor="ahli-gizi">Ahli Gizi</Label>
-                    <Input id="ahli-gizi" name="ahliGizi" placeholder="Contoh: Dr. Ani" defaultValue={sppg?.ahliGizi} />
+                    <Label htmlFor="ahli_gizi">Ahli Gizi</Label>
+                    <Input id="ahli_gizi" name="ahli_gizi" placeholder="Contoh: Dr. Ani" defaultValue={sppg?.ahli_gizi} />
                     </div>
                     <div className="grid gap-2">
-                    <Label htmlFor="asisten-lapangan">Asisten Lapangan</Label>
-                    <Input id="asisten-lapangan" name="asistenLapangan" placeholder="Contoh: Joko" defaultValue={sppg?.asistenLapangan} />
+                    <Label htmlFor="asisten_lapangan">Asisten Lapangan</Label>
+                    <Input id="asisten_lapangan" name="asisten_lapangan" placeholder="Contoh: Joko" defaultValue={sppg?.asisten_lapangan} />
                     </div>
                 </div>
             </div>
@@ -331,7 +331,7 @@ export default function SppgPage({ sppgList }: SppgPageProps) {
                       <TableCell>{sppg.nama}</TableCell>
                       <TableCell>{sppg.yayasan}</TableCell>
                       <TableCell>{sppg.alamat}</TableCell>
-                      <TableCell>{sppg.penerimaManfaat}</TableCell>
+                      <TableCell>{sppg.penerimamanfaat}</TableCell>
                     </TableRow>
                   ))}
                    {paginatedSppg.length === 0 && (
@@ -422,7 +422,7 @@ export default function SppgPage({ sppgList }: SppgPageProps) {
                                 </div>
                             )}
                             <DetailItem label="Alamat" value={selectedSppg.alamat} />
-                            <DetailItem label="Penerima Manfaat" value={selectedSppg.penerimaManfaat} />
+                            <DetailItem label="Penerima Manfaat" value={selectedSppg.penerimamanfaat} />
                         </dl>
                     </div>
 
@@ -432,10 +432,10 @@ export default function SppgPage({ sppgList }: SppgPageProps) {
                     <div className="space-y-3">
                         <h3 className="font-semibold">Data Personel</h3>
                         <dl className="grid gap-2">
-                            <DetailItem label="Nama Ka. SPPG" value={selectedSppg.namaKaSppg} />
-                            <DetailItem label="Nama Akuntan" value={selectedSppg.namaAkuntan} />
-                            <DetailItem label="Ahli Gizi" value={selectedSppg.ahliGizi} />
-                            <DetailItem label="Asisten Lapangan" value={selectedSppg.asistenLapangan} />
+                            <DetailItem label="Nama Ka. SPPG" value={selectedSppg.nama_ka_sppg} />
+                            <DetailItem label="Nama Akuntan" value={selectedSppg.nama_akuntan} />
+                            <DetailItem label="Ahli Gizi" value={selectedSppg.ahli_gizi} />
+                            <DetailItem label="Asisten Lapangan" value={selectedSppg.asisten_lapangan} />
                         </dl>
                     </div>
                 </div>
