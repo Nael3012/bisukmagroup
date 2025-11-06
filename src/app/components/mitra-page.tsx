@@ -155,6 +155,10 @@ const SekolahForm = ({ sekolah }: { sekolah?: Sekolah | null }) => {
           <Label htmlFor="nama-pic">Nama PIC</Label>
           <Input id="nama-pic" placeholder="Contoh: Siti Aminah" />
         </div>
+        <div className="grid gap-2">
+            <Label htmlFor="telp-pic">Nomor Telepon PIC</Label>
+            <Input id="telp-pic" type="tel" placeholder="0812..." />
+        </div>
         {renderPorsiInputs()}
       </div>
     </div>
@@ -179,6 +183,10 @@ const B3Form = ({ b3 }: { b3?: B3Data | null }) => {
                 <div className="grid gap-2">
                     <Label htmlFor="nama-pic-b3">Nama PIC</Label>
                     <Input id="nama-pic-b3" placeholder="Contoh: Dewi Lestari" />
+                </div>
+                 <div className="grid gap-2">
+                    <Label htmlFor="telp-pic-b3">Nomor Telepon PIC</Label>
+                    <Input id="telp-pic-b3" type="tel" placeholder="0812..." />
                 </div>
             </div>
             <Separator orientation="vertical" className="h-auto hidden md:block" />
@@ -739,5 +747,7 @@ export default function MitraPage() {
     </>
   );
 }
+
+    
 
     
