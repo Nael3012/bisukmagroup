@@ -121,7 +121,7 @@ export default function LoginPage() {
         </div>
         <div className="flex flex-row items-center justify-center gap-8 flex-wrap">
             {yayasanLogos.map((logo) => (
-                <div key={logo.name} className="relative h-20 w-40">
+                <div key={logo.name} className="relative h-12 w-24">
                     <Image
                         src={logo.url}
                         alt={logo.name}
