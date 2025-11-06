@@ -19,37 +19,25 @@ export default async function Page() {
   const SUPER_ADMIN_UID = '35c5fae7-4fe7-48a8-bc6f-1fdaaee42cde';
 
   if (user.id === SUPER_ADMIN_UID) {
-    const isAdmin = user.user_metadata?.role === 'Admin Pusat' && user.user_metadata?.sppgId === 'admin-pusat';
+    const isAdmin = user.user_metadata?.role === 'Admin Pusat';
     
+    // If the user is the super admin but their metadata is not set correctly
     if (!isAdmin) {
-      // Force update user metadata to make them a super admin
-      await supabase.auth.admin.updateUserById(
+      // 1. Asynchronously update the user's metadata in Supabase for future sessions.
+      // We don't await this, as we will force the role for the current session.
+      supabase.auth.admin.updateUserById(
         user.id,
         { user_metadata: { ...user.user_metadata, sppgId: 'admin-pusat', role: 'Admin Pusat', full_name: 'Admin Utama' } }
-      );
-      
-      // Re-fetch the user to get the updated metadata for the current render
-      const { data: { user: updatedUser } } = await supabase.auth.getUser();
-      const targetUser = updatedUser || user;
+      ).catch(console.error); // Log any errors in the background
 
-      // Ensure the re-fetched user has the correct properties for the client page
-      targetUser.user_metadata = targetUser.user_metadata || {};
-      targetUser.user_metadata.sppgId = 'admin-pusat';
-      targetUser.user_metadata.role = 'Admin Pusat';
-
-
-      const { data: sppgData } = await supabase.from('sppg').select()
-      const { data: sekolahData } = await supabase.from('sekolah').select()
-      const { data: b3Data } = await supabase.from('b3').select()
-
-      return (
-        <ClientPage
-          user={targetUser}
-          sppgList={sppgData || []}
-          sekolahList={sekolahData || []}
-          b3List={b3Data || []}
-        />
-      )
+      // 2. Force the user object to have the correct admin metadata for the current render.
+      // This avoids race conditions and ensures the UI renders correctly immediately.
+      user.user_metadata = {
+        ...user.user_metadata,
+        role: 'Admin Pusat',
+        sppgId: 'admin-pusat',
+        full_name: user.user_metadata.full_name || 'Admin Utama'
+      };
     }
   }
   // --- END OF SUPER ADMIN LOGIC ---
