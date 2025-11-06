@@ -28,11 +28,12 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ChevronLeft, ChevronRight, Edit, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Edit, Info, Trash2 } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { DialogDescription } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 type Account = {
   id: string;
@@ -146,6 +147,12 @@ const AccountForm = ({ account }: { account?: Account | null }) => {
             {/* Segment 2: Penugasan & Role */}
             <div className="flex-1 space-y-4">
                  <h3 className="text-lg font-semibold text-muted-foreground">Penugasan & Role</h3>
+                 <Alert>
+                    <Info className="h-4 w-4" />
+                    <AlertDescription>
+                        Harap teliti dalam memilih SPPG dan Jabatan yang sesuai. Jangan lupa untuk menyimpan dan memberikan password kepada penanggung jawab.
+                    </AlertDescription>
+                </Alert>
                  <div className="grid gap-2">
                     <Label htmlFor="role">Role</Label>
                     <Select value={role} onValueChange={setRole}>
@@ -348,6 +355,3 @@ export default function AccountsPage() {
     </>
   );
 }
-
-    
-    
