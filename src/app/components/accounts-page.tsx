@@ -83,12 +83,18 @@ const createUserFormSchema = baseSchema.extend({
     path: ["confirmPassword"],
 });
 
-const updateUserFormSchema = baseSchema.extend({
-    email: z.string(), // For pending user ID, validation is not as email
+// Separate schema for updating from pending, where 'email' field holds the User ID
+const updateFromPendingSchema = baseSchema.extend({
+    email: z.string().min(1, "Harap pilih akun pending."), // Now holds the user ID
 });
 
+const editUserFormSchema = baseSchema;
 
-type FormValues = z.infer<typeof createUserFormSchema> | z.infer<typeof updateUserFormSchema>;
+
+type CreateUserFormValues = z.infer<typeof createUserFormSchema>;
+type UpdateFromPendingFormValues = z.infer<typeof updateFromPendingSchema>;
+type EditUserFormValues = z.infer<typeof editUserFormSchema>;
+type FormValues = CreateUserFormValues | UpdateFromPendingFormValues | EditUserFormValues;
 
 
 const AccountForm = ({ 
@@ -102,20 +108,24 @@ const AccountForm = ({
     pendingUsers: User[],
     usePending: boolean,
     onUsePendingChange: (value: boolean) => void,
-    onFormSubmit: SubmitHandler<FormValues>
+    onFormSubmit: SubmitHandler<any>
 }) => {
     const [selectedPendingData, setSelectedPendingData] = useState<{id: string, email: string, name: string} | null>(null);
-
-    const formSchema = useMemo(() => {
-        if (usePending && !account) {
-            return updateUserFormSchema;
+    
+    // Dynamically select the right schema
+    const activeSchema = useMemo(() => {
+        if (account) { // Edit mode
+            return editUserFormSchema;
         }
-        return createUserFormSchema;
-    }, [usePending, account]);
+        if (usePending) { // Create from pending mode
+            return updateFromPendingSchema;
+        }
+        return createUserFormSchema; // Create new mode
+    }, [account, usePending]);
 
 
-    const { register, handleSubmit, control, watch, setValue, formState: { errors } } = useForm<FormValues>({
-        resolver: zodResolver(formSchema),
+    const { register, handleSubmit, control, watch, setValue, formState: { errors } } = useForm({
+        resolver: zodResolver(activeSchema),
         defaultValues: {
             full_name: account?.name || '',
             email: account?.email || '',
@@ -142,8 +152,8 @@ const AccountForm = ({
         const user = pendingUsers.find(u => u.id === userId);
         if (user) {
             const fullName = user.user_metadata?.full_name || user.email?.split('@')[0] || '';
-            setValue('email', user.id); // Set the ID to the email field for submission
-            setValue('full_name', fullName);
+            setValue('email', user.id); // IMPORTANT: set the ID to the email field
+            setValue('full_name', fullName, { shouldValidate: true });
             setSelectedPendingData({ id: user.id, email: user.email || '', name: fullName });
         }
     };
@@ -196,21 +206,21 @@ const AccountForm = ({
                                     </Select>
                                 )}
                             />
-                            {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
+                            {errors.email && <p className="text-sm text-destructive">{(errors.email as any).message}</p>}
                             {selectedPendingData && <Input readOnly disabled value={selectedPendingData.email} className="mt-2" />}
                         </div>
                     ) : (
                          <div className="grid gap-2">
                             <Label htmlFor="email">Email</Label>
                             <Input id="email" type="email" placeholder="contoh@email.com" {...register('email')} disabled={!!account} />
-                             {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
+                             {errors.email && <p className="text-sm text-destructive">{(errors.email as any).message}</p>}
                         </div>
                     )}
 
                     <div className="grid gap-2">
                         <Label htmlFor="name">Nama Lengkap</Label>
                         <Input id="name" placeholder="Contoh: Budi Santoso" {...register('full_name')} disabled={usePending && !account}/>
-                         {errors.full_name && <p className="text-sm text-destructive">{errors.full_name.message}</p>}
+                         {errors.full_name && <p className="text-sm text-destructive">{(errors.full_name as any).message}</p>}
                     </div>
 
                     <div className="grid gap-2">
@@ -223,12 +233,12 @@ const AccountForm = ({
                         <div className="grid gap-2">
                             <Label htmlFor="password">{account ? 'Password Baru (Opsional)' : 'Password'}</Label>
                             <Input id="password" type="password" {...register('password')} />
-                            {errors.password && <p className="text-sm text-destructive">{errors.password.message}</p>}
+                            {errors.password && <p className="text-sm text-destructive">{(errors.password as any).message}</p>}
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="retype-password">{account ? 'Ulangi Password Baru' : 'Ulangi Password'}</Label>
                             <Input id="retype-password" type="password" {...register('confirmPassword')} />
-                            {errors.confirmPassword && <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>}
+                            {errors.confirmPassword && <p className="text-sm text-destructive">{(errors.confirmPassword as any).message}</p>}
                         </div>
                         </>
                     )}
@@ -262,7 +272,7 @@ const AccountForm = ({
                                 </Select>
                             )}
                         />
-                         {errors.role && <p className="text-sm text-destructive">{errors.role.message}</p>}
+                         {errors.role && <p className="text-sm text-destructive">{(errors.role as any).message}</p>}
                     </div>
 
                     { role === 'SPPG' && (
@@ -285,7 +295,7 @@ const AccountForm = ({
                                         </Select>
                                     )}
                                 />
-                                {errors.sppgId && <p className="text-sm text-destructive">{errors.sppgId.message}</p>}
+                                {errors.sppgId && <p className="text-sm text-destructive">{(errors.sppgId as any).message}</p>}
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="position">Jabatan</Label>
@@ -386,8 +396,9 @@ export default function AccountsPage() {
         };
 
         if (usePendingAccount && !selectedAccount) {
-            // mode update from pending
-            const userId = data.email; // The email field now holds the User ID
+            // This is UpdateFromPendingFormValues
+            const updateData = data as UpdateFromPendingFormValues;
+            const userId = updateData.email; // The email field holds the User ID
             if (!userId) {
                 toast({ variant: "destructive", title: "Error", description: "Pengguna pending tidak valid." });
                 setIsLoading(false);
@@ -396,12 +407,12 @@ export default function AccountsPage() {
              result = await updateUserMetadata(userId, metadata);
 
         } else if (selectedAccount) {
-            // mode edit existing account
-             result = await updateUserMetadata(selectedAccount.id, metadata);
+            // This is EditUserFormValues
+            const editData = data as EditUserFormValues;
+             result = await updateUserMetadata(selectedAccount.id, editData);
         } else {
-            // This is type casting to access properties specific to createUserFormSchema
-            const createData = data as z.infer<typeof createUserFormSchema>;
-            // mode create new account
+            // This is CreateUserFormValues
+            const createData = data as CreateUserFormValues;
             if (!createData.password) {
                  toast({ variant: "destructive", title: "Error", description: "Password harus diisi untuk akun baru." });
                  setIsLoading(false);
