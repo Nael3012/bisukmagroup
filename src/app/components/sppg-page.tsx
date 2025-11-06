@@ -55,6 +55,13 @@ const DetailItem = ({ label, value }: { label: string, value: React.ReactNode })
     </div>
 );
 
+const yayasanOptions = [
+    "Yayasan Bisukma Bangun Bangsa",
+    "Yayasan Patriot Generasi Emas Indonesia",
+    "Yayasan Bisukma Hita Mangula",
+    "Yayasan Bisukma Generasi Emas Indonesia"
+];
+
 const SppgForm = ({ sppg }: { sppg?: SppgData | null }) => {
     return (
         <div className="flex flex-col md:flex-row gap-8 py-4">
@@ -82,8 +89,19 @@ const SppgForm = ({ sppg }: { sppg?: SppgData | null }) => {
                 <Input id="alamat" placeholder="Contoh: Jl. Pembangunan No. 123" defaultValue={sppg?.alamat} />
                 </div>
                 <div className="grid gap-2">
-                <Label htmlFor="yayasan">Yayasan</Label>
-                <Input id="yayasan" placeholder="Contoh: Yayasan Harapan Bangsa" defaultValue={sppg?.yayasan} />
+                    <Label htmlFor="yayasan">Yayasan</Label>
+                    <Select defaultValue={sppg?.yayasan}>
+                        <SelectTrigger id="yayasan">
+                            <SelectValue placeholder="Pilih Yayasan" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {yayasanOptions.map((option) => (
+                                <SelectItem key={option} value={option}>
+                                    {option}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
                 </div>
             </div>
 
