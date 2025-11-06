@@ -144,16 +144,16 @@ const ReportPreviewDialog = ({
                                 <TableCell className="font-medium">{item.menuName}</TableCell>
                                 <TableCell>
                                     <ul className="list-disc list-inside space-y-1">
-                                        {item.largePortion.map((nutrient: any) => (
+                                        {Array.isArray(item.largePortion) ? item.largePortion.map((nutrient: any) => (
                                             <li key={nutrient.id}><span className="capitalize">{nutrient.source.replace('-', ' ')}</span>: {nutrient.amount}</li>
-                                        ))}
+                                        )) : '-'}
                                     </ul>
                                 </TableCell>
                                 <TableCell>
                                     <ul className="list-disc list-inside space-y-1">
-                                        {item.smallPortion.map((nutrient: any) => (
+                                        {Array.isArray(item.smallPortion) ? item.smallPortion.map((nutrient: any) => (
                                             <li key={nutrient.id}><span className="capitalize">{nutrient.source.replace('-', ' ')}</span>: {nutrient.amount}</li>
-                                        ))}
+                                        )) : '-'}
                                     </ul>
                                 </TableCell>
                             </TableRow>
@@ -459,4 +459,6 @@ export default function ReportsPage() {
 }
 
     
+    
+
     
