@@ -32,7 +32,6 @@ import { Label } from '@/components/ui/label';
 import { ChevronLeft, ChevronRight, Edit, Info, Trash2 } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
-import { DialogDescription } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import type { User } from '@supabase/supabase-js';
@@ -44,13 +43,10 @@ import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 
-const sppgOptions = [
-    { value: 'sppg-al-ikhlas', label: 'SPPG Al-Ikhlas' },
-    { value: 'sppg-bina-umat', label: 'SPPG Bina Umat' },
-    { value: 'sppg-nurul-hidayah', label: 'SPPG Nurul Hidayah' },
-    // Add a generic admin one
-    { value: 'admin-pusat', label: 'Admin Pusat' },
-];
+type SppgData = {
+  id: string;
+  nama: string;
+};
 
 const positionOptions = ['Ka. SPPG', 'Ahli Gizi', 'Akuntan', 'Asisten Lapangan'];
 
@@ -72,7 +68,7 @@ const createUserFormSchema = baseSchema.extend({
     path: ["confirmPassword"],
 });
 
-const updateFromPendingSchema = baseSchema.extend({
+const updateUserFormSchema = baseSchema.extend({
     email: z.string().min(1, "Harap pilih akun pending."), // Now holds the user ID
 });
 
@@ -80,9 +76,9 @@ const editUserFormSchema = baseSchema;
 
 
 type CreateUserFormValues = z.infer<typeof createUserFormSchema>;
-type UpdateFromPendingFormValues = z.infer<typeof updateFromPendingSchema>;
+type UpdateUserFormValues = z.infer<typeof updateUserFormSchema>;
 type EditUserFormValues = z.infer<typeof editUserFormSchema>;
-type FormValues = CreateUserFormValues | UpdateFromPendingFormValues | EditUserFormValues;
+type FormValues = CreateUserFormValues | UpdateUserFormValues | EditUserFormValues;
 
 
 const AccountForm = ({ 
@@ -90,13 +86,15 @@ const AccountForm = ({
     pendingUsers, 
     usePending, 
     onUsePendingChange,
-    onFormSubmit
+    onFormSubmit,
+    sppgList
 }: { 
     account?: User | null,
     pendingUsers: User[],
     usePending: boolean,
     onUsePendingChange: (value: boolean) => void,
-    onFormSubmit: SubmitHandler<any>
+    onFormSubmit: SubmitHandler<any>,
+    sppgList: SppgData[]
 }) => {
     const [selectedPendingData, setSelectedPendingData] = useState<{id: string, email: string, name: string} | null>(null);
     
@@ -105,7 +103,7 @@ const AccountForm = ({
             return editUserFormSchema;
         }
         if (usePending) {
-            return updateFromPendingSchema;
+            return updateUserFormSchema;
         }
         return createUserFormSchema;
     }, [account, usePending]);
@@ -279,8 +277,9 @@ const AccountForm = ({
                                     <SelectValue placeholder="Pilih SPPG" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                    {sppgOptions.map(opt => (
-                                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                                    <SelectItem value="admin-pusat">Admin Pusat</SelectItem>
+                                    {sppgList.map(opt => (
+                                        <SelectItem key={opt.id} value={opt.id}>{opt.nama}</SelectItem>
                                     ))}
                                     </SelectContent>
                                 </Select>
@@ -317,9 +316,10 @@ const AccountForm = ({
 
 type AccountsPageProps = {
     accountList: User[];
+    sppgList: SppgData[];
 }
 
-export default function AccountsPage({ accountList }: AccountsPageProps) {
+export default function AccountsPage({ accountList, sppgList }: AccountsPageProps) {
   const router = useRouter();
   const { toast } = useToast();
   const [itemsPerPage, setClientItemsPerPage] = useState(15);
@@ -392,7 +392,7 @@ export default function AccountsPage({ accountList }: AccountsPageProps) {
         };
 
         if (usePendingAccount && !selectedAccount) {
-            const updateData = data as UpdateFromPendingFormValues;
+            const updateData = data as UpdateUserFormValues;
             const userId = updateData.email; 
             if (!userId) {
                 toast({ variant: "destructive", title: "Error", description: "Pengguna pending tidak valid." });
@@ -460,7 +460,7 @@ export default function AccountsPage({ accountList }: AccountsPageProps) {
                       {account.user_metadata.role}
                     </Badge>
                   </TableCell>
-                  <TableCell>{sppgOptions.find(s => s.value === account.user_metadata.sppgId)?.label || account.user_metadata.sppgId || '-'}</TableCell>
+                  <TableCell>{sppgList.find(s => s.id === account.user_metadata.sppgId)?.nama || account.user_metadata.sppgId || '-'}</TableCell>
                   <TableCell>
                     <div className="flex gap-2">
                         <Button variant="ghost" size="icon" onClick={() => handleEditClick(account)}>
@@ -541,6 +541,7 @@ export default function AccountsPage({ accountList }: AccountsPageProps) {
                 usePending={usePendingAccount}
                 onUsePendingChange={setUsePendingAccount}
                 onFormSubmit={handleFormSubmit}
+                sppgList={sppgList}
             />
             <DialogFooter>
                 <DialogClose asChild>
@@ -569,6 +570,7 @@ export default function AccountsPage({ accountList }: AccountsPageProps) {
             usePending={false}
             onUsePendingChange={() => {}}
             onFormSubmit={handleFormSubmit}
+            sppgList={sppgList}
         />
         <DialogFooter>
             <DialogClose asChild>

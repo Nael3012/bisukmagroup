@@ -23,6 +23,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
+type SppgData = {
+  id: string;
+  nama: string;
+  yayasan: string;
+  alamat: string;
+};
+
 type Sekolah = {
   id: string;
   nama: string;
@@ -42,13 +49,6 @@ type B3Data = {
 };
 
 
-const sppgOptions = [
-  { value: 'all', label: 'Semua SPPG', address: '', yayasan: '' },
-  { value: 'sppg-al-ikhlas', label: 'SPPG Al-Ikhlas', address: 'Jl. Merdeka No. 1, Jakarta', yayasan: "Yayasan Bisukma Bangun Bangsa" },
-  { value: 'sppg-bina-umat', label: 'SPPG Bina Umat', address: 'Jl. Pahlawan No. 10, Surabaya', yayasan: "Yayasan Patriot Generasi Emas Indonesia" },
-  { value: 'sppg-nurul-hidayah', label: 'SPPG Nurul Hidayah', address: 'Jl. Sudirman No. 5, Bandung', yayasan: "Yayasan Bisukma Hita Mangula" },
-];
-
 const yayasanLogos: Record<string, string> = {
     "Yayasan Bisukma Bangun Bangsa": "https://oilvtefzzupggnstgpsa.supabase.co/storage/v1/object/public/logos/1762413828035_Bisukma%20Bangun%20Bangsa.png",
     "Yayasan Patriot Generasi Emas Indonesia": "https://oilvtefzzupggnstgpsa.supabase.co/storage/v1/object/public/logos/1762413871003_Patriot%20Generasi%20Emas%20Indonesia.png",
@@ -65,11 +65,12 @@ const reportTypeOptions = [
 
 type ReportType = 'mitra' | 'menu' | 'keuangan' | '';
 type MenuReportType = 'harian' | 'mingguan';
-type SppgId = 'sppg-al-ikhlas' | 'sppg-bina-umat' | 'sppg-nurul-hidayah';
+type SppgId = 'all' | string;
 
 type ReportsPageProps = {
     userRole: 'Admin Pusat' | 'SPPG';
     userSppgId?: SppgId;
+    sppgList: SppgData[];
 }
 
 
@@ -268,8 +269,8 @@ const ReportPreviewDialog = ({
   )
 }
 
-export default function ReportsPage({ userRole, userSppgId }: ReportsPageProps) {
-  const [selectedSppg, setSelectedSppg] = useState<SppgId | 'all'>(userRole === 'Admin Pusat' ? 'all' : userSppgId || 'all');
+export default function ReportsPage({ userRole, userSppgId, sppgList }: ReportsPageProps) {
+  const [selectedSppg, setSelectedSppg] = useState<SppgId>(userRole === 'Admin Pusat' ? 'all' : userSppgId || 'all');
   const [selectedReport, setSelectedReport] = useState<ReportType>('');
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [menuReportType, setMenuReportType] = useState<MenuReportType>('harian');
@@ -284,8 +285,8 @@ export default function ReportsPage({ userRole, userSppgId }: ReportsPageProps) 
   }, [userRole, userSppgId]);
   
   const selectedSppgDetails = useMemo(() => {
-    return sppgOptions.find(option => option.value === selectedSppg);
-  }, [selectedSppg]);
+    return sppgList.find(option => option.id === selectedSppg);
+  }, [selectedSppg, sppgList]);
 
   const showDatePicker = (selectedReport === 'menu' && menuReportType === 'harian') || selectedReport === 'keuangan';
 
@@ -354,7 +355,7 @@ export default function ReportsPage({ userRole, userSppgId }: ReportsPageProps) 
     const XLSX = await import('xlsx');
     let dataToDownload: any[][] = [];
     const reportTitle = reportTypeOptions.find(opt => opt.value === selectedReport)?.label || 'Laporan';
-    const sppgTitle = selectedSppgDetails?.label || 'Semua SPPG';
+    const sppgTitle = selectedSppg === 'all' ? 'Semua SPPG' : selectedSppgDetails?.nama || '';
     
     // Add header rows
     dataToDownload.push(['Jenis Laporan:', reportTitle]);
@@ -446,19 +447,20 @@ export default function ReportsPage({ userRole, userSppgId }: ReportsPageProps) 
                 <div className="grid gap-2">
                 <Label htmlFor="sppg-select">Pilih SPPG</Label>
                 <div className="flex items-center gap-2">
-                    <Select onValueChange={(v) => setSelectedSppg(v as SppgId | 'all')} value={selectedSppg}>
+                    <Select onValueChange={(v) => setSelectedSppg(v as SppgId)} value={selectedSppg}>
                         <SelectTrigger id="sppg-select">
                         <SelectValue placeholder="Pilih SPPG" />
                         </SelectTrigger>
                         <SelectContent>
-                        {sppgOptions.map((option) => (
-                            <SelectItem key={option.value} value={option.value}>
-                            <div>
-                                <p className="font-medium">{option.label}</p>
-                                {option.address && <p className="text-xs text-muted-foreground">{option.address}</p>}
-                            </div>
-                            </SelectItem>
-                        ))}
+                          <SelectItem value="all">Semua SPPG</SelectItem>
+                          {sppgList.map((option) => (
+                              <SelectItem key={option.id} value={option.id}>
+                              <div>
+                                  <p className="font-medium">{option.nama}</p>
+                                  {option.alamat && <p className="text-xs text-muted-foreground">{option.alamat}</p>}
+                              </div>
+                              </SelectItem>
+                          ))}
                         </SelectContent>
                     </Select>
                     {selectedSppg !== 'all' && (

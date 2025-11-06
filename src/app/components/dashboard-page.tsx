@@ -13,13 +13,6 @@ import { useState, useMemo, useEffect } from 'react';
 import { Users, Utensils, Building, Soup, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-const sppgOptions = [
-  { value: 'all', label: 'Semua SPPG', address: '', yayasan: '' },
-  { value: 'sppg-al-ikhlas', label: 'SPPG Al-Ikhlas', address: 'Jl. Merdeka No. 1, Jakarta', yayasan: "Yayasan Bisukma Bangun Bangsa" },
-  { value: 'sppg-bina-umat', label: 'SPPG Bina Umat', address: 'Jl. Pahlawan No. 10, Surabaya', yayasan: "Yayasan Patriot Generasi Emas Indonesia" },
-  { value: 'sppg-nurul-hidayah', label: 'SPPG Nurul Hidayah', address: 'Jl. Sudirman No. 5, Bandung', yayasan: "Yayasan Bisukma Hita Mangula" },
-];
-
 const yayasanLogos: Record<string, string> = {
     "Yayasan Bisukma Bangun Bangsa": "https://oilvtefzzupggnstgpsa.supabase.co/storage/v1/object/public/logos/1762413828035_Bisukma%20Bangun%20Bangsa.png",
     "Yayasan Patriot Generasi Emas Indonesia": "https://oilvtefzzupggnstgpsa.supabase.co/storage/v1/object/public/logos/1762413871003_Patriot%20Generasi%20Emas%20Indonesia.png",
@@ -29,12 +22,19 @@ const yayasanLogos: Record<string, string> = {
 
 const dashboardData: Record<string, any> = {};
 
+type SppgData = {
+  id: string;
+  nama: string;
+  yayasan: string;
+  alamat: string;
+};
 
-type SppgId = 'all' | 'sppg-al-ikhlas' | 'sppg-bina-umat' | 'sppg-nurul-hidayah';
+type SppgId = 'all' | string;
 
 type DashboardPageProps = {
     userRole: 'Admin Pusat' | 'SPPG';
     userSppgId?: SppgId;
+    sppgList: SppgData[];
 }
 
 const StatCard = ({ title, value, icon: Icon, description }: { title: string; value: string | number; icon: React.ElementType; description: string }) => {
@@ -52,7 +52,7 @@ const StatCard = ({ title, value, icon: Icon, description }: { title: string; va
   );
 };
 
-export default function DashboardPage({ userRole, userSppgId }: DashboardPageProps) {
+export default function DashboardPage({ userRole, userSppgId, sppgList }: DashboardPageProps) {
   const [selectedSppg, setSelectedSppg] = useState<SppgId>(userRole === 'Admin Pusat' ? 'all' : userSppgId || 'all');
   
   useEffect(() => {
@@ -69,8 +69,8 @@ export default function DashboardPage({ userRole, userSppgId }: DashboardPagePro
   }, [selectedSppg]);
 
   const selectedSppgDetails = useMemo(() => {
-    return sppgOptions.find(option => option.value === selectedSppg);
-  }, [selectedSppg]);
+    return sppgList.find(option => option.id === selectedSppg);
+  }, [selectedSppg, sppgList]);
 
   const handleDownloadLogo = async () => {
     const yayasan = selectedSppgDetails?.yayasan;
@@ -101,14 +101,19 @@ export default function DashboardPage({ userRole, userSppgId }: DashboardPagePro
           <div className="w-full max-w-xs">
               <Select onValueChange={(value) => setSelectedSppg(value as SppgId)} value={selectedSppg}>
               <SelectTrigger>
-                  <SelectValue placeholder="Pilih SPPG">{selectedSppgDetails?.label || 'Pilih SPPG'}</SelectValue>
+                  <SelectValue placeholder="Pilih SPPG">{selectedSppg === 'all' ? 'Semua SPPG' : selectedSppgDetails?.nama || 'Pilih SPPG'}</SelectValue>
               </SelectTrigger>
               <SelectContent>
-                  {sppgOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
+                  <SelectItem value="all">
+                    <div>
+                      <p className="font-medium">Semua SPPG</p>
+                    </div>
+                  </SelectItem>
+                  {sppgList.map((option) => (
+                  <SelectItem key={option.id} value={option.id}>
                       <div>
-                      <p className="font-medium">{option.label}</p>
-                      {option.address && <p className="text-xs text-muted-foreground">{option.address}</p>}
+                      <p className="font-medium">{option.nama}</p>
+                      {option.alamat && <p className="text-xs text-muted-foreground">{option.alamat}</p>}
                       </div>
                   </SelectItem>
                   ))}

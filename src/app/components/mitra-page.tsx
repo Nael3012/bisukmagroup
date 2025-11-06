@@ -40,6 +40,12 @@ import { useState, useRef, useEffect, useMemo } from 'react';
 import { ArrowUpDown, ChevronLeft, ChevronRight, Download, Edit, Pencil } from 'lucide-react';
 import { WilayahSelector } from './wilayah-selector';
 
+type SppgData = {
+  id: string;
+  nama: string;
+  yayasan: string;
+  alamat: string;
+};
 
 type Sekolah = {
   id: string;
@@ -64,35 +70,15 @@ type B3Data = {
 type Jenjang = 'PAUD' | 'TK' | 'SD' | 'SMP' | 'SMA' | '';
 type SortableKeysSekolah = keyof Omit<Sekolah, 'id' | 'sppgId' | 'wilayah'>;
 type SortableKeysB3 = keyof Omit<B3Data, 'id' | 'jenis' | 'sppgId' | 'wilayah'>;
-type SppgId = 'all' | 'sppg-al-ikhlas' | 'sppg-bina-umat' | 'sppg-nurul-hidayah';
+type SppgId = 'all' | string;
 
 type MitraPageProps = {
     userRole: 'Admin Pusat' | 'SPPG';
     userSppgId?: SppgId;
     semuaDaftarSekolah: Sekolah[];
     semuaDaftarB3: B3Data[];
+    sppgList: SppgData[];
 }
-
-const sppgOptions = [
-  {
-    value: 'sppg-al-ikhlas',
-    label: 'SPPG Al-Ikhlas',
-    address: 'Jl. Merdeka No. 1, Jakarta',
-    yayasan: "Yayasan Bisukma Bangun Bangsa"
-  },
-  {
-    value: 'sppg-bina-umat',
-    label: 'SPPG Bina Umat',
-    address: 'Jl. Pahlawan No. 10, Surabaya',
-    yayasan: "Yayasan Patriot Generasi Emas Indonesia"
-  },
-  {
-    value: 'sppg-nurul-hidayah',
-    label: 'SPPG Nurul Hidayah',
-    address: 'Jl. Sudirman No. 5, Bandung',
-    yayasan: "Yayasan Bisukma Hita Mangula"
-  },
-];
 
 const yayasanLogos: Record<string, string> = {
     "Yayasan Bisukma Bangun Bangsa": "https://oilvtefzzupggnstgpsa.supabase.co/storage/v1/object/public/logos/1762413828035_Bisukma%20Bangun%20Bangsa.png",
@@ -250,13 +236,13 @@ const B3Form = ({ b3 }: { b3?: B3Data | null }) => {
     );
 }
 
-export default function MitraPage({ userRole, userSppgId, semuaDaftarSekolah, semuaDaftarB3 }: MitraPageProps) {
+export default function MitraPage({ userRole, userSppgId, semuaDaftarSekolah, semuaDaftarB3, sppgList }: MitraPageProps) {
   const [activeTab, setActiveTab] = useState('sekolah');
   const [indicatorStyle, setIndicatorStyle] = useState({});
   const tabsRef = useRef<(HTMLButtonElement | null)[]>([]);
 
   // State for SPPG selection
-  const [selectedSppg, setSelectedSppg] = useState<SppgId | 'all'>(userRole === 'Admin Pusat' ? 'all' : userSppgId || 'all');
+  const [selectedSppg, setSelectedSppg] = useState<SppgId>(userRole === 'Admin Pusat' ? 'all' : userSppgId || 'all');
   
   // State for Sekolah tab
   const [sortConfigSekolah, setSortConfigSekolah] = useState<{ key: SortableKeysSekolah; direction: 'ascending' | 'descending' } | null>(null);
@@ -283,8 +269,8 @@ export default function MitraPage({ userRole, userSppgId, semuaDaftarSekolah, se
 
   const selectedSppgDetails = useMemo(() => {
     if (selectedSppg === 'all') return { value: 'all', label: 'Semua SPPG', address: '', yayasan: '' };
-    return sppgOptions.find(option => option.value === selectedSppg);
-  }, [selectedSppg]);
+    return sppgList.find(option => option.id === selectedSppg);
+  }, [selectedSppg, sppgList]);
 
   useEffect(() => {
     const activeTabElement = tabsRef.current.find(tab => tab?.dataset.value === activeTab);
@@ -297,7 +283,7 @@ export default function MitraPage({ userRole, userSppgId, semuaDaftarSekolah, se
   }, [activeTab]);
 
   const handleSppgChange = (value: string) => {
-    setSelectedSppg(value as SppgId | 'all');
+    setSelectedSppg(value as SppgId);
     setCurrentPageSekolah(1);
     setCurrentPageB3(1);
   };
@@ -461,7 +447,7 @@ export default function MitraPage({ userRole, userSppgId, semuaDaftarSekolah, se
                 <div className="w-full max-w-xs">
                 <Select onValueChange={handleSppgChange} value={selectedSppg}>
                     <SelectTrigger>
-                        <SelectValue placeholder="Pilih SPPG">{selectedSppgDetails?.label || 'Pilih SPPG'}</SelectValue>
+                        <SelectValue placeholder="Pilih SPPG">{selectedSppg === 'all' ? 'Semua SPPG' : selectedSppgDetails?.nama || 'Pilih SPPG'}</SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="all">
@@ -469,11 +455,11 @@ export default function MitraPage({ userRole, userSppgId, semuaDaftarSekolah, se
                                 <p className="font-medium">Semua SPPG</p>
                             </div>
                         </SelectItem>
-                        {sppgOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
+                        {sppgList.map((option) => (
+                        <SelectItem key={option.id} value={option.id}>
                             <div>
-                                <p className="font-medium">{option.label}</p>
-                                <p className="text-xs text-muted-foreground">{option.address}</p>
+                                <p className="font-medium">{option.nama}</p>
+                                <p className="text-xs text-muted-foreground">{option.alamat}</p>
                             </div>
                         </SelectItem>
                         ))}
@@ -749,7 +735,7 @@ export default function MitraPage({ userRole, userSppgId, semuaDaftarSekolah, se
                         <dl className="grid gap-2">
                             <DetailItem label="Alamat" value={selectedSekolah.alamat} />
                             <DetailItem label="Jumlah PM" value={selectedSekolah.jumlahPM} />
-                            <DetailItem label="SPPG" value={sppgOptions.find(opt => opt.value === selectedSekolah.sppgId)?.label} />
+                            <DetailItem label="SPPG" value={sppgList.find(opt => opt.id === selectedSekolah.sppgId)?.nama} />
                         </dl>
                     </div>
                 </div>
@@ -793,7 +779,7 @@ export default function MitraPage({ userRole, userSppgId, semuaDaftarSekolah, se
                             <DetailItem label="Ibu Hamil" value={selectedB3.jenis.bumil} />
                             <DetailItem label="Ibu Menyusui" value={selectedB3.jenis.busui} />
                             <DetailItem label="Balita" value={selectedB3.jenis.balita} />
-                            <DetailItem label="SPPG" value={sppgOptions.find(opt => opt.value === selectedB3.sppgId)?.label} />
+                            <DetailItem label="SPPG" value={sppgList.find(opt => opt.id === selectedB3.sppgId)?.nama} />
                         </dl>
                     </div>
                 </div>

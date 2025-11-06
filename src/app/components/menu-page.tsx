@@ -56,38 +56,26 @@ type MenuData = {
   largePortion: Nutrient[];
   smallPortion: Nutrient[];
 };
-type SppgId = 'sppg-al-ikhlas' | 'sppg-bina-umat' | 'sppg-nurul-hidayah';
+
+type SppgData = {
+  id: string;
+  nama: string;
+  yayasan: string;
+  alamat: string;
+};
+
+type SppgId = string;
 
 type MenuPageProps = {
     userRole: 'Admin Pusat' | 'SPPG';
     userSppgId?: SppgId;
+    sppgList: SppgData[];
 }
 
 type WeeklyMenu = {
     weekStatus: Record<DayOfWeek, boolean>;
     menuData: Record<DayOfWeek, MenuData | null>;
 }
-
-const sppgOptions = [
-  {
-    value: 'sppg-al-ikhlas',
-    label: 'SPPG Al-Ikhlas',
-    address: 'Jl. Merdeka No. 1, Jakarta',
-    yayasan: "Yayasan Bisukma Bangun Bangsa"
-  },
-  {
-    value: 'sppg-bina-umat',
-    label: 'SPPG Bina Umat',
-    address: 'Jl. Pahlawan No. 10, Surabaya',
-    yayasan: "Yayasan Patriot Generasi Emas Indonesia"
-  },
-  {
-    value: 'sppg-nurul-hidayah',
-    label: 'SPPG Nurul Hidayah',
-    address: 'Jl. Sudirman No. 5, Bandung',
-    yayasan: "Yayasan Bisukma Hita Mangula"
-  },
-];
 
 const yayasanLogos: Record<string, string> = {
     "Yayasan Bisukma Bangun Bangsa": "https://oilvtefzzupggnstgpsa.supabase.co/storage/v1/object/public/logos/1762413828035_Bisukma%20Bangun%20Bangsa.png",
@@ -357,7 +345,7 @@ const MenuFormDialog = ({
 }
 
 
-export default function MenuPage({ userRole, userSppgId }: MenuPageProps) {
+export default function MenuPage({ userRole, userSppgId, sppgList }: MenuPageProps) {
   const [activeTab, setActiveTab] = useState('harian');
   const [indicatorStyle, setIndicatorStyle] = useState({});
   const tabsRef = useRef<(HTMLButtonElement | null)[]>([]);
@@ -365,7 +353,7 @@ export default function MenuPage({ userRole, userSppgId }: MenuPageProps) {
   const [selectedDay, setSelectedDay] = useState<DayOfWeek>('Senin');
   const [isFormOpen, setIsFormOpen] = useState(false);
   
-  const defaultSppg = userRole === 'SPPG' && userSppgId ? userSppgId : 'sppg-al-ikhlas';
+  const defaultSppg = userRole === 'SPPG' && userSppgId ? userSppgId : (sppgList[0]?.id || '');
   const [selectedSppg, setSelectedSppg] = useState<SppgId>(defaultSppg);
 
   useEffect(() => {
@@ -389,8 +377,8 @@ export default function MenuPage({ userRole, userSppgId }: MenuPageProps) {
   }, [selectedSppg]);
 
   const selectedSppgDetails = useMemo(() => {
-    return sppgOptions.find(option => option.value === selectedSppg);
-  }, [selectedSppg]);
+    return sppgList.find(option => option.id === selectedSppg);
+  }, [selectedSppg, sppgList]);
 
   const handleDownloadLogo = async () => {
     const yayasan = selectedSppgDetails?.yayasan;
@@ -532,15 +520,15 @@ export default function MenuPage({ userRole, userSppgId }: MenuPageProps) {
                 <Select onValueChange={(value) => setSelectedSppg(value as SppgId)} value={selectedSppg}>
                     <SelectTrigger>
                         <SelectValue placeholder="Pilih SPPG">
-                            {selectedSppgDetails?.label}
+                            {selectedSppgDetails?.nama}
                         </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
-                        {sppgOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
+                        {sppgList.map((option) => (
+                        <SelectItem key={option.id} value={option.id}>
                             <div>
-                                <p className="font-medium">{option.label}</p>
-                                <p className="text-xs text-muted-foreground">{option.address}</p>
+                                <p className="font-medium">{option.nama}</p>
+                                <p className="text-xs text-muted-foreground">{option.alamat}</p>
                             </div>
                         </SelectItem>
                         ))}

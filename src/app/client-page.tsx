@@ -39,13 +39,6 @@ const allMenuItems: Menu[] = ['Dashboard', 'SPPG', 'Mitra', 'Menu', 'Keuangan', 
 // NOTE: This logic will need to be updated to use actual user roles from the database
 const adminOnlyMenus: Menu[] = ['SPPG', 'Laporan', 'Kelola Penanggung Jawab'];
 
-const sppgOptions = [
-    { value: 'sppg-al-ikhlas', label: 'SPPG Al-Ikhlas' },
-    { value: 'sppg-bina-umat', label: 'SPPG Bina Umat' },
-    { value: 'sppg-nurul-hidayah', label: 'SPPG Nurul Hidayah' },
-    { value: 'admin-pusat', label: 'Admin Pusat' },
-];
-
 type SppgData = {
   id: string;
   nama: string;
@@ -97,7 +90,7 @@ export default function ClientPage({ user, sppgList, sekolahList, b3List, assign
   const userName = user.user_metadata?.full_name || user.email;
   const userAvatar = user.user_metadata?.avatar_url;
 
-  const sppgName = sppgOptions.find(opt => opt.value === userSppgId)?.label || userSppgId;
+  const sppgName = sppgList.find(s => s.id === userSppgId)?.nama || userSppgId;
 
 
   const handleMenuClick = (menu: Menu) => {
@@ -120,6 +113,7 @@ export default function ClientPage({ user, sppgList, sekolahList, b3List, assign
     const props = {
         userRole: userRole,
         userSppgId: userSppgId,
+        sppgList: sppgList,
     };
 
     switch (activeMenu) {
@@ -134,7 +128,7 @@ export default function ClientPage({ user, sppgList, sekolahList, b3List, assign
       case 'Laporan':
         return <ReportsPage {...props} />;
       case 'Kelola Penanggung Jawab':
-        return <AccountsPage accountList={assignedUsers} />;
+        return <AccountsPage accountList={assignedUsers} sppgList={sppgList} />;
       case 'Dashboard':
       default:
         return <DashboardPage {...props} />;
