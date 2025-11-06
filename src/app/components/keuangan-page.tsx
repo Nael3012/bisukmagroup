@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -12,11 +11,13 @@ import {
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon } from 'lucide-react';
+import { CalendarIcon, FilePlus, Save } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 
 const sppgOptions = [
   { value: 'all', label: 'Semua SPPG' },
@@ -30,6 +31,11 @@ type SppgId = 'all' | 'sppg-al-ikhlas' | 'sppg-bina-umat' | 'sppg-nurul-hidayah'
 export default function KeuanganPage() {
   const [selectedSppg, setSelectedSppg] = useState<SppgId>('all');
   const [date, setDate] = useState<Date | undefined>(new Date());
+  const [showPorsiInput, setShowPorsiInput] = useState(false);
+
+  const handleBuatLaporanClick = () => {
+    setShowPorsiInput(true);
+  }
 
   return (
     <div className="space-y-6 max-w-2xl mx-auto">
@@ -90,10 +96,40 @@ export default function KeuanganPage() {
           </div>
         </div>
         <div className="flex justify-end">
-          <Button>
+          <Button onClick={handleBuatLaporanClick}>
+            <FilePlus className="mr-2 h-4 w-4" />
             Buat Laporan Keuangan Hari Ini
           </Button>
         </div>
+        
+        {showPorsiInput && (
+            <Card className="mt-6">
+                <CardHeader>
+                    <CardTitle>Input Porsi Hari Ini</CardTitle>
+                    <CardDescription>
+                        Masukkan jumlah porsi besar dan kecil yang disalurkan hari ini.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="grid md:grid-cols-2 gap-4">
+                        <div className="grid gap-2">
+                            <Label htmlFor="porsi-besar">Jumlah Porsi Besar</Label>
+                            <Input id="porsi-besar" type="number" placeholder="Contoh: 50" />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="porsi-kecil">Jumlah Porsi Kecil</Label>
+                            <Input id="porsi-kecil" type="number" placeholder="Contoh: 30" />
+                        </div>
+                    </div>
+                </CardContent>
+                <CardFooter className="justify-end">
+                    <Button>
+                        <Save className="mr-2 h-4 w-4" />
+                        Simpan Laporan
+                    </Button>
+                </CardFooter>
+            </Card>
+        )}
     </div>
   );
 }
