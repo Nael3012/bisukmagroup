@@ -38,6 +38,14 @@ const reportTypeOptions = [
     { value: 'keuangan', label: 'Laporan Keuangan' },
 ]
 
+// Mock data keuangan, bisa diganti dengan data asli
+const mockKeuanganData: Record<string, { porsiBesar: number, porsiKecil: number }> = {
+    'sppg-al-ikhlas': { porsiBesar: 50, porsiKecil: 30 },
+    'sppg-bina-umat': { porsiBesar: 70, porsiKecil: 45 },
+    'sppg-nurul-hidayah': { porsiBesar: 60, porsiKecil: 40 },
+}
+
+
 type ReportType = 'mitra' | 'menu' | 'keuangan' | '';
 type MenuReportType = 'harian' | 'mingguan';
 type SppgId = 'all' | 'sppg-al-ikhlas' | 'sppg-bina-umat' | 'sppg-nurul-hidayah';
@@ -185,6 +193,29 @@ const ReportPreviewDialog = ({
             )
         }
     }
+    
+    if (reportType === 'keuangan') {
+        return (
+            <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead>Nama SPPG</TableHead>
+                        <TableHead>Jumlah Porsi Besar</TableHead>
+                        <TableHead>Jumlah Porsi Kecil</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {data.map(item => (
+                        <TableRow key={item.id}>
+                            <TableCell className="font-medium">{item.nama}</TableCell>
+                            <TableCell>{item.porsiBesar}</TableCell>
+                            <TableCell>{item.porsiKecil}</TableCell>
+                        </TableRow>
+                    ))}
+                </TableBody>
+            </Table>
+        );
+    }
 
 
     return (
@@ -217,19 +248,19 @@ const ReportPreviewDialog = ({
 export default function ReportsPage() {
   const [selectedSppg, setSelectedSppg] = useState<SppgId>('all');
   const [selectedReport, setSelectedReport] = useState<ReportType>('');
-  const [date, setDate] = useState<Date | undefined>();
+  const [date, setDate] = useState<Date | undefined>(new Date());
   const [menuReportType, setMenuReportType] = useState<MenuReportType>('harian');
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [previewData, setPreviewData] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  const showDatePicker = selectedReport === 'menu' || selectedReport === 'keuangan';
+  const showDatePicker = (selectedReport === 'menu' && menuReportType === 'harian') || selectedReport === 'keuangan';
 
   const isFilterComplete = useMemo(() => {
      if (!selectedSppg || !selectedReport) return false;
-     if (showDatePicker && menuReportType === 'harian' && !date) return false;
+     if (showDatePicker && !date) return false;
      return true;
-  },[selectedSppg, selectedReport, showDatePicker, date, menuReportType]);
+  },[selectedSppg, selectedReport, showDatePicker, date]);
 
   const handlePreview = () => {
     if (!isFilterComplete) {
@@ -274,12 +305,32 @@ export default function ReportsPage() {
                 }
              }
         }
+    } else if (selectedReport === 'keuangan') {
+        // NOTE: Menggunakan mock data. Ganti dengan data asli nanti.
+        // Logika ini mengasumsikan data tersedia untuk tanggal yang dipilih.
+        if (selectedSppg === 'all') {
+            data = sppgOptions
+                .filter(opt => opt.value !== 'all')
+                .map(opt => ({
+                    id: opt.value,
+                    nama: opt.label,
+                    ...(mockKeuanganData[opt.value] || { porsiBesar: 0, porsiKecil: 0 })
+                }));
+        } else {
+            const sppg = sppgOptions.find(opt => opt.value === selectedSppg);
+            if (sppg) {
+                data = [{
+                    id: sppg.value,
+                    nama: sppg.label,
+                    ...(mockKeuanganData[sppg.value] || { porsiBesar: 0, porsiKecil: 0 })
+                }];
+            }
+        }
     }
-    // Laporan Keuangan belum ada data
     
     setPreviewData(data);
     
-    if (data.length === 0 && selectedReport !== 'keuangan') {
+    if (data.length === 0) {
         setError("Data tidak ditemukan untuk kriteria yang dipilih.");
     } else {
         setIsPreviewOpen(true);
@@ -293,75 +344,148 @@ export default function ReportsPage() {
         return;
     }
     setError(null);
-    
-    // Trigger preview logic to ensure previewData is up-to-date
-    handlePreview();
 
-    // Use a short timeout to allow state to update before proceeding
-    setTimeout(async () => {
-        if (previewData.length === 0 && selectedReport !== 'keuangan') {
-            setError("Tidak ada data untuk diunduh berdasarkan filter yang dipilih.");
-            return;
-        }
-        
-        if (selectedReport === 'keuangan') {
-            setError("Fitur unduh untuk Laporan Keuangan belum tersedia.");
-            return;
-        }
-
-        const XLSX = await import('xlsx');
-        let dataToDownload: any[][] = [];
-        const reportTitle = reportTypeOptions.find(opt => opt.value === selectedReport)?.label || 'Laporan';
-        const sppgTitle = sppgOptions.find(opt => opt.value === selectedSppg)?.label || 'Semua SPPG';
-        
-        // Add header rows
-        dataToDownload.push(['Jenis Laporan:', reportTitle]);
-        dataToDownload.push(['SPPG:', sppgTitle]);
-        if (showDatePicker && date) {
-            dataToDownload.push(['Tanggal:', format(date, "d LLL y", { locale: id })]);
-        }
-        if (selectedReport === 'menu') {
-            dataToDownload.push(['Tipe Menu:', menuReportType === 'harian' ? 'Harian' : 'Mingguan']);
-        }
-        dataToDownload.push([]); // Spacer
-
-        // Format data based on report type
-        if (selectedReport === 'mitra') {
-            dataToDownload.push(['Tipe Mitra', 'Nama', 'Alamat/Desa', 'Jenjang', 'Jumlah PM', 'Detail PM']);
-            const sekolahData = previewData.filter(item => 'jenjang' in item);
-            const b3Data = previewData.filter(item => 'namaDesa' in item);
-            sekolahData.forEach(s => dataToDownload.push(['Sekolah', s.nama, s.alamat, s.jenjang, s.jumlahPM, '']));
-            b3Data.forEach(b => dataToDownload.push(['B3', b.namaDesa, b.alamat, '', b.jumlah, `Bumil: ${b.jenis.bumil}, Busui: ${b.jenis.busui}, Balita: ${b.jenis.balita}`]));
-        } else if (selectedReport === 'menu') {
-            if (menuReportType === 'harian') {
-                dataToDownload.push(['Nama Menu', 'Kandungan Gizi Porsi Besar', 'Kandungan Gizi Porsi Kecil']);
-                previewData.forEach(menu => {
-                    const largePortionStr = Array.isArray(menu.largePortion) ? menu.largePortion.map((n:any) => `${n.source}: ${n.amount}`).join('\n') : '';
-                    const smallPortionStr = Array.isArray(menu.smallPortion) ? menu.smallPortion.map((n:any) => `${n.source}: ${n.amount}`).join('\n') : '';
-                    dataToDownload.push([menu.menuName, largePortionStr, smallPortionStr]);
-                });
-            } else if (menuReportType === 'mingguan') {
-                dataToDownload.push(['Hari', 'Nama Menu', 'Status']);
-                 previewData.forEach(sppgMenu => {
-                    dataToDownload.push([sppgOptions.find(opt => opt.value === sppgMenu.sppgId)?.label || 'SPPG Data']);
-                    Object.entries(sppgMenu.menuData).forEach(([day, menu]: [string, any]) => {
-                        dataToDownload.push([day, menu?.menuName || 'Belum diisi', sppgMenu.weekStatus[day] ? 'Terisi' : 'Kosong']);
-                    });
-                     dataToDownload.push([]); // Spacer between SPPGs if 'all' is selected
-                });
+    // Re-fetch data just in case
+    let data: any[] = [];
+    if (selectedReport === 'mitra') {
+        const sekolah = selectedSppg === 'all' 
+            ? semuaDaftarSekolah 
+            : semuaDaftarSekolah.filter(s => s.sppgId === selectedSppg);
+        const b3 = selectedSppg === 'all'
+            ? semuaDaftarB3
+            : semuaDaftarB3.filter(b => b.sppgId === selectedSppg);
+        data = [...sekolah, ...b3];
+    } else if (selectedReport === 'menu') {
+        const dayIndexToName: Record<number, string> = { 1: 'Senin', 2: 'Selasa', 3: 'Rabu', 4: 'Kamis', 5: 'Jumat' };
+        if (menuReportType === 'harian' && date) {
+            const dayName = dayIndexToName[date.getDay()];
+            if (selectedSppg === 'all') {
+                data = Object.entries(allMenuData)
+                    .filter(([key]) => key !== 'all')
+                    .map(([sppgId, sppgMenu]) => ({
+                        sppgId,
+                        sppgName: sppgOptions.find(opt => opt.value === sppgId)?.label || sppgId,
+                        menu: sppgMenu.menuData[dayName as keyof typeof sppgMenu.menuData]
+                    }))
+                    .filter(item => item.menu);
+            } else {
+                const menuForDay = allMenuData[selectedSppg]?.menuData[dayName as keyof typeof allMenuData[SppgId]['menuData']];
+                if (menuForDay) data = [{ menu: menuForDay }];
+            }
+        } else if (menuReportType === 'mingguan') {
+            if (selectedSppg === 'all') {
+                data = Object.entries(allMenuData)
+                    .filter(([key]) => key !== 'all')
+                    .map(([sppgId, sppgMenu]) => ({
+                        sppgId,
+                        sppgName: sppgOptions.find(opt => opt.value === sppgId)?.label || sppgId,
+                        ...sppgMenu
+                    }));
+            } else {
+                const weeklyMenu = allMenuData[selectedSppg];
+                if (weeklyMenu) data = [{ sppgName: sppgOptions.find(opt => opt.value === selectedSppg)?.label, ...weeklyMenu }];
             }
         }
-        
-        const worksheet = XLSX.utils.aoa_to_sheet(dataToDownload);
-        // Set column widths
-        const colWidths = dataToDownload[0].map((_, i) => ({ wch: Math.max(...dataToDownload.map(row => row[i] ? String(row[i]).length : 0)) + 5 }));
-        worksheet['!cols'] = colWidths;
+    } else if (selectedReport === 'keuangan') {
+        if (selectedSppg === 'all') {
+            data = sppgOptions
+                .filter(opt => opt.value !== 'all')
+                .map(opt => ({
+                    id: opt.value,
+                    nama: opt.label,
+                    ...(mockKeuanganData[opt.value] || { porsiBesar: 0, porsiKecil: 0 })
+                }));
+        } else {
+            const sppg = sppgOptions.find(opt => opt.value === selectedSppg);
+            if (sppg) {
+                data = [{
+                    id: sppg.value,
+                    nama: sppg.label,
+                    ...(mockKeuanganData[sppg.value] || { porsiBesar: 0, porsiKecil: 0 })
+                }];
+            }
+        }
+    }
 
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Laporan");
-        const fileName = `${selectedReport}_${selectedSppg}_${new Date().toISOString().split('T')[0]}.xlsx`;
-        XLSX.writeFile(workbook, fileName);
-    }, 100);
+    if (data.length === 0) {
+        setError("Tidak ada data untuk diunduh berdasarkan filter yang dipilih.");
+        return;
+    }
+        
+    const XLSX = await import('xlsx');
+    let dataToDownload: any[][] = [];
+    const reportTitle = reportTypeOptions.find(opt => opt.value === selectedReport)?.label || 'Laporan';
+    const sppgTitle = sppgOptions.find(opt => opt.value === selectedSppg)?.label || 'Semua SPPG';
+    
+    // Add header rows
+    dataToDownload.push(['Jenis Laporan:', reportTitle]);
+    dataToDownload.push(['SPPG:', sppgTitle]);
+    if (showDatePicker && date) {
+        dataToDownload.push(['Tanggal:', format(date, "d LLL y", { locale: id })]);
+    }
+    if (selectedReport === 'menu') {
+        dataToDownload.push(['Tipe Menu:', menuReportType === 'harian' ? 'Harian' : 'Mingguan']);
+    }
+    dataToDownload.push([]); // Spacer
+
+    // Format data based on report type
+    if (selectedReport === 'mitra') {
+        dataToDownload.push(['Tipe Mitra', 'Nama', 'Alamat/Desa', 'Jenjang', 'Jumlah PM', 'Detail PM']);
+        const sekolahData = data.filter(item => 'jenjang' in item);
+        const b3Data = data.filter(item => 'namaDesa' in item);
+        sekolahData.forEach(s => dataToDownload.push(['Sekolah', s.nama, s.alamat, s.jenjang, s.jumlahPM, '']));
+        b3Data.forEach(b => dataToDownload.push(['B3', b.namaDesa, b.alamat, '', b.jumlah, `Bumil: ${b.jenis.bumil}, Busui: ${b.jenis.busui}, Balita: ${b.jenis.balita}`]));
+    } else if (selectedReport === 'menu') {
+        if (menuReportType === 'harian') {
+            dataToDownload.push(['SPPG', 'Nama Menu', 'Kandungan Gizi Porsi Besar', 'Kandungan Gizi Porsi Kecil']);
+            data.forEach(item => {
+                const largePortionStr = Array.isArray(item.menu.largePortion) ? item.menu.largePortion.map((n:any) => `${n.source}: ${n.amount}`).join('\n') : '';
+                const smallPortionStr = Array.isArray(item.menu.smallPortion) ? item.menu.smallPortion.map((n:any) => `${n.source}: ${n.amount}`).join('\n') : '';
+                dataToDownload.push([item.sppgName || sppgTitle, item.menu.menuName, largePortionStr, smallPortionStr]);
+            });
+        } else if (menuReportType === 'mingguan') {
+            dataToDownload.push(['SPPG', 'Hari', 'Nama Menu', 'Status']);
+            data.forEach(sppgMenu => {
+                dataToDownload.push([sppgMenu.sppgName]);
+                Object.entries(sppgMenu.menuData).forEach(([day, menu]: [string, any]) => {
+                    dataToDownload.push(['', day, menu?.menuName || 'Belum diisi', sppgMenu.weekStatus[day] ? 'Terisi' : 'Kosong']);
+                });
+                dataToDownload.push([]); // Spacer between SPPGs
+            });
+        }
+    } else if (selectedReport === 'keuangan') {
+        dataToDownload.push(['Nama SPPG', 'Jumlah Porsi Besar', 'Jumlah Porsi Kecil']);
+        data.forEach(item => {
+            dataToDownload.push([item.nama, item.porsiBesar, item.porsiKecil]);
+        });
+    }
+    
+    const worksheet = XLSX.utils.aoa_to_sheet(dataToDownload);
+    // Set column widths
+    worksheet['!cols'] = [
+        { wch: 25 }, // SPPG
+        { wch: 30 }, // Nama/Hari
+        { wch: 40 }, // Detail 1
+        { wch: 40 }, // Detail 2
+    ];
+    worksheet['!rows'] = [];
+    dataToDownload.forEach((row, rowIndex) => {
+        row.forEach((cell, cellIndex) => {
+            if (typeof cell === 'string' && cell.includes('\n')) {
+                 if (!worksheet['!rows'][rowIndex]) worksheet['!rows'][rowIndex] = {};
+                 worksheet['!rows'][rowIndex].hpt = (cell.split('\n').length) * 15;
+                 if(worksheet[XLSX.utils.encode_cell({c: cellIndex, r: rowIndex})]){
+                    worksheet[XLSX.utils.encode_cell({c: cellIndex, r: rowIndex})].s = { alignment: { wrapText: true } };
+                 }
+            }
+        });
+    });
+
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Laporan");
+    const fileName = `${selectedReport}_${selectedSppg}_${new Date().toISOString().split('T')[0]}.xlsx`;
+    XLSX.writeFile(workbook, fileName);
   };
   
   const reportLabel = reportTypeOptions.find(opt => opt.value === selectedReport)?.label || "Laporan";
@@ -427,7 +551,7 @@ export default function ReportsPage() {
                 </div>
             )}
 
-            {showDatePicker && menuReportType === 'harian' && (
+            {showDatePicker && (
               <div className="grid gap-2">
                   <Label>Pilih Tanggal</Label>
                   <Popover>
@@ -490,3 +614,5 @@ export default function ReportsPage() {
     </>
   );
 }
+
+    
