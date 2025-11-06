@@ -34,6 +34,8 @@ import { Badge } from '@/components/ui/badge';
 import { DialogDescription } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { supabase } from '@/utils/supabase/client';
+import type { User } from '@supabase/supabase-js';
 
 type Account = {
   id: string;
@@ -56,16 +58,18 @@ const sppgOptions = [
 const positionOptions = ['Ka. SPPG', 'Ahli Gizi', 'Akuntan', 'Asisten Lapangan'];
 
 
-const AccountForm = ({ account }: { account?: Account | null }) => {
+const AccountForm = ({ account, pendingUsers }: { account?: Account | null, pendingUsers: User[] }) => {
     const [role, setRole] = useState<'Admin Pusat' | 'SPPG'>(account?.role || 'SPPG');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [passwordError, setPasswordError] = useState('');
+    const [email, setEmail] = useState(account?.email || '');
 
     useEffect(() => {
         if(account?.role) {
             setRole(account.role);
         }
+        setEmail(account?.email || '');
     }, [account]);
 
     useEffect(() => {
@@ -75,12 +79,36 @@ const AccountForm = ({ account }: { account?: Account | null }) => {
             setPasswordError('');
         }
     }, [password, confirmPassword]);
+
+    const handlePendingUserSelect = (userId: string) => {
+        const selectedUser = pendingUsers.find(u => u.id === userId);
+        if (selectedUser) {
+            setEmail(selectedUser.email || '');
+        }
+    }
     
     return (
         <div className="flex flex-col md:flex-row gap-8 py-4">
             {/* Segment 1: Data Pribadi */}
             <div className="flex-1 space-y-4">
                 <h3 className="text-lg font-semibold text-muted-foreground">Data Pribadi</h3>
+                 {!account && pendingUsers.length > 0 && (
+                     <div className="grid gap-2">
+                        <Label htmlFor="pending-user">Ambil dari Akun Pending</Label>
+                        <Select onValueChange={handlePendingUserSelect}>
+                        <SelectTrigger id="pending-user">
+                            <SelectValue placeholder="Pilih email dari akun yang menunggu penempatan" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {pendingUsers.map(user => (
+                                <SelectItem key={user.id} value={user.id}>
+                                    {user.email}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                        </Select>
+                    </div>
+                 )}
                 <div className="grid gap-2">
                     <Label htmlFor="name">Nama Lengkap</Label>
                     <Input id="name" placeholder="Contoh: Budi Santoso" defaultValue={account?.name} />
@@ -91,7 +119,7 @@ const AccountForm = ({ account }: { account?: Account | null }) => {
                 </div>
                 <div className="grid gap-2">
                     <Label htmlFor="email">Email</Label>
-                    <Input id="email" type="email" placeholder="contoh@email.com" defaultValue={account?.email} />
+                    <Input id="email" type="email" placeholder="contoh@email.com" value={email} onChange={(e) => setEmail(e.target.value)} disabled={!!account} />
                 </div>
                 
                 <div className="grid gap-2">
@@ -180,10 +208,34 @@ export default function AccountsPage() {
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [pendingUsers, setPendingUsers] = useState<User[]>([]);
 
   useEffect(() => {
     setCurrentPage(1);
   }, [itemsPerPage]);
+  
+  // Fetch pending users when the add dialog is opened
+  useEffect(() => {
+    const fetchPendingUsers = async () => {
+      // NOTE: This requires admin privileges on the Supabase client.
+      // Make sure RLS is configured to allow admins to list users.
+      const { data: { users }, error } = await supabase.auth.admin.listUsers({
+          perPage: 1000 // Adjust as needed
+      });
+
+      if (error) {
+          console.error("Error fetching users:", error);
+          return;
+      }
+      
+      const pending = users.filter(user => !user.user_metadata?.sppgId);
+      setPendingUsers(pending);
+    };
+
+    if (isAddOpen) {
+        fetchPendingUsers();
+    }
+  }, [isAddOpen]);
 
   const paginatedAccounts = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -301,7 +353,7 @@ export default function AccountsPage() {
             <DialogHeader>
               <DialogTitle>Tambah Akun Baru</DialogTitle>
             </DialogHeader>
-            <AccountForm />
+            <AccountForm pendingUsers={pendingUsers} />
             <DialogFooter>
               <Button type="submit">Simpan Akun</Button>
             </DialogFooter>
@@ -319,7 +371,7 @@ export default function AccountsPage() {
             Ubah detail akun dan penugasan untuk {selectedAccount?.name}.
           </DialogDescription>
         </DialogHeader>
-        <AccountForm account={selectedAccount} />
+        <AccountForm account={selectedAccount} pendingUsers={[]} />
         <DialogFooter>
           <Button type="submit">Simpan Perubahan</Button>
         </DialogFooter>
@@ -328,5 +380,7 @@ export default function AccountsPage() {
     </>
   );
 }
+
+    
 
     
