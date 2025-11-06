@@ -21,8 +21,23 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CircleAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useState, useRef, useEffect } from "react";
 
 export function TabelAkgHarian() {
+  const [activeTab, setActiveTab] = useState('sma');
+  const [indicatorStyle, setIndicatorStyle] = useState({});
+  const tabsRef = useRef<(HTMLButtonElement | null)[]>([]);
+
+  useEffect(() => {
+    const activeTabElement = tabsRef.current.find(tab => tab?.dataset.value === activeTab);
+    if (activeTabElement) {
+      setIndicatorStyle({
+        left: activeTabElement.offsetLeft,
+        width: activeTabElement.offsetWidth,
+      });
+    }
+  }, [activeTab]);
+
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -41,15 +56,22 @@ export function TabelAkgHarian() {
             </p>
             </div>
         </DialogHeader>
-          <Tabs defaultValue="sma" className="w-full mt-4">
-            <TabsList className="grid w-full grid-cols-7">
-                <TabsTrigger value="busui">BUSUI</TabsTrigger>
-                <TabsTrigger value="balita">Balita</TabsTrigger>
-                <TabsTrigger value="paud">PAUD</TabsTrigger>
-                <TabsTrigger value="sd">SD</TabsTrigger>
-                <TabsTrigger value="smp">SMP</TabsTrigger>
-                <TabsTrigger value="sma">SMA</TabsTrigger>
-                <TabsTrigger value="bumil">BUMIL</TabsTrigger>
+          <Tabs defaultValue="sma" onValueChange={setActiveTab} className="w-full mt-4">
+            <TabsList ref={el => {
+              if (!el) return;
+              tabsRef.current = Array.from(el.children) as HTMLButtonElement[];
+            }} className="grid w-full grid-cols-7 relative">
+                <TabsTrigger value="busui" data-value="busui">BUSUI</TabsTrigger>
+                <TabsTrigger value="balita" data-value="balita">Balita</TabsTrigger>
+                <TabsTrigger value="paud" data-value="paud">PAUD</TabsTrigger>
+                <TabsTrigger value="sd" data-value="sd">SD</TabsTrigger>
+                <TabsTrigger value="smp" data-value="smp">SMP</TabsTrigger>
+                <TabsTrigger value="sma" data-value="sma">SMA</TabsTrigger>
+                <TabsTrigger value="bumil" data-value="bumil">BUMIL</TabsTrigger>
+                 <div
+                    className="absolute bottom-0 h-0.5 bg-primary transition-all duration-300 ease-in-out"
+                    style={indicatorStyle}
+                />
             </TabsList>
             <TabsContent value="busui">
                 <div className="space-y-6 mt-4">
