@@ -432,7 +432,7 @@ export default function MitraPage() {
             <div className="px-4 pb-4 pt-6 space-y-4">
               <Table>
                 <TableHeader>
-                  <TableRow>
+                  <TableRow className="bg-muted/50">
                     <TableHead>
                       <Button variant="ghost" onClick={() => requestSortSekolah('nama')}>
                         Nama Sekolah
@@ -542,7 +542,7 @@ export default function MitraPage() {
              <div className="px-4 pb-4 pt-6 space-y-4">
                 <Table>
                   <TableHeader>
-                    <TableRow>
+                    <TableRow className="bg-muted/50">
                       <TableHead>
                         <Button variant="ghost" onClick={() => requestSortB3('namaDesa')}>
                           Nama Desa/Kelurahan
