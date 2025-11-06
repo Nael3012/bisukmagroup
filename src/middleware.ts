@@ -18,8 +18,9 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
+     * - login (the login page)
      * - auth/callback (Supabase auth callback)
      */
-    '/((?!_next/static|_next/image|favicon.ico|auth/callback).*)',
+    '/((?!_next/static|_next/image|favicon.ico|login|auth/callback).*)',
   ],
 }

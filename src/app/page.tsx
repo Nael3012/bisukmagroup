@@ -18,7 +18,9 @@ export default async function Page() {
   // If the logged-in user is itbisukma@gmail.com, grant them super admin privileges.
   // This gives them an 'sppgId' to bypass the pending page and ensures they get the 'Admin Pusat' role.
   if (user.email === 'itbisukma@gmail.com') {
-    if (!user.user_metadata.sppgId || !user.user_metadata.role) {
+    const isAdmin = user.user_metadata?.role === 'Admin Pusat' && user.user_metadata?.sppgId === 'admin-pusat';
+    
+    if (!isAdmin) {
       const { data, error } = await supabase.auth.updateUser({
         data: { 
           sppgId: 'admin-pusat', // Special ID for admin
@@ -28,21 +30,22 @@ export default async function Page() {
       
       // Refresh user data after update
       if (!error) {
+        // Re-fetch the user to get the updated metadata for the current render
         const { data: { user: updatedUser } } = await supabase.auth.getUser()
-        // Use the updated user object for the rest of the render
-        if (updatedUser) {
-           const { data: sppgData } = await supabase.from('sppg').select()
-           const { data: sekolahData } = await supabase.from('sekolah').select()
-           const { data: b3Data } = await supabase.from('b3').select()
-          return (
-            <ClientPage
-              user={updatedUser}
-              sppgList={sppgData || []}
-              sekolahList={sekolahData || []}
-              b3List={b3Data || []}
-            />
-          )
-        }
+        const targetUser = updatedUser || user;
+
+        const { data: sppgData } = await supabase.from('sppg').select()
+        const { data: sekolahData } = await supabase.from('sekolah').select()
+        const { data: b3Data } = await supabase.from('b3').select()
+
+        return (
+          <ClientPage
+            user={targetUser}
+            sppgList={sppgData || []}
+            sekolahList={sekolahData || []}
+            b3List={b3Data || []}
+          />
+        )
       }
     }
   }
