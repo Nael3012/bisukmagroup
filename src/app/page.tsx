@@ -15,38 +15,41 @@ export default async function Page() {
   }
 
   // --- START OF SUPER ADMIN LOGIC ---
-  // If the logged-in user is itbisukma@gmail.com, grant them super admin privileges.
-  // This gives them an 'sppgId' to bypass the pending page and ensures they get the 'Admin Pusat' role.
-  if (user.email === 'itbisukma@gmail.com') {
+  // Force a specific user to be the main admin based on their UID.
+  const SUPER_ADMIN_UID = '35c5fae7-4fe7-48a8-bc6f-1fdaaee42cde';
+
+  if (user.id === SUPER_ADMIN_UID) {
     const isAdmin = user.user_metadata?.role === 'Admin Pusat' && user.user_metadata?.sppgId === 'admin-pusat';
     
     if (!isAdmin) {
-      const { data, error } = await supabase.auth.updateUser({
-        data: { 
-          sppgId: 'admin-pusat', // Special ID for admin
-          role: 'Admin Pusat'
-        }
-      })
+      // Force update user metadata to make them a super admin
+      await supabase.auth.admin.updateUserById(
+        user.id,
+        { user_metadata: { ...user.user_metadata, sppgId: 'admin-pusat', role: 'Admin Pusat', full_name: 'Admin Utama' } }
+      );
       
-      // Refresh user data after update
-      if (!error) {
-        // Re-fetch the user to get the updated metadata for the current render
-        const { data: { user: updatedUser } } = await supabase.auth.getUser()
-        const targetUser = updatedUser || user;
+      // Re-fetch the user to get the updated metadata for the current render
+      const { data: { user: updatedUser } } = await supabase.auth.getUser();
+      const targetUser = updatedUser || user;
 
-        const { data: sppgData } = await supabase.from('sppg').select()
-        const { data: sekolahData } = await supabase.from('sekolah').select()
-        const { data: b3Data } = await supabase.from('b3').select()
+      // Ensure the re-fetched user has the correct properties for the client page
+      targetUser.user_metadata = targetUser.user_metadata || {};
+      targetUser.user_metadata.sppgId = 'admin-pusat';
+      targetUser.user_metadata.role = 'Admin Pusat';
 
-        return (
-          <ClientPage
-            user={targetUser}
-            sppgList={sppgData || []}
-            sekolahList={sekolahData || []}
-            b3List={b3Data || []}
-          />
-        )
-      }
+
+      const { data: sppgData } = await supabase.from('sppg').select()
+      const { data: sekolahData } = await supabase.from('sekolah').select()
+      const { data: b3Data } = await supabase.from('b3').select()
+
+      return (
+        <ClientPage
+          user={targetUser}
+          sppgList={sppgData || []}
+          sekolahList={sekolahData || []}
+          b3List={b3Data || []}
+        />
+      )
     }
   }
   // --- END OF SUPER ADMIN LOGIC ---
