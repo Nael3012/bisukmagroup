@@ -21,7 +21,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { menuDataBySppg } from '../data/mock';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const sppgOptions = [
@@ -29,6 +28,8 @@ const sppgOptions = [
   { value: 'sppg-bina-umat', label: 'SPPG Bina Umat', address: 'Jl. Pahlawan No. 10, Surabaya' },
   { value: 'sppg-nurul-hidayah', label: 'SPPG Nurul Hidayah', address: 'Jl. Sudirman No. 5, Bandung' },
 ];
+
+const menuDataBySppg: any = {}; // This will be populated by props
 
 type SppgId = 'sppg-al-ikhlas' | 'sppg-bina-umat' | 'sppg-nurul-hidayah';
 
@@ -115,7 +116,7 @@ export default function KeuanganPage({ userRole, userSppgId }: KeuanganPageProps
                     </SelectTrigger>
                     <SelectContent>
                         {sppgOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value} disabled={option.value === 'all'}>
+                        <SelectItem key={option.value} value={option.value}>
                             <div>
                             <p className="font-medium">{option.label}</p>
                             {option.address && <p className="text-xs text-muted-foreground">{option.address}</p>}

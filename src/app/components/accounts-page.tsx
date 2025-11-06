@@ -75,9 +75,9 @@ const accountList: Account[] = [
 ];
 
 const sppgOptions = [
-    { value: 'SPPG Al-Ikhlas', label: 'SPPG Al-Ikhlas' },
-    { value: 'SPPG Bina Umat', label: 'SPPG Bina Umat' },
-    { value: 'SPPG Nurul Hidayah', label: 'SPPG Nurul Hidayah' },
+    { value: 'sppg-al-ikhlas', label: 'SPPG Al-Ikhlas' },
+    { value: 'sppg-bina-umat', label: 'SPPG Bina Umat' },
+    { value: 'sppg-nurul-hidayah', label: 'SPPG Nurul Hidayah' },
 ];
 
 const positionOptions = ['Ka. SPPG', 'Ahli Gizi', 'Akuntan', 'Asisten Lapangan'];

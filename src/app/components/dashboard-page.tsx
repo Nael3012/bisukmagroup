@@ -11,9 +11,7 @@ import {
 } from '@/components/ui/select';
 import { useState, useMemo, useEffect } from 'react';
 import { Users, Utensils, Building, Soup } from 'lucide-react';
-import { getSppgListWithDynamicPM, mockKeuanganData } from '../data/mock';
 
-// Mock data (can be replaced with API calls)
 const sppgOptions = [
   { value: 'all', label: 'Semua SPPG' },
   { value: 'sppg-al-ikhlas', label: 'SPPG Al-Ikhlas', address: 'Jl. Merdeka No. 1, Jakarta' },
@@ -21,34 +19,32 @@ const sppgOptions = [
   { value: 'sppg-nurul-hidayah', label: 'SPPG Nurul Hidayah', address: 'Jl. Sudirman No. 5, Bandung' },
 ];
 
-const sppgList = getSppgListWithDynamicPM();
-
-const calculateDashboardData = () => {
-    const allData = {
-        totalSppg: sppgList.length,
-        totalPenerimaManfaat: sppgList.reduce((acc, sppg) => acc + sppg.penerimaManfaat, 0),
-        porsiHariIni: Object.values(mockKeuanganData).reduce((acc, data) => acc + data.porsiBesar + data.porsiKecil, 0),
-        porsiMingguan: Object.values(mockKeuanganData).reduce((acc, data) => acc + (data.porsiBesar + data.porsiKecil) * 5, 0), // Asumsi 5 hari kerja
-    };
-
-    const dashboardData: Record<string, any> = {
-        all: allData
-    };
-
-    sppgList.forEach(sppg => {
-        const keuangan = mockKeuanganData[sppg.id];
-        dashboardData[sppg.id] = {
-            totalSppg: 1,
-            totalPenerimaManfaat: sppg.penerimaManfaat,
-            porsiHariIni: keuangan ? keuangan.porsiBesar + keuangan.porsiKecil : 0,
-            porsiMingguan: keuangan ? (keuangan.porsiBesar + keuangan.porsiKecil) * 5 : 0, // Asumsi 5 hari kerja
-        };
-    });
-
-    return dashboardData;
+const dashboardData: Record<string, any> = {
+  all: {
+    totalSppg: 3,
+    totalPenerimaManfaat: 455,
+    porsiHariIni: 310,
+    porsiMingguan: 1550,
+  },
+  'sppg-al-ikhlas': {
+    totalSppg: 1,
+    totalPenerimaManfaat: 160,
+    porsiHariIni: 80,
+    porsiMingguan: 400,
+  },
+  'sppg-bina-umat': {
+    totalSppg: 1,
+    totalPenerimaManfaat: 160,
+    porsiHariIni: 115,
+    porsiMingguan: 575,
+  },
+  'sppg-nurul-hidayah': {
+    totalSppg: 1,
+    totalPenerimaManfaat: 135,
+    porsiHariIni: 100,
+    porsiMingguan: 500,
+  },
 }
-
-const dashboardData = calculateDashboardData();
 
 
 type SppgId = 'all' | 'sppg-al-ikhlas' | 'sppg-bina-umat' | 'sppg-nurul-hidayah';

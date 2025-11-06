@@ -32,9 +32,20 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Info, ChevronLeft, ChevronRight, Pencil } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
-import type { SppgData } from '../data/mock';
-import { getSppgListWithDynamicPM } from '../data/mock';
 import { WilayahSelector } from './wilayah-selector';
+
+type SppgData = {
+  id: string;
+  nama: string;
+  yayasan: string;
+  alamat: string;
+  penerimaManfaat: number;
+  namaKaSppg: string;
+  namaAkuntan: string;
+  ahliGizi: string;
+  asistenLapangan: string;
+  wilayah: any;
+};
 
 
 const DetailItem = ({ label, value }: { label: string, value: React.ReactNode }) => (
@@ -113,7 +124,7 @@ export default function SppgPage() {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedSppg, setSelectedSppg] = useState<SppgData | null>(null);
 
-  const sppgList = useMemo(() => getSppgListWithDynamicPM(), []);
+  const sppgList: SppgData[] = useMemo(() => [], []);
 
   useEffect(() => {
     setCurrentPage(1);

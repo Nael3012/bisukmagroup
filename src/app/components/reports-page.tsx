@@ -22,7 +22,24 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { semuaDaftarSekolah, semuaDaftarB3, type Sekolah, type B3Data, menuDataBySppg as allMenuData, mockKeuanganData } from '../data/mock';
+
+type Sekolah = {
+  id: string;
+  nama: string;
+  alamat: string;
+  jenjang: string;
+  jumlahPM: number;
+  sppgId: string;
+};
+
+type B3Data = {
+  id: string;
+  namaDesa: string;
+  alamat: string;
+  jenis: { bumil: number; busui: number; balita: number };
+  jumlah: number;
+  sppgId: string;
+};
 
 
 const sppgOptions = [
@@ -275,63 +292,7 @@ export default function ReportsPage({ userRole, userSppgId }: ReportsPageProps) 
     setError(null);
 
     let data: any[] = [];
-    if (selectedReport === 'mitra') {
-        const sekolah = selectedSppg === 'all' 
-            ? semuaDaftarSekolah 
-            : semuaDaftarSekolah.filter(s => s.sppgId === selectedSppg);
-        const b3 = selectedSppg === 'all'
-            ? semuaDaftarB3
-            : semuaDaftarB3.filter(b => b.sppgId === selectedSppg);
-        data = [...sekolah, ...b3];
-    } else if (selectedReport === 'menu') {
-        const dayIndexToName: Record<number, string> = { 1: 'Senin', 2: 'Selasa', 3: 'Rabu', 4: 'Kamis', 5: 'Jumat' };
-        
-        if (menuReportType === 'harian' && date) {
-            const dayName = dayIndexToName[date.getDay()];
-            if(selectedSppg === 'all') {
-                 const allSppgMenuForDay = Object.values(allMenuData)
-                    .map(sppgMenu => sppgMenu.menuData[dayName as keyof typeof sppgMenu.menuData])
-                    .filter(Boolean); // Filter out null/undefined
-                 data = allSppgMenuForDay as any[];
-            } else {
-                const menuForDay = allMenuData[selectedSppg as SppgId]?.menuData[dayName as keyof typeof allMenuData[SppgId]['menuData']];
-                if (menuForDay) {
-                    data = [menuForDay];
-                }
-            }
-
-        } else if (menuReportType === 'mingguan') {
-             if(selectedSppg === 'all') {
-                data = Object.values(allMenuData).filter(menu => menu.weekStatus.Senin || menu.weekStatus.Selasa || menu.weekStatus.Rabu || menu.weekStatus.Kamis || menu.weekStatus.Jumat);
-             } else {
-                const weeklyMenu = allMenuData[selectedSppg as SppgId];
-                if (weeklyMenu) {
-                    data = [weeklyMenu];
-                }
-             }
-        }
-    } else if (selectedReport === 'keuangan') {
-        // NOTE: Menggunakan mock data. Ganti dengan data asli nanti.
-        // Logika ini mengasumsikan data tersedia untuk tanggal yang dipilih.
-        if (selectedSppg === 'all') {
-            data = sppgOptions
-                .filter(opt => opt.value !== 'all')
-                .map(opt => ({
-                    id: opt.value,
-                    nama: opt.label,
-                    ...(mockKeuanganData[opt.value] || { porsiBesar: 0, porsiKecil: 0 })
-                }));
-        } else {
-            const sppg = sppgOptions.find(opt => opt.value === selectedSppg);
-            if (sppg) {
-                data = [{
-                    id: sppg.value,
-                    nama: sppg.label,
-                    ...(mockKeuanganData[sppg.value] || { porsiBesar: 0, porsiKecil: 0 })
-                }];
-            }
-        }
-    }
+    // Data fetching logic will be implemented here
     
     setPreviewData(data);
     
@@ -350,67 +311,8 @@ export default function ReportsPage({ userRole, userSppgId }: ReportsPageProps) 
     }
     setError(null);
 
-    // Re-fetch data just in case
     let data: any[] = [];
-    if (selectedReport === 'mitra') {
-        const sekolah = selectedSppg === 'all' 
-            ? semuaDaftarSekolah 
-            : semuaDaftarSekolah.filter(s => s.sppgId === selectedSppg);
-        const b3 = selectedSppg === 'all'
-            ? semuaDaftarB3
-            : semuaDaftarB3.filter(b => b.sppgId === selectedSppg);
-        data = [...sekolah, ...b3];
-    } else if (selectedReport === 'menu') {
-        const dayIndexToName: Record<number, string> = { 1: 'Senin', 2: 'Selasa', 3: 'Rabu', 4: 'Kamis', 5: 'Jumat' };
-        if (menuReportType === 'harian' && date) {
-            const dayName = dayIndexToName[date.getDay()];
-            if (selectedSppg === 'all') {
-                data = Object.entries(allMenuData)
-                    .filter(([key]) => key !== 'all')
-                    .map(([sppgId, sppgMenu]) => ({
-                        sppgId,
-                        sppgName: sppgOptions.find(opt => opt.value === sppgId)?.label || sppgId,
-                        menu: sppgMenu.menuData[dayName as keyof typeof sppgMenu.menuData]
-                    }))
-                    .filter(item => item.menu);
-            } else {
-                const menuForDay = allMenuData[selectedSppg as SppgId]?.menuData[dayName as keyof typeof allMenuData[SppgId]['menuData']];
-                if (menuForDay) data = [{ menu: menuForDay, sppgName: sppgOptions.find(opt => opt.value === selectedSppg)?.label }];
-            }
-        } else if (menuReportType === 'mingguan') {
-            if (selectedSppg === 'all') {
-                data = Object.entries(allMenuData)
-                    .filter(([key]) => key !== 'all')
-                    .map(([sppgId, sppgMenu]) => ({
-                        sppgId,
-                        sppgName: sppgOptions.find(opt => opt.value === sppgId)?.label || sppgId,
-                        ...sppgMenu
-                    }));
-            } else {
-                const weeklyMenu = allMenuData[selectedSppg as SppgId];
-                if (weeklyMenu) data = [{ sppgName: sppgOptions.find(opt => opt.value === selectedSppg)?.label, ...weeklyMenu }];
-            }
-        }
-    } else if (selectedReport === 'keuangan') {
-        if (selectedSppg === 'all') {
-            data = sppgOptions
-                .filter(opt => opt.value !== 'all')
-                .map(opt => ({
-                    id: opt.value,
-                    nama: opt.label,
-                    ...(mockKeuanganData[opt.value] || { porsiBesar: 0, porsiKecil: 0 })
-                }));
-        } else {
-            const sppg = sppgOptions.find(opt => opt.value === selectedSppg);
-            if (sppg) {
-                data = [{
-                    id: sppg.value,
-                    nama: sppg.label,
-                    ...(mockKeuanganData[sppg.value] || { porsiBesar: 0, porsiKecil: 0 })
-                }];
-            }
-        }
-    }
+    // Data fetching logic will be implemented here
 
     if (data.length === 0) {
         setError("Tidak ada data untuk diunduh berdasarkan filter yang dipilih.");

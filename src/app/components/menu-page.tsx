@@ -47,8 +47,6 @@ import {
 import { Label } from '@/components/ui/label';
 import { CardDescription } from '@/components/ui/card';
 import Image from 'next/image';
-import { menuDataBySppg } from '../data/mock';
-
 
 type DayOfWeek = 'Senin' | 'Selasa' | 'Rabu' | 'Kamis' | 'Jumat';
 type Nutrient = { id: number; source: string; amount: string };
@@ -366,8 +364,33 @@ export default function MenuPage({ userRole, userSppgId }: MenuPageProps) {
     }
   }, [userRole, userSppgId]);
   
-  const currentWeeklyMenu = useMemo(() => {
-    return menuDataBySppg[selectedSppg] || menuDataBySppg['sppg-al-ikhlas'];
+  const currentWeeklyMenu: WeeklyMenu = useMemo(() => {
+    // This will be replaced with real data fetching
+    return {
+        weekStatus: { Senin: true, Selasa: false, Rabu: true, Kamis: true, Jumat: false },
+        menuData: {
+            Senin: {
+                menuName: 'Nasi Ayam Goreng Spesial (Al-Ikhlas)',
+                imageUrl: 'https://picsum.photos/seed/1/600/400',
+                largePortion: [{ id: 1, source: 'protein', amount: '150' }, { id: 2, source: 'karbohidrat', amount: '200' }],
+                smallPortion: [{ id: 1, source: 'protein', amount: '100' }, { id: 2, source: 'karbohidrat', amount: '150' }],
+            },
+            Rabu: {
+                menuName: 'Ikan Bakar &amp; Sayur Sop (Al-Ikhlas)',
+                imageUrl: 'https://picsum.photos/seed/2/600/400',
+                largePortion: [{ id: 1, source: 'protein', amount: '180' }, { id: 2, source: 'zat-besi', amount: '20' }],
+                smallPortion: [{ id: 1, source: 'protein', amount: '120' }, { id: 2, source: 'zat-besi', amount: '15' }],
+            },
+            Kamis: {
+                menuName: 'Daging Rendang &amp; Tumis Kangkung (Al-Ikhlas)',
+                imageUrl: 'https://picsum.photos/seed/3/600/400',
+                largePortion: [{ id: 1, source: 'protein', amount: '200' }, { id: 2, source: 'lemak', amount: '50' }],
+                smallPortion: [{ id: 1, source: 'protein', amount: '130' }, { id: 2, source: 'lemak', amount: '35' }],
+            },
+            Selasa: null,
+            Jumat: null
+        }
+    }
   }, [selectedSppg]);
 
   const selectedSppgLabel = useMemo(() => {
@@ -477,6 +500,8 @@ export default function MenuPage({ userRole, userSppgId }: MenuPageProps) {
       </Card>
     );
   };
+
+  const currentMenuDataForDialog = currentWeeklyMenu.menuData[selectedDay];
 
   return (
     <>
@@ -618,7 +643,7 @@ export default function MenuPage({ userRole, userSppgId }: MenuPageProps) {
         isOpen={isFormOpen} 
         onOpenChange={setIsFormOpen} 
         day={selectedDay}
-        menuData={menuDataBySppg[selectedSppg].menuData[selectedDay]}
+        menuData={currentMenuDataForDialog}
     />
     </>
   );

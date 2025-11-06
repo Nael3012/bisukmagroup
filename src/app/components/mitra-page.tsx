@@ -38,11 +38,28 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { ArrowUpDown, ChevronLeft, ChevronRight, Edit, Pencil } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import type { Sekolah, B3Data } from '../data/mock';
-import { semuaDaftarSekolah, semuaDaftarB3 } from '../data/mock';
 import { WilayahSelector } from './wilayah-selector';
 
+
+type Sekolah = {
+  id: string;
+  nama: string;
+  alamat: string;
+  jenjang: string;
+  jumlahPM: number;
+  sppgId: string;
+  wilayah: any;
+};
+
+type B3Data = {
+  id: string;
+  namaDesa: string;
+  alamat: string;
+  jenis: { bumil: number; busui: number; balita: number };
+  jumlah: number;
+  sppgId: string;
+  wilayah: any;
+};
 
 type Jenjang = 'PAUD' | 'TK' | 'SD' | 'SMP' | 'SMA' | '';
 type SortableKeysSekolah = keyof Omit<Sekolah, 'id' | 'sppgId'>;
@@ -233,7 +250,6 @@ export default function MitraPage({ userRole, userSppgId }: MitraPageProps) {
   const [sortConfigSekolah, setSortConfigSekolah] = useState<{ key: SortableKeysSekolah; direction: 'ascending' | 'descending' } | null>(null);
   const [itemsPerPageSekolah, setItemsPerPageSekolah] = useState(15);
   const [currentPageSekolah, setCurrentPageSekolah] = useState(1);
-  const [selectedJenjang, setSelectedJenjang] = useState<Jenjang>('');
   const [selectedSekolah, setSelectedSekolah] = useState<Sekolah | null>(null);
   const [isDetailSekolahOpen, setIsDetailSekolahOpen] = useState(false);
   const [isEditSekolahOpen, setIsEditSekolahOpen] = useState(false);
@@ -245,6 +261,10 @@ export default function MitraPage({ userRole, userSppgId }: MitraPageProps) {
   const [selectedB3, setSelectedB3] = useState<B3Data | null>(null);
   const [isDetailB3Open, setIsDetailB3Open] = useState(false);
   const [isEditB3Open, setIsEditB3Open] = useState(false);
+
+  // Data will come from props
+  const semuaDaftarSekolah: Sekolah[] = [];
+  const semuaDaftarB3: B3Data[] = [];
 
   useEffect(() => {
     if (userRole === 'SPPG' && userSppgId) {
@@ -278,12 +298,12 @@ export default function MitraPage({ userRole, userSppgId }: MitraPageProps) {
   const filteredSekolah = useMemo(() => {
     if (selectedSppg === 'all') return semuaDaftarSekolah;
     return semuaDaftarSekolah.filter((sekolah) => sekolah.sppgId === selectedSppg);
-  }, [selectedSppg]);
+  }, [selectedSppg, semuaDaftarSekolah]);
   
   const filteredB3 = useMemo(() => {
     if (selectedSppg === 'all') return semuaDaftarB3;
     return semuaDaftarB3.filter((b3) => b3.sppgId === selectedSppg);
-  }, [selectedSppg]);
+  }, [selectedSppg, semuaDaftarB3]);
 
   // Effects and handlers for Sekolah
   useEffect(() => {
