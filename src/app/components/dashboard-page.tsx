@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Users, Utensils, Building, Soup } from 'lucide-react';
 import { getSppgListWithDynamicPM, mockKeuanganData } from '../data/mock';
 
@@ -53,6 +53,11 @@ const dashboardData = calculateDashboardData();
 
 type SppgId = 'all' | 'sppg-al-ikhlas' | 'sppg-bina-umat' | 'sppg-nurul-hidayah';
 
+type DashboardPageProps = {
+    userRole: 'Admin Pusat' | 'SPPG';
+    userSppgId?: SppgId;
+}
+
 const StatCard = ({ title, value, icon: Icon, description }: { title: string; value: string | number; icon: React.ElementType; description: string }) => {
   return (
     <Card>
@@ -68,8 +73,17 @@ const StatCard = ({ title, value, icon: Icon, description }: { title: string; va
   );
 };
 
-export default function DashboardPage() {
-  const [selectedSppg, setSelectedSppg] = useState<SppgId>('all');
+export default function DashboardPage({ userRole, userSppgId }: DashboardPageProps) {
+  const [selectedSppg, setSelectedSppg] = useState<SppgId>(userRole === 'Admin Pusat' ? 'all' : userSppgId || 'all');
+  
+  useEffect(() => {
+    if (userRole === 'SPPG' && userSppgId) {
+        setSelectedSppg(userSppgId);
+    } else if (userRole === 'Admin Pusat') {
+        setSelectedSppg('all');
+    }
+  }, [userRole, userSppgId]);
+
 
   const currentData = useMemo(() => {
     return dashboardData[selectedSppg] || dashboardData.all;
@@ -81,23 +95,25 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div className="w-full max-w-xs">
-        <Select onValueChange={(value) => setSelectedSppg(value as SppgId)} value={selectedSppg}>
-          <SelectTrigger>
-            <SelectValue placeholder="Pilih SPPG">{selectedSppgLabel}</SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            {sppgOptions.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                <div>
-                  <p className="font-medium">{option.label}</p>
-                  {option.address && <p className="text-xs text-muted-foreground">{option.address}</p>}
-                </div>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      {userRole === 'Admin Pusat' && (
+        <div className="w-full max-w-xs">
+            <Select onValueChange={(value) => setSelectedSppg(value as SppgId)} value={selectedSppg}>
+            <SelectTrigger>
+                <SelectValue placeholder="Pilih SPPG">{selectedSppgLabel}</SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+                {sppgOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                    <div>
+                    <p className="font-medium">{option.label}</p>
+                    {option.address && <p className="text-xs text-muted-foreground">{option.address}</p>}
+                    </div>
+                </SelectItem>
+                ))}
+            </SelectContent>
+            </Select>
+        </div>
+      )}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Jumlah SPPG"

@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import {
   Select,
@@ -41,7 +41,13 @@ const reportTypeOptions = [
 
 type ReportType = 'mitra' | 'menu' | 'keuangan' | '';
 type MenuReportType = 'harian' | 'mingguan';
-type SppgId = 'all' | 'sppg-al-ikhlas' | 'sppg-bina-umat' | 'sppg-nurul-hidayah';
+type SppgId = 'sppg-al-ikhlas' | 'sppg-bina-umat' | 'sppg-nurul-hidayah';
+
+type ReportsPageProps = {
+    userRole: 'Admin Pusat' | 'SPPG';
+    userSppgId?: SppgId;
+}
+
 
 const ReportPreviewDialog = ({
   isOpen,
@@ -238,14 +244,20 @@ const ReportPreviewDialog = ({
   )
 }
 
-export default function ReportsPage() {
-  const [selectedSppg, setSelectedSppg] = useState<SppgId>('all');
+export default function ReportsPage({ userRole, userSppgId }: ReportsPageProps) {
+  const [selectedSppg, setSelectedSppg] = useState<SppgId | 'all'>(userRole === 'Admin Pusat' ? 'all' : userSppgId || 'all');
   const [selectedReport, setSelectedReport] = useState<ReportType>('');
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [menuReportType, setMenuReportType] = useState<MenuReportType>('harian');
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [previewData, setPreviewData] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (userRole === 'SPPG' && userSppgId) {
+        setSelectedSppg(userSppgId);
+    }
+  }, [userRole, userSppgId]);
 
   const showDatePicker = (selectedReport === 'menu' && menuReportType === 'harian') || selectedReport === 'keuangan';
 
@@ -282,7 +294,7 @@ export default function ReportsPage() {
                     .filter(Boolean); // Filter out null/undefined
                  data = allSppgMenuForDay as any[];
             } else {
-                const menuForDay = allMenuData[selectedSppg]?.menuData[dayName as keyof typeof allMenuData[SppgId]['menuData']];
+                const menuForDay = allMenuData[selectedSppg as SppgId]?.menuData[dayName as keyof typeof allMenuData[SppgId]['menuData']];
                 if (menuForDay) {
                     data = [menuForDay];
                 }
@@ -292,7 +304,7 @@ export default function ReportsPage() {
              if(selectedSppg === 'all') {
                 data = Object.values(allMenuData).filter(menu => menu.weekStatus.Senin || menu.weekStatus.Selasa || menu.weekStatus.Rabu || menu.weekStatus.Kamis || menu.weekStatus.Jumat);
              } else {
-                const weeklyMenu = allMenuData[selectedSppg];
+                const weeklyMenu = allMenuData[selectedSppg as SppgId];
                 if (weeklyMenu) {
                     data = [weeklyMenu];
                 }
@@ -362,7 +374,7 @@ export default function ReportsPage() {
                     }))
                     .filter(item => item.menu);
             } else {
-                const menuForDay = allMenuData[selectedSppg]?.menuData[dayName as keyof typeof allMenuData[SppgId]['menuData']];
+                const menuForDay = allMenuData[selectedSppg as SppgId]?.menuData[dayName as keyof typeof allMenuData[SppgId]['menuData']];
                 if (menuForDay) data = [{ menu: menuForDay, sppgName: sppgOptions.find(opt => opt.value === selectedSppg)?.label }];
             }
         } else if (menuReportType === 'mingguan') {
@@ -375,7 +387,7 @@ export default function ReportsPage() {
                         ...sppgMenu
                     }));
             } else {
-                const weeklyMenu = allMenuData[selectedSppg];
+                const weeklyMenu = allMenuData[selectedSppg as SppgId];
                 if (weeklyMenu) data = [{ sppgName: sppgOptions.find(opt => opt.value === selectedSppg)?.label, ...weeklyMenu }];
             }
         }
@@ -494,24 +506,26 @@ export default function ReportsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="grid gap-2">
-              <Label htmlFor="sppg-select">Pilih SPPG</Label>
-              <Select onValueChange={(v) => setSelectedSppg(v as SppgId)} value={selectedSppg}>
-                <SelectTrigger id="sppg-select">
-                  <SelectValue placeholder="Pilih SPPG" />
-                </SelectTrigger>
-                <SelectContent>
-                  {sppgOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      <div>
-                        <p className="font-medium">{option.label}</p>
-                        {option.address && <p className="text-xs text-muted-foreground">{option.address}</p>}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {userRole === 'Admin Pusat' && (
+                <div className="grid gap-2">
+                <Label htmlFor="sppg-select">Pilih SPPG</Label>
+                <Select onValueChange={(v) => setSelectedSppg(v as SppgId | 'all')} value={selectedSppg}>
+                    <SelectTrigger id="sppg-select">
+                    <SelectValue placeholder="Pilih SPPG" />
+                    </SelectTrigger>
+                    <SelectContent>
+                    {sppgOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                        <div>
+                            <p className="font-medium">{option.label}</p>
+                            {option.address && <p className="text-xs text-muted-foreground">{option.address}</p>}
+                        </div>
+                        </SelectItem>
+                    ))}
+                    </SelectContent>
+                </Select>
+                </div>
+            )}
             <div className="grid gap-2">
               <Label htmlFor="report-select">Pilih Laporan</Label>
               <Select onValueChange={(value) => setSelectedReport(value as ReportType)} value={selectedReport}>
@@ -607,5 +621,3 @@ export default function ReportsPage() {
     </>
   );
 }
-
-    

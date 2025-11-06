@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   Select,
   SelectContent,
@@ -25,30 +25,38 @@ import { menuDataBySppg } from '../data/mock';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const sppgOptions = [
-  { value: 'all', label: 'Semua SPPG' },
   { value: 'sppg-al-ikhlas', label: 'SPPG Al-Ikhlas', address: 'Jl. Merdeka No. 1, Jakarta' },
   { value: 'sppg-bina-umat', label: 'SPPG Bina Umat', address: 'Jl. Pahlawan No. 10, Surabaya' },
   { value: 'sppg-nurul-hidayah', label: 'SPPG Nurul Hidayah', address: 'Jl. Sudirman No. 5, Bandung' },
 ];
 
-type SppgId = 'all' | 'sppg-al-ikhlas' | 'sppg-bina-umat' | 'sppg-nurul-hidayah';
+type SppgId = 'sppg-al-ikhlas' | 'sppg-bina-umat' | 'sppg-nurul-hidayah';
 
 type KeuanganPageProps = {
     userRole: 'Admin Pusat' | 'SPPG';
+    userSppgId?: SppgId;
 }
 
-export default function KeuanganPage({ userRole }: KeuanganPageProps) {
-  const [selectedSppg, setSelectedSppg] = useState<SppgId>('sppg-al-ikhlas');
+export default function KeuanganPage({ userRole, userSppgId }: KeuanganPageProps) {
+  const defaultSppg = userRole === 'SPPG' && userSppgId ? userSppgId : 'sppg-al-ikhlas';
+  const [selectedSppg, setSelectedSppg] = useState<SppgId>(defaultSppg);
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [showPorsiInput, setShowPorsiInput] = useState(false);
   const [isAdminMode, setIsAdminMode] = useState(false);
+  
+  useEffect(() => {
+    if (userRole === 'SPPG' && userSppgId) {
+        setSelectedSppg(userSppgId);
+    }
+  }, [userRole, userSppgId]);
+
 
   const handleBuatLaporanClick = () => {
     setShowPorsiInput(true);
   }
 
   const missingMenuDays = useMemo(() => {
-    if (selectedSppg === 'all' || !menuDataBySppg[selectedSppg]) {
+    if (!selectedSppg || !menuDataBySppg[selectedSppg]) {
         return [];
     }
 
@@ -98,24 +106,26 @@ export default function KeuanganPage({ userRole }: KeuanganPageProps) {
 
       <div className="space-y-6">
         <div className="flex flex-col md:flex-row gap-4">
-          <div className="grid gap-2 flex-1">
-            <Label htmlFor="sppg-select">Pilih SPPG</Label>
-            <Select onValueChange={(v) => setSelectedSppg(v as SppgId)} value={selectedSppg}>
-              <SelectTrigger id="sppg-select">
-                <SelectValue placeholder="Pilih SPPG" />
-              </SelectTrigger>
-              <SelectContent>
-                {sppgOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value} disabled={option.value === 'all'}>
-                    <div>
-                      <p className="font-medium">{option.label}</p>
-                      {option.address && <p className="text-xs text-muted-foreground">{option.address}</p>}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+            {userRole === 'Admin Pusat' && (
+                <div className="grid gap-2 flex-1">
+                    <Label htmlFor="sppg-select">Pilih SPPG</Label>
+                    <Select onValueChange={(v) => setSelectedSppg(v as SppgId)} value={selectedSppg}>
+                    <SelectTrigger id="sppg-select">
+                        <SelectValue placeholder="Pilih SPPG" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {sppgOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value} disabled={option.value === 'all'}>
+                            <div>
+                            <p className="font-medium">{option.label}</p>
+                            {option.address && <p className="text-xs text-muted-foreground">{option.address}</p>}
+                            </div>
+                        </SelectItem>
+                        ))}
+                    </SelectContent>
+                    </Select>
+                </div>
+            )}
           <div className="grid gap-2 flex-1">
             <Label>Pilih Tanggal</Label>
             <Popover>
@@ -201,7 +211,7 @@ export default function KeuanganPage({ userRole }: KeuanganPageProps) {
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {sppgOptions.filter(opt => opt.value !== 'all').map(sppg => (
+                    {sppgOptions.map(sppg => (
                         <TableRow key={sppg.value}>
                             <TableCell className="font-medium">{sppg.label}</TableCell>
                             <TableCell>
@@ -236,9 +246,7 @@ export default function KeuanganPage({ userRole }: KeuanganPageProps) {
                 />
             </div>
         )}
-        {isAdminMode ? renderAdminMode() : renderRegularMode()}
+        {isAdminMode && userRole === 'Admin Pusat' ? renderAdminMode() : renderRegularMode()}
     </div>
   );
 }
-
-    

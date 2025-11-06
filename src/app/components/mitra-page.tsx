@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -27,7 +28,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
@@ -46,6 +46,12 @@ import { WilayahSelector } from './wilayah-selector';
 type Jenjang = 'PAUD' | 'TK' | 'SD' | 'SMP' | 'SMA' | '';
 type SortableKeysSekolah = keyof Omit<Sekolah, 'id' | 'sppgId'>;
 type SortableKeysB3 = keyof Omit<B3Data, 'id' | 'jenis' | 'sppgId'>;
+type SppgId = 'all' | 'sppg-al-ikhlas' | 'sppg-bina-umat' | 'sppg-nurul-hidayah';
+
+type MitraPageProps = {
+    userRole: 'Admin Pusat' | 'SPPG';
+    userSppgId?: SppgId;
+}
 
 const sppgOptions = [
   {
@@ -214,13 +220,13 @@ const B3Form = ({ b3 }: { b3?: B3Data | null }) => {
     );
 }
 
-export default function MitraPage() {
+export default function MitraPage({ userRole, userSppgId }: MitraPageProps) {
   const [activeTab, setActiveTab] = useState('sekolah');
   const [indicatorStyle, setIndicatorStyle] = useState({});
   const tabsRef = useRef<(HTMLButtonElement | null)[]>([]);
 
   // State for SPPG selection
-  const [selectedSppg, setSelectedSppg] = useState('all');
+  const [selectedSppg, setSelectedSppg] = useState<SppgId | 'all'>(userRole === 'Admin Pusat' ? 'all' : userSppgId || 'all');
   
   // State for Sekolah tab
   const [sortConfigSekolah, setSortConfigSekolah] = useState<{ key: SortableKeysSekolah; direction: 'ascending' | 'descending' } | null>(null);
@@ -239,6 +245,12 @@ export default function MitraPage() {
   const [isDetailB3Open, setIsDetailB3Open] = useState(false);
   const [isEditB3Open, setIsEditB3Open] = useState(false);
 
+  useEffect(() => {
+    if (userRole === 'SPPG' && userSppgId) {
+        setSelectedSppg(userSppgId);
+    }
+  }, [userRole, userSppgId]);
+
 
   const selectedSppgLabel = useMemo(() => {
     if (selectedSppg === 'all') return 'Semua SPPG';
@@ -256,7 +268,7 @@ export default function MitraPage() {
   }, [activeTab]);
 
   const handleSppgChange = (value: string) => {
-    setSelectedSppg(value);
+    setSelectedSppg(value as SppgId | 'all');
     setCurrentPageSekolah(1);
     setCurrentPageB3(1);
   };
@@ -394,28 +406,30 @@ export default function MitraPage() {
         <CardTitle>Mitra</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="w-full max-w-xs">
-          <Select onValueChange={handleSppgChange} value={selectedSppg}>
-              <SelectTrigger>
-                  <SelectValue placeholder="Pilih SPPG">{selectedSppgLabel}</SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                  <SelectItem value="all">
-                      <div>
-                          <p className="font-medium">Semua SPPG</p>
-                      </div>
-                  </SelectItem>
-                  {sppgOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                      <div>
-                          <p className="font-medium">{option.label}</p>
-                          <p className="text-xs text-muted-foreground">{option.address}</p>
-                      </div>
-                  </SelectItem>
-                  ))}
-              </SelectContent>
-          </Select>
-        </div>
+        {userRole === 'Admin Pusat' && (
+            <div className="w-full max-w-xs">
+            <Select onValueChange={handleSppgChange} value={selectedSppg}>
+                <SelectTrigger>
+                    <SelectValue placeholder="Pilih SPPG">{selectedSppgLabel}</SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">
+                        <div>
+                            <p className="font-medium">Semua SPPG</p>
+                        </div>
+                    </SelectItem>
+                    {sppgOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                        <div>
+                            <p className="font-medium">{option.label}</p>
+                            <p className="text-xs text-muted-foreground">{option.address}</p>
+                        </div>
+                    </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+            </div>
+        )}
 
         <Tabs defaultValue="sekolah" onValueChange={setActiveTab} className="relative">
           <TabsList>
@@ -750,9 +764,3 @@ export default function MitraPage() {
     </>
   );
 }
-
-    
-
-    
-
-    

@@ -58,7 +58,12 @@ type MenuData = {
   largePortion: Nutrient[];
   smallPortion: Nutrient[];
 };
-type SppgId = 'all' | 'sppg-al-ikhlas' | 'sppg-bina-umat' | 'sppg-nurul-hidayah';
+type SppgId = 'sppg-al-ikhlas' | 'sppg-bina-umat' | 'sppg-nurul-hidayah';
+
+type MenuPageProps = {
+    userRole: 'Admin Pusat' | 'SPPG';
+    userSppgId?: SppgId;
+}
 
 type WeeklyMenu = {
     weekStatus: Record<DayOfWeek, boolean>;
@@ -344,21 +349,28 @@ const MenuFormDialog = ({
 }
 
 
-export default function MenuPage() {
+export default function MenuPage({ userRole, userSppgId }: MenuPageProps) {
   const [activeTab, setActiveTab] = useState('harian');
   const [indicatorStyle, setIndicatorStyle] = useState({});
   const tabsRef = useRef<(HTMLButtonElement | null)[]>([]);
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [selectedDay, setSelectedDay] = useState<DayOfWeek>('Senin');
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [selectedSppg, setSelectedSppg] = useState<SppgId>('all');
+  
+  const defaultSppg = userRole === 'SPPG' && userSppgId ? userSppgId : 'sppg-al-ikhlas';
+  const [selectedSppg, setSelectedSppg] = useState<SppgId>(defaultSppg);
+
+  useEffect(() => {
+    if (userRole === 'SPPG' && userSppgId) {
+        setSelectedSppg(userSppgId);
+    }
+  }, [userRole, userSppgId]);
   
   const currentWeeklyMenu = useMemo(() => {
-    return menuDataBySppg[selectedSppg];
+    return menuDataBySppg[selectedSppg] || menuDataBySppg['sppg-al-ikhlas'];
   }, [selectedSppg]);
 
   const selectedSppgLabel = useMemo(() => {
-    if (selectedSppg === 'all') return 'Semua SPPG';
     return sppgOptions.find(option => option.value === selectedSppg)?.label || 'Pilih SPPG';
   }, [selectedSppg]);
 
@@ -403,16 +415,6 @@ export default function MenuPage() {
   };
   
   const renderDailyMenuContent = () => {
-    if (selectedSppg === 'all') {
-        return (
-            <Card className="mt-4">
-                <CardContent className="text-center text-muted-foreground py-8">
-                    <p>Pilih SPPG untuk melihat atau mengelola menu.</p>
-                </CardContent>
-            </Card>
-        )
-    }
-
     const isFilled = currentWeeklyMenu.weekStatus[selectedDay];
     const currentMenuData = currentWeeklyMenu.menuData[selectedDay];
 
@@ -483,30 +485,27 @@ export default function MenuPage() {
         <CardTitle>Menu</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="w-full max-w-xs">
-          <Select onValueChange={(value) => setSelectedSppg(value as SppgId)} value={selectedSppg}>
-              <SelectTrigger>
-                  <SelectValue placeholder="Pilih SPPG">
-                    {selectedSppgLabel}
-                  </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                  <SelectItem value="all">
-                      <div>
-                          <p className="font-medium">Semua SPPG</p>
-                      </div>
-                  </SelectItem>
-                  {sppgOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                      <div>
-                          <p className="font-medium">{option.label}</p>
-                          <p className="text-xs text-muted-foreground">{option.address}</p>
-                      </div>
-                  </SelectItem>
-                  ))}
-              </SelectContent>
-          </Select>
-        </div>
+        {userRole === 'Admin Pusat' && (
+            <div className="w-full max-w-xs">
+            <Select onValueChange={(value) => setSelectedSppg(value as SppgId)} value={selectedSppg}>
+                <SelectTrigger>
+                    <SelectValue placeholder="Pilih SPPG">
+                        {selectedSppgLabel}
+                    </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                    {sppgOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                        <div>
+                            <p className="font-medium">{option.label}</p>
+                            <p className="text-xs text-muted-foreground">{option.address}</p>
+                        </div>
+                    </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+            </div>
+        )}
         
         <Tabs defaultValue="harian" onValueChange={setActiveTab} className="relative">
           <TabsList ref={el => {
@@ -619,10 +618,8 @@ export default function MenuPage() {
         isOpen={isFormOpen} 
         onOpenChange={setIsFormOpen} 
         day={selectedDay}
-        menuData={selectedSppg !== 'all' ? menuDataBySppg[selectedSppg].menuData[selectedDay] : null}
+        menuData={menuDataBySppg[selectedSppg].menuData[selectedDay]}
     />
     </>
   );
 }
-
-    
