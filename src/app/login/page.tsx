@@ -139,7 +139,7 @@ export default function LoginPage() {
             </Button>
         </div>
       </div>
-      <div className="hidden bg-gradient-to-br from-blue-500 to-purple-600 lg:flex flex-col items-center justify-center p-8 gap-6 text-center text-white animate-gradient bg-[length:200%_200%]">
+      <div className="hidden bg-gradient-to-br from-blue-500 to-purple-600 lg:flex flex-col items-center justify-center p-8 gap-6 text-center text-white animate-gradient bg-[length:200%_200%] bg-batik">
         <div>
             <h1 className="text-7xl font-bold tracking-tighter">
                 BETA
