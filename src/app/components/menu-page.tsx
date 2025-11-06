@@ -102,7 +102,31 @@ const dayIndexToName: Record<number, DayOfWeek | undefined> = {
   5: 'Jumat',
 };
 
-const giziOptions = ['Protein', 'Energi', 'Karbohidrat', 'Lemak', 'Vitamin A', 'Zat Besi'];
+const giziOptions = [
+    'Energi',
+    'Protein',
+    'Karbohidrat Total',
+    'Lemak Total',
+    'Serat',
+    'Air',
+    'Kalsium (Ca)',
+    'Fosfor (P)',
+    'Besi (Fe)',
+    'Natrium (Na)',
+    'Kalium (K)',
+    'Zink (Zn)',
+    'Iodium (I)',
+    'Vitamin A',
+    'Vitamin D',
+    'Vitamin E',
+    'Vitamin K',
+    'Vitamin C',
+    'Tiamin (B1)',
+    'Riboflavin (B2)',
+    'Niasin (B3)',
+    'Folat',
+    'Kobalamin (B12)',
+];
 
 const NutrientInputRow = ({
   nutrient,
@@ -127,7 +151,7 @@ const NutrientInputRow = ({
         </SelectTrigger>
         <SelectContent>
           {giziOptions.map((option) => (
-            <SelectItem key={option} value={option.toLowerCase().replace(' ', '-')}>
+            <SelectItem key={option} value={option.toLowerCase().replace(/[\s()]/g, '-')}>
               {option}
             </SelectItem>
           ))}
@@ -511,7 +535,7 @@ export default function MenuPage({ userRole, userSppgId, sppgList }: MenuPagePro
   return (
     <>
     <Card>
-      <CardHeader className="flex-row items-center justify-between">
+      <CardHeader className="flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
         <CardTitle>Menu</CardTitle>
         <TabelAkgHarian />
       </CardHeader>
@@ -660,3 +684,5 @@ export default function MenuPage({ userRole, userSppgId, sppgList }: MenuPagePro
     </>
   );
 }
+
+    
