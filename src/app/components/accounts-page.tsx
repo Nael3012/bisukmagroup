@@ -34,6 +34,9 @@ import { DialogDescription } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import type { User } from '@supabase/supabase-js';
+import { Switch } from '@/components/ui/switch';
+import { getPendingUsers } from '@/app/actions/accounts';
+
 
 type Account = {
   id: string;
@@ -61,6 +64,9 @@ const AccountForm = ({ account }: { account?: Account | null }) => {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [passwordError, setPasswordError] = useState('');
+    const [usePendingAccount, setUsePendingAccount] = useState(false);
+    const [pendingUsers, setPendingUsers] = useState<User[]>([]);
+    const [selectedPendingUser, setSelectedPendingUser] = useState('');
 
     useEffect(() => {
         if(account?.role) {
@@ -75,6 +81,20 @@ const AccountForm = ({ account }: { account?: Account | null }) => {
             setPasswordError('');
         }
     }, [password, confirmPassword]);
+
+    useEffect(() => {
+        async function fetchPendingUsers() {
+          try {
+            const users = await getPendingUsers();
+            setPendingUsers(users || []);
+          } catch (error) {
+            console.error("Gagal mengambil data pengguna pending:", error);
+          }
+        }
+        if (usePendingAccount) {
+          fetchPendingUsers();
+        }
+      }, [usePendingAccount]);
     
     return (
         <div className="flex flex-col md:flex-row gap-8 py-4">
@@ -87,10 +107,45 @@ const AccountForm = ({ account }: { account?: Account | null }) => {
                     <Input id="name" placeholder="Contoh: Budi Santoso" defaultValue={account?.name} />
                 </div>
 
-                <div className="grid gap-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input id="email" type="email" placeholder="contoh@email.com" defaultValue={account?.email} disabled={!!account} />
-                </div>
+                {!account && (
+                    <div className="flex items-center space-x-2 pt-2">
+                        <Switch
+                        id="use-pending-switch"
+                        checked={usePendingAccount}
+                        onCheckedChange={setUsePendingAccount}
+                        />
+                        <Label htmlFor="use-pending-switch">Pilih dari Akun Pending</Label>
+                    </div>
+                )}
+
+
+                {usePendingAccount && !account ? (
+                     <div className="grid gap-2">
+                        <Label htmlFor="pending-email">Email Akun Pending</Label>
+                        <Select value={selectedPendingUser} onValueChange={setSelectedPendingUser}>
+                            <SelectTrigger id="pending-email">
+                                <SelectValue placeholder="Pilih email dari akun pending" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {pendingUsers.length > 0 ? (
+                                    pendingUsers.map(user => (
+                                        <SelectItem key={user.id} value={user.email || ''}>
+                                            {user.email}
+                                        </SelectItem>
+                                    ))
+                                ) : (
+                                    <div className="p-4 text-sm text-muted-foreground">Tidak ada akun pending.</div>
+                                )}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                ) : (
+                    <div className="grid gap-2">
+                        <Label htmlFor="email">Email</Label>
+                        <Input id="email" type="email" placeholder="contoh@email.com" defaultValue={account?.email} disabled={!!account} />
+                    </div>
+                )}
+
 
                  <div className="grid gap-2">
                     <Label htmlFor="phone">Nomor Telepon</Label>
