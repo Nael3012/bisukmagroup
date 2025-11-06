@@ -114,97 +114,96 @@ export default function KeuanganPage({ userRole, userSppgId, sppgList }: Keuanga
 
 
   const renderRegularMode = () => (
-    <>
-      <div className="space-y-2">
-        <h2 className="text-2xl font-bold">Laporan Keuangan</h2>
-        <p className="text-muted-foreground">
-          Pilih SPPG dan tanggal untuk membuat laporan keuangan harian.
-        </p>
-      </div>
-
-       {missingMenuDays.length > 0 && (
-         <Alert variant="destructive">
-            <Info className="h-4 w-4" />
-            <AlertTitle>Data Menu Belum Lengkap</AlertTitle>
-            <AlertDescription>
-                Terdapat data menu yang belum diinput untuk SPPG ini pada minggu ini. Harap lengkapi data untuk hari berikut:
-                <ul className="list-disc pl-5 mt-2">
-                    {missingMenuDays.map(item => (
-                        <li key={item.day}>
-                           <span className="font-semibold">{item.day}</span>, {item.date}
-                        </li>
-                    ))}
-                </ul>
-            </AlertDescription>
-        </Alert>
-       )}
-
-      <div className="space-y-6">
-        <div className="flex flex-col md:flex-row gap-4 items-end">
-            {userRole === 'Admin Pusat' && (
-                <div className="grid gap-2 w-full md:flex-1">
-                    <Label htmlFor="sppg-select">Pilih SPPG</Label>
-                    <div className="flex items-center gap-2">
-                        <Select onValueChange={(v) => setSelectedSppg(v as SppgId)} value={selectedSppg}>
-                        <SelectTrigger id="sppg-select">
-                            <SelectValue placeholder="Pilih SPPG" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {sppgList.map((option) => (
-                            <SelectItem key={option.id} value={option.id}>
-                                <div>
-                                <p className="font-medium">{option.nama}</p>
-                                {option.alamat && <p className="text-xs text-muted-foreground">{option.alamat}</p>}
-                                </div>
-                            </SelectItem>
+    <div className='space-y-6'>
+      <Card>
+          <CardHeader>
+              <CardTitle>Laporan Keuangan</CardTitle>
+              <CardDescription>Pilih SPPG dan tanggal untuk membuat laporan keuangan harian.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+             {missingMenuDays.length > 0 && (
+                <Alert variant="destructive">
+                    <Info className="h-4 w-4" />
+                    <AlertTitle>Data Menu Belum Lengkap</AlertTitle>
+                    <AlertDescription>
+                        Terdapat data menu yang belum diinput untuk SPPG ini pada minggu ini. Harap lengkapi data untuk hari berikut:
+                        <ul className="list-disc pl-5 mt-2">
+                            {missingMenuDays.map(item => (
+                                <li key={item.day}>
+                                <span className="font-semibold">{item.day}</span>, {item.date}
+                                </li>
                             ))}
-                        </SelectContent>
-                        </Select>
-                        <Button variant="outline" size="icon" onClick={handleDownloadLogo} disabled={!selectedSppgDetails?.yayasan}>
-                            <Download className="h-4 w-4" />
-                            <span className="sr-only">Download Logo</span>
-                        </Button>
-                    </div>
-                </div>
+                        </ul>
+                    </AlertDescription>
+                </Alert>
             )}
-          <div className="grid gap-2 w-full md:flex-1">
-            <Label>Pilih Tanggal</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  id="date"
-                  variant={"outline"}
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !date && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {date ? format(date, "d LLL y", { locale: id }) : <span>Pilih tanggal</span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  initialFocus
-                  mode="single"
-                  selected={date}
-                  onSelect={setDate}
-                  locale={id}
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-        </div>
-      </div>
-      <div className="flex justify-end">
-        <Button onClick={handleBuatLaporanClick} className="w-full sm:w-auto">
-          <FilePlus className="mr-2 h-4 w-4" />
-          Buat Laporan Keuangan Hari Ini
-        </Button>
-      </div>
+
+            <div className="flex flex-col md:flex-row gap-4 items-end">
+                {userRole === 'Admin Pusat' && (
+                    <div className="grid gap-2 w-full md:flex-1">
+                        <Label htmlFor="sppg-select">Pilih SPPG</Label>
+                        <div className="flex items-center gap-2">
+                            <Select onValueChange={(v) => setSelectedSppg(v as SppgId)} value={selectedSppg}>
+                            <SelectTrigger id="sppg-select">
+                                <SelectValue placeholder="Pilih SPPG" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {sppgList.map((option) => (
+                                <SelectItem key={option.id} value={option.id}>
+                                    <div>
+                                    <p className="font-medium">{option.nama}</p>
+                                    {option.alamat && <p className="text-xs text-muted-foreground">{option.alamat}</p>}
+                                    </div>
+                                </SelectItem>
+                                ))}
+                            </SelectContent>
+                            </Select>
+                            <Button variant="outline" size="icon" onClick={handleDownloadLogo} disabled={!selectedSppgDetails?.yayasan}>
+                                <Download className="h-4 w-4" />
+                                <span className="sr-only">Download Logo</span>
+                            </Button>
+                        </div>
+                    </div>
+                )}
+            <div className="grid gap-2 w-full md:flex-1">
+                <Label>Pilih Tanggal</Label>
+                <Popover>
+                <PopoverTrigger asChild>
+                    <Button
+                    id="date"
+                    variant={"outline"}
+                    className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !date && "text-muted-foreground"
+                    )}
+                    >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {date ? format(date, "d LLL y", { locale: id }) : <span>Pilih tanggal</span>}
+                    </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                    initialFocus
+                    mode="single"
+                    selected={date}
+                    onSelect={setDate}
+                    locale={id}
+                    />
+                </PopoverContent>
+                </Popover>
+            </div>
+            </div>
+          </CardContent>
+          <CardFooter className="justify-end">
+             <Button onClick={handleBuatLaporanClick} className="w-full sm:w-auto">
+                <FilePlus className="mr-2 h-4 w-4" />
+                Buat Laporan Keuangan Hari Ini
+             </Button>
+          </CardFooter>
+      </Card>
       
       {showPorsiInput && (
-          <Card className="mt-6">
+          <Card>
               <CardHeader>
                   <CardTitle>Input Porsi Hari Ini</CardTitle>
                   <CardDescription>
@@ -231,7 +230,7 @@ export default function KeuanganPage({ userRole, userSppgId, sppgList }: Keuanga
               </CardFooter>
           </Card>
       )}
-    </>
+    </div>
   );
 
   const renderAdminMode = () => (
