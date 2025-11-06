@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -155,7 +156,6 @@ const SppgForm = ({ sppg }: { sppg?: SppgData | null }) => {
                             layout="fill"
                             objectFit="contain"
                             className="p-2"
-                            unoptimized // Required for local static images if loader is not configured
                           />
                      ) : (
                         <>
@@ -366,3 +366,4 @@ export default function SppgPage({ sppgList }: SppgPageProps) {
     </>
   );
 }
+
