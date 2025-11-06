@@ -36,6 +36,10 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import { WilayahSelector } from './wilayah-selector';
 import Image from 'next/image';
 import { createClient } from '@/utils/supabase/client';
+import { useFormState, useFormStatus } from 'react-dom';
+import { saveSppg, type SppgFormState } from '@/app/actions/sppg';
+import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
 
 
 type SppgData = {
@@ -74,16 +78,55 @@ const yayasanLogos: Record<string, string> = {
     "Yayasan Bisukma Generasi Emas Indonesia": "https://oilvtefzzupggnstgpsa.supabase.co/storage/v1/object/public/logos/1762413958140_Bisukma%20Generasi%20Emas%20Indonesia.png"
 };
 
-const SppgForm = ({ sppg, onSave }: { sppg?: SppgData | null, onSave: () => void }) => {
+const SubmitButton = () => {
+    const { pending } = useFormStatus();
+    return (
+        <Button type="submit" disabled={pending}>
+            {pending ? 'Menyimpan...' : 'Simpan Perubahan'}
+        </Button>
+    );
+};
+
+
+const SppgForm = ({ sppg, onSaveSuccess }: { sppg?: SppgData | null, onSaveSuccess: () => void }) => {
     const supabase = createClient();
+    const router = useRouter();
+    const { toast } = useToast();
+    const formRef = useRef<HTMLFormElement>(null);
+    
     const [selectedYayasan, setSelectedYayasan] = useState(sppg?.yayasan || '');
     const [logoUrl, setLogoUrl] = useState<string | null>(sppg?.logo_url || null);
-    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [wilayah, setWilayah] = useState(sppg?.wilayah || {});
+    
+    const initialState: SppgFormState = { message: '', errors: {} };
+    const [state, dispatch] = useFormState(saveSppg, initialState);
 
     useEffect(() => {
         setSelectedYayasan(sppg?.yayasan || '');
         setLogoUrl(sppg?.logo_url || null);
+        setWilayah(sppg?.wilayah || {});
     }, [sppg]);
+    
+    useEffect(() => {
+        if (state.message) {
+            if (state.errors) {
+                toast({
+                    variant: "destructive",
+                    title: "Gagal Menyimpan",
+                    description: state.message,
+                });
+            } else {
+                toast({
+                    title: "Sukses!",
+                    description: state.message,
+                });
+                onSaveSuccess();
+                router.refresh();
+                formRef.current?.reset();
+            }
+        }
+    }, [state, toast, onSaveSuccess, router]);
+
 
     const handleYayasanChange = (yayasan: string) => {
         setSelectedYayasan(yayasan);
@@ -101,113 +144,121 @@ const SppgForm = ({ sppg, onSave }: { sppg?: SppgData | null, onSave: () => void
 
         if (error) {
             console.error('Error uploading file:', error);
-            // Handle error (e.g., show a toast notification)
+            toast({
+                variant: 'destructive',
+                title: 'Gagal Unggah Logo',
+                description: error.message
+            });
         } else {
             const { data: { publicUrl } } = supabase.storage.from('logos').getPublicUrl(fileName);
             setLogoUrl(publicUrl);
-            console.log('File uploaded successfully:', publicUrl);
+            toast({
+                title: 'Logo Berhasil Diunggah',
+                description: 'URL logo telah diperbarui.'
+            });
         }
     };
     
-    const handleSave = async () => {
-        // Logika untuk menyimpan data sppg ke database (termasuk logoUrl)
-        // ...
-        // Misalnya:
-        // const { error } = await supabase.from('sppg').update({ logo_url: logoUrl }).eq('id', sppg.id);
-        
-        console.log("URL to save:", logoUrl);
-        onSave(); // Panggil onSave untuk menutup dialog
-    }
 
     return (
-        <>
-        <div className="flex flex-col md:flex-row gap-8 py-4">
-            {/* Left Segment */}
-            <div className="flex-1 space-y-4">
-                <h3 className="text-lg font-semibold text-muted-foreground">
-                Data Umum
-                </h3>
-                <Alert>
-                <Info className="h-4 w-4" />
-                <AlertDescription>
-                    Pastikan data umum yang Anda masukkan di sini sudah sesuai dengan informasi yang terdaftar pada akun Mitra BGN Anda untuk memastikan sinkronisasi dan validasi data yang lancar.
-                </AlertDescription>
-                </Alert>
-                <div className="grid gap-2">
-                <Label htmlFor="nama-sppg">Nama SPPG</Label>
-                <Input id="nama-sppg" placeholder="Contoh: SPPG Sejahtera" defaultValue={sppg?.nama} />
-                </div>
-                <div className="grid gap-2">
-                  <Label>Wilayah</Label>
-                  <WilayahSelector onWilayahChange={() => {}} initialData={sppg?.wilayah} />
-                </div>
-                <div className="grid gap-2">
-                <Label htmlFor="alamat">Alamat Detail</Label>
-                <Input id="alamat" placeholder="Contoh: Jl. Pembangunan No. 123" defaultValue={sppg?.alamat} />
-                </div>
-                <div className="grid gap-2">
-                    <Label htmlFor="yayasan">Yayasan</Label>
-                    <Select value={selectedYayasan} onValueChange={handleYayasanChange}>
-                        <SelectTrigger id="yayasan">
-                            <SelectValue placeholder="Pilih Yayasan" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {yayasanOptions.map((option) => (
-                                <SelectItem key={option} value={option}>
-                                    {option}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-                 <div className="grid gap-2">
-                  <Label>Logo Yayasan</Label>
-                  <div className="relative flex items-center justify-center w-full h-40 border rounded-lg bg-muted/20">
-                     {logoUrl ? (
-                          <Image
-                            src={logoUrl}
-                            alt="Logo yayasan"
-                            fill
-                            className="p-2 object-contain rounded-md"
-                          />
-                     ) : (
-                        <div className="text-center text-muted-foreground text-sm">
-                            Logo akan tampil di sini setelah memilih yayasan.
+        <form ref={formRef} action={dispatch}>
+            <input type="hidden" name="id" value={sppg?.id || ''} />
+            <input type="hidden" name="logo_url" value={logoUrl || ''} />
+            <input type="hidden" name="wilayah.province" value={wilayah?.province || ''} />
+            <input type="hidden" name="wilayah.regency" value={wilayah?.regency || ''} />
+            <input type="hidden" name="wilayah.district" value={wilayah?.district || ''} />
+            <input type="hidden" name="wilayah.village" value={wilayah?.village || ''} />
+
+            <div className="flex flex-col md:flex-row gap-8 py-4">
+                {/* Left Segment */}
+                <div className="flex-1 space-y-4">
+                    <h3 className="text-lg font-semibold text-muted-foreground">
+                    Data Umum
+                    </h3>
+                    <Alert>
+                    <Info className="h-4 w-4" />
+                    <AlertDescription>
+                        Pastikan data umum yang Anda masukkan di sini sudah sesuai dengan informasi yang terdaftar pada akun Mitra BGN Anda untuk memastikan sinkronisasi dan validasi data yang lancar.
+                    </AlertDescription>
+                    </Alert>
+                    <div className="grid gap-2">
+                        <Label htmlFor="nama-sppg">Nama SPPG</Label>
+                        <Input id="nama-sppg" name="nama" placeholder="Contoh: SPPG Sejahtera" defaultValue={sppg?.nama} />
+                        {state.errors?.nama && <p className="text-sm text-destructive">{state.errors.nama[0]}</p>}
+                    </div>
+                    <div className="grid gap-2">
+                        <Label>Wilayah</Label>
+                        <WilayahSelector onWilayahChange={setWilayah} initialData={sppg?.wilayah} />
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="alamat">Alamat Detail</Label>
+                        <Input id="alamat" name="alamat" placeholder="Contoh: Jl. Pembangunan No. 123" defaultValue={sppg?.alamat} />
+                        {state.errors?.alamat && <p className="text-sm text-destructive">{state.errors.alamat[0]}</p>}
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="yayasan">Yayasan</Label>
+                        <Select name="yayasan" value={selectedYayasan} onValueChange={handleYayasanChange}>
+                            <SelectTrigger id="yayasan">
+                                <SelectValue placeholder="Pilih Yayasan" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {yayasanOptions.map((option) => (
+                                    <SelectItem key={option} value={option}>
+                                        {option}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        {state.errors?.yayasan && <p className="text-sm text-destructive">{state.errors.yayasan[0]}</p>}
+                    </div>
+                    <div className="grid gap-2">
+                        <Label>Logo Yayasan</Label>
+                        <div className="relative flex items-center justify-center w-full h-40 border rounded-lg bg-muted/20">
+                            {logoUrl ? (
+                                <Image
+                                    src={logoUrl}
+                                    alt="Logo yayasan"
+                                    fill
+                                    className="p-2 object-contain rounded-md"
+                                />
+                            ) : (
+                                <div className="text-center text-muted-foreground text-sm">
+                                    Logo akan tampil di sini setelah memilih yayasan.
+                                </div>
+                            )}
                         </div>
-                     )}
-                  </div>
+                    </div>
+                </div>
+
+                <Separator orientation="vertical" className="h-auto hidden md:block" />
+
+                {/* Right Segment */}
+                <div className="flex-1 space-y-4">
+                    <h3 className="text-lg font-semibold text-muted-foreground">
+                    Data Personel
+                    </h3>
+                    <div className="grid gap-2">
+                    <Label htmlFor="nama-ka-sppg">Nama Ka. SPPG</Label>
+                    <Input id="nama-ka-sppg" name="namaKaSppg" placeholder="Contoh: Budi Santoso" defaultValue={sppg?.namaKaSppg} />
+                    </div>
+                    <div className="grid gap-2">
+                    <Label htmlFor="nama-akuntan">Nama Akuntan</Label>
+                    <Input id="nama-akuntan" name="namaAkuntan" placeholder="Contoh: Siti Aminah" defaultValue={sppg?.namaAkuntan} />
+                    </div>
+                    <div className="grid gap-2">
+                    <Label htmlFor="ahli-gizi">Ahli Gizi</Label>
+                    <Input id="ahli-gizi" name="ahliGizi" placeholder="Contoh: Dr. Ani" defaultValue={sppg?.ahliGizi} />
+                    </div>
+                    <div className="grid gap-2">
+                    <Label htmlFor="asisten-lapangan">Asisten Lapangan</Label>
+                    <Input id="asisten-lapangan" name="asistenLapangan" placeholder="Contoh: Joko" defaultValue={sppg?.asistenLapangan} />
+                    </div>
                 </div>
             </div>
-
-            <Separator orientation="vertical" className="h-auto hidden md:block" />
-
-            {/* Right Segment */}
-            <div className="flex-1 space-y-4">
-                <h3 className="text-lg font-semibold text-muted-foreground">
-                Data Personel
-                </h3>
-                <div className="grid gap-2">
-                <Label htmlFor="nama-ka-sppg">Nama Ka. SPPG</Label>
-                <Input id="nama-ka-sppg" placeholder="Contoh: Budi Santoso" defaultValue={sppg?.namaKaSppg} />
-                </div>
-                <div className="grid gap-2">
-                <Label htmlFor="nama-akuntan">Nama Akuntan</Label>
-                <Input id="nama-akuntan" placeholder="Contoh: Siti Aminah" defaultValue={sppg?.namaAkuntan} />
-                </div>
-                <div className="grid gap-2">
-                <Label htmlFor="ahli-gizi">Ahli Gizi</Label>
-                <Input id="ahli-gizi" placeholder="Contoh: Dr. Ani" defaultValue={sppg?.ahliGizi} />
-                </div>
-                <div className="grid gap-2">
-                <Label htmlFor="asisten-lapangan">Asisten Lapangan</Label>
-                <Input id="asisten-lapangan" placeholder="Contoh: Joko" defaultValue={sppg?.asistenLapangan} />
-                </div>
-            </div>
-        </div>
-        <DialogFooter>
-            <Button type="button" onClick={handleSave}>Simpan Perubahan</Button>
-        </DialogFooter>
-        </>
+            <DialogFooter>
+                <SubmitButton />
+            </DialogFooter>
+        </form>
     );
 };
 
@@ -283,6 +334,13 @@ export default function SppgPage({ sppgList }: SppgPageProps) {
                       <TableCell>{sppg.penerimaManfaat}</TableCell>
                     </TableRow>
                   ))}
+                   {paginatedSppg.length === 0 && (
+                      <TableRow>
+                          <TableCell colSpan={4} className="text-center h-24">
+                              Belum ada data SPPG.
+                          </TableCell>
+                      </TableRow>
+                  )}
                 </TableBody>
               </Table>
             </div>
@@ -318,28 +376,28 @@ export default function SppgPage({ sppgList }: SppgPageProps) {
               <span className="sr-only">Sebelumnya</span>
             </Button>
             <span className="text-sm text-muted-foreground">
-              Halaman {currentPage} dari {totalPages}
+              Halaman {currentPage} dari {totalPages || 1}
             </span>
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-              disabled={currentPage === totalPages}
+              disabled={currentPage === totalPages || totalPages === 0}
             >
               <ChevronRight className="h-4 w-4" />
               <span className="sr-only">Selanjutnya</span>
             </Button>
           </div>
           
-          <Dialog open={isAddOpen} onOpenChange={(open) => !open && handleCloseDialogs()}>
+          <Dialog open={isAddOpen} onOpenChange={(open) => !open ? handleCloseDialogs() : setIsAddOpen(true)}>
             <DialogTrigger asChild>
-              <Button onClick={() => setIsAddOpen(true)}>Tambah SPPG</Button>
+              <Button onClick={() => { setSelectedSppg(null); setIsAddOpen(true); }}>Tambah SPPG</Button>
             </DialogTrigger>
             <DialogContent className="max-w-4xl">
               <DialogHeader>
                 <DialogTitle>Tambah SPPG Baru</DialogTitle>
               </DialogHeader>
-              <SppgForm onSave={handleCloseDialogs} />
+              <SppgForm onSaveSuccess={handleCloseDialogs} />
             </DialogContent>
           </Dialog>
         </div>
@@ -401,7 +459,7 @@ export default function SppgPage({ sppgList }: SppgPageProps) {
                   Ubah data untuk {selectedSppg.nama}. Klik simpan jika sudah selesai.
                 </DialogDescription>
               </DialogHeader>
-              <SppgForm sppg={selectedSppg} onSave={handleCloseDialogs} />
+              <SppgForm sppg={selectedSppg} onSaveSuccess={handleCloseDialogs} />
             </DialogContent>
          </Dialog>
        )}
