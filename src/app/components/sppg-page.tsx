@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -31,10 +30,11 @@ import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Info, ChevronLeft, ChevronRight, Pencil, ImageIcon } from 'lucide-react';
-import { useState, useMemo, useEffect } from 'react';
+import { Info, ChevronLeft, ChevronRight, Pencil, Upload, X } from 'lucide-react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { WilayahSelector } from './wilayah-selector';
 import Image from 'next/image';
+import { supabase } from '@/utils/supabase/client';
 
 
 type SppgData = {
@@ -48,6 +48,7 @@ type SppgData = {
   ahliGizi: string;
   asistenLapangan: string;
   wilayah: any;
+  logo_url: string | null;
 };
 
 
@@ -65,23 +66,63 @@ const yayasanOptions = [
     "Yayasan Bisukma Generasi Emas Indonesia"
 ];
 
-const yayasanLogoMap: { [key: string]: string } = {
-    "Yayasan Bisukma Bangun Bangsa": "Bisukma Bangun Bangsa.png",
-    "Yayasan Patriot Generasi Emas Indonesia": "Patriot Generasi Emas Indonesia.png",
-    "Yayasan Bisukma Hita Mangula": "Bisukma Hita Mangula.png",
-    "Yayasan Bisukma Generasi Emas Indonesia": "Bisukma Generasi Emas Indonesia.png"
-};
-
-const SppgForm = ({ sppg }: { sppg?: SppgData | null }) => {
+const SppgForm = ({ sppg, onSave }: { sppg?: SppgData | null, onSave: () => void }) => {
     const [selectedYayasan, setSelectedYayasan] = useState(sppg?.yayasan || '');
+    const [logoFile, setLogoFile] = useState<File | null>(null);
+    const [imagePreview, setImagePreview] = useState<string | null>(sppg?.logo_url || null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         setSelectedYayasan(sppg?.yayasan || '');
+        setImagePreview(sppg?.logo_url || null);
+        setLogoFile(null);
     }, [sppg]);
 
-    const logoUrl = selectedYayasan ? `/Yayasan logo/${yayasanLogoMap[selectedYayasan]}` : null;
+    const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            setLogoFile(file);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImagePreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+    
+    const handleSave = async () => {
+        let logoUrlToSave = sppg?.logo_url || null;
+
+        if (logoFile) {
+            const fileName = `${Date.now()}_${logoFile.name}`;
+            const { data, error } = await supabase.storage
+                .from('logos') // Pastikan bucket 'logos' ada di Supabase Storage
+                .upload(fileName, logoFile);
+
+            if (error) {
+                console.error('Error uploading logo:', error);
+                // Tambahkan notifikasi error jika perlu
+                return;
+            }
+
+            const { data: { publicUrl } } = supabase.storage
+                .from('logos')
+                .getPublicUrl(data.path);
+            
+            logoUrlToSave = publicUrl;
+        }
+
+        // Logika untuk menyimpan data sppg ke database (termasuk logoUrlToSave)
+        // ...
+        // Misalnya:
+        // const { error } = await supabase.from('sppg').update({ logo_url: logoUrlToSave }).eq('id', sppg.id);
+        
+        console.log("URL to save:", logoUrlToSave);
+        onSave(); // Panggil onSave untuk menutup dialog
+    }
 
     return (
+        <>
         <div className="flex flex-col md:flex-row gap-8 py-4">
             {/* Left Segment */}
             <div className="flex-1 space-y-4">
@@ -147,26 +188,61 @@ const SppgForm = ({ sppg }: { sppg?: SppgData | null }) => {
                 <Input id="asisten-lapangan" placeholder="Contoh: Joko" defaultValue={sppg?.asistenLapangan} />
                 </div>
                  <div className="grid gap-2">
-                  <Label>Logo Yayasan</Label>
-                  <div className="relative w-full aspect-[16/9] border-2 border-dashed rounded-lg flex flex-col justify-center items-center text-muted-foreground bg-muted/20">
-                     {logoUrl ? (
+                  <Label htmlFor="logo-upload">Logo Yayasan</Label>
+                  <div 
+                    className="relative flex flex-col items-center justify-center w-full h-40 border-2 border-dashed rounded-lg cursor-pointer bg-muted/20 hover:bg-muted/50"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                     {imagePreview ? (
+                          <>
                           <Image
-                            src={logoUrl}
-                            alt={`Logo ${selectedYayasan}`}
-                            width={1920}
-                            height={1080}
-                            className="p-2 object-contain h-full w-full"
+                            src={imagePreview}
+                            alt="Pratinjau logo"
+                            fill
+                            className="p-2 object-contain rounded-md"
                           />
+                          <Button
+                              type="button"
+                              variant="destructive"
+                              size="icon"
+                              onClick={(e) => {
+                                  e.stopPropagation();
+                                  setImagePreview(null);
+                                  setLogoFile(null);
+                                  if (fileInputRef.current) {
+                                      fileInputRef.current.value = '';
+                                  }
+                              }}
+                              className="absolute top-1 right-1 h-6 w-6"
+                          >
+                              <X className="h-4 w-4" />
+                          </Button>
+                          </>
                      ) : (
-                        <>
-                            <ImageIcon className="h-10 w-10 mb-2" />
-                            <span className="text-sm text-center">Pilih yayasan untuk melihat logo</span>
-                        </>
+                        <div className="flex flex-col items-center justify-center text-center text-muted-foreground">
+                            <Upload className="w-8 h-8 mb-2" />
+                            <p className="mb-1 text-xs">
+                              <span className="font-semibold">Klik untuk mengunggah</span>
+                            </p>
+                            <p className="text-xs">PNG, JPG (MAX. 2MB)</p>
+                        </div>
                      )}
+                     <Input 
+                        ref={fileInputRef}
+                        id="logo-upload" 
+                        type="file" 
+                        className="hidden" 
+                        accept="image/png, image/jpeg"
+                        onChange={handleImageChange}
+                     />
                   </div>
                 </div>
             </div>
         </div>
+        <DialogFooter>
+            <Button type="button" onClick={handleSave}>Simpan Perubahan</Button>
+        </DialogFooter>
+        </>
     );
 };
 
@@ -296,10 +372,7 @@ export default function SppgPage({ sppgList }: SppgPageProps) {
               <DialogHeader>
                 <DialogTitle>Tambah SPPG Baru</DialogTitle>
               </DialogHeader>
-              <SppgForm />
-              <DialogFooter>
-                <Button type="submit">Simpan</Button>
-              </DialogFooter>
+              <SppgForm onSave={handleCloseDialogs} />
             </DialogContent>
           </Dialog>
         </div>
@@ -318,6 +391,11 @@ export default function SppgPage({ sppgList }: SppgPageProps) {
                     <div className="space-y-3">
                         <h3 className="font-semibold">Data Umum</h3>
                         <dl className="grid gap-2">
+                            {selectedSppg.logo_url && (
+                                <div className="relative w-full aspect-video rounded-lg overflow-hidden border my-2">
+                                    <Image src={selectedSppg.logo_url} alt={`Logo ${selectedSppg.yayasan}`} fill className="object-contain" />
+                                </div>
+                            )}
                             <DetailItem label="Alamat" value={selectedSppg.alamat} />
                             <DetailItem label="Penerima Manfaat" value={selectedSppg.penerimaManfaat} />
                         </dl>
@@ -356,10 +434,7 @@ export default function SppgPage({ sppgList }: SppgPageProps) {
                   Ubah data untuk {selectedSppg.nama}. Klik simpan jika sudah selesai.
                 </DialogDescription>
               </DialogHeader>
-              <SppgForm sppg={selectedSppg} />
-              <DialogFooter>
-                <Button type="submit">Simpan Perubahan</Button>
-              </DialogFooter>
+              <SppgForm sppg={selectedSppg} onSave={handleCloseDialogs} />
             </DialogContent>
          </Dialog>
        )}
