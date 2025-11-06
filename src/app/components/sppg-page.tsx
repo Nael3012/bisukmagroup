@@ -35,7 +35,7 @@ import { Info, ChevronLeft, ChevronRight, Pencil, Upload } from 'lucide-react';
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { WilayahSelector } from './wilayah-selector';
 import Image from 'next/image';
-import { supabase } from '@/utils/supabase/client';
+import { createClient } from '@/utils/supabase/client';
 
 
 type SppgData = {
@@ -75,6 +75,7 @@ const yayasanLogos: Record<string, string> = {
 };
 
 const SppgForm = ({ sppg, onSave }: { sppg?: SppgData | null, onSave: () => void }) => {
+    const supabase = createClient();
     const [selectedYayasan, setSelectedYayasan] = useState(sppg?.yayasan || '');
     const [logoUrl, setLogoUrl] = useState<string | null>(sppg?.logo_url || null);
     const fileInputRef = useRef<HTMLInputElement>(null);

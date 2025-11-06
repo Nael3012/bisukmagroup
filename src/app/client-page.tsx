@@ -29,7 +29,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ThemeToggle } from '@/components/theme-toggle';
 import KeuanganPage from './components/keuangan-page';
 import type { User } from '@supabase/supabase-js';
-import { supabase } from '@/utils/supabase/client';
+import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 
 type Menu = 'Dashboard' | 'SPPG' | 'Mitra' | 'Menu' | 'Keuangan' | 'Laporan' | 'Kelola Penanggung Jawab';
@@ -83,6 +83,7 @@ type ClientPageProps = {
 
 export default function ClientPage({ user, sppgList, sekolahList, b3List, assignedUsers }: ClientPageProps) {
   const router = useRouter();
+  const supabase = createClient();
   const [activeMenu, setActiveMenu] = useState<Menu>('Dashboard');
 
   const userRole = user.user_metadata?.role || 'SPPG';
