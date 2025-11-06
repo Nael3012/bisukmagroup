@@ -90,10 +90,10 @@ const sppgOptions = [
 ];
 
 const yayasanLogos: Record<string, string> = {
-    "Yayasan Bisukma Bangun Bangsa": "https://oilvtefzzupggnstgpsa.supabase.co/storage/v1/object/public/logos/1762413828035_Bisukma%20Bangun%20Bangsa.png",
-    "Yayasan Patriot Generasi Emas Indonesia": "https://oilvtefzzupggnstgpsa.supabase.co/storage/v1/object/public/logos/1762413871003_Patriot%20Generasi%20Emas%20Indonesia.png",
-    "Yayasan Bisukma Hita Mangula": "https://oilvtefzzupggnstgpsa.supabase.co/storage/v1/object/public/logos/1762413915579_Bisukma%20Hita%20Mangula.png",
-    "Yayasan Bisukma Generasi Emas Indonesia": "https://oilvtefzzupggnstgpsa.supabase.co/storage/v1/object/public/logos/1762413958140_Bisukma%20Generasi%20Emas%20Indonesia.png"
+    "Yayasan Bisukma Bangun Bangsa": "/logos/1762413828035_Bisukma_Bangun_Bangsa.png",
+    "Yayasan Patriot Generasi Emas Indonesia": "/logos/1762413871003_Patriot_Generasi_Emas_Indonesia.png",
+    "Yayasan Bisukma Hita Mangula": "/logos/1762413915579_Bisukma_Hita_Mangula.png",
+    "Yayasan Bisukma Generasi Emas Indonesia": "/logos/1762413958140_Bisukma_Generasi_Emas_Indonesia.png"
 };
 
 
@@ -396,7 +396,7 @@ export default function MenuPage({ userRole, userSppgId }: MenuPageProps) {
     if (selectedSppgDetails && selectedSppgDetails.yayasan && yayasanLogos[selectedSppgDetails.yayasan]) {
       const link = document.createElement('a');
       link.href = yayasanLogos[selectedSppgDetails.yayasan];
-      link.download = `${selectedSppgDetails.label}-logo.png`;
+      link.download = `${selectedSppgDetails.yayasan.replace(/ /g, '_')}-logo.png`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -537,7 +537,7 @@ export default function MenuPage({ userRole, userSppgId }: MenuPageProps) {
                     </SelectContent>
                 </Select>
                 </div>
-                <Button variant="outline" size="icon" onClick={handleDownloadLogo}>
+                <Button variant="outline" size="icon" onClick={handleDownloadLogo} disabled={!selectedSppgDetails?.yayasan}>
                     <Download className="h-4 w-4" />
                     <span className="sr-only">Download Logo</span>
                 </Button>
