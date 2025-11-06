@@ -38,7 +38,7 @@ const menuItems: Menu[] = ['Dashboard', 'SPPG', 'Mitra', 'Menu', 'Keuangan', 'La
 // Mock user data
 const userData = {
     name: "Admin BGN",
-    role: "Admin Pusat",
+    role: "Admin Pusat" as "Admin Pusat" | "SPPG",
     avatar: "https://github.com/shadcn.png" // Example avatar
 }
 
@@ -58,7 +58,7 @@ export default function Home() {
       case 'Menu':
         return <MenuPage />;
       case 'Keuangan':
-        return <KeuanganPage />;
+        return <KeuanganPage userRole={userData.role} />;
       case 'Laporan':
         return <ReportsPage />;
       case 'Kelola Penanggung Jawab':

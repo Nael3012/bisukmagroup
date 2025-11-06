@@ -18,6 +18,8 @@ import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 const sppgOptions = [
   { value: 'all', label: 'Semua SPPG' },
@@ -28,108 +30,170 @@ const sppgOptions = [
 
 type SppgId = 'all' | 'sppg-al-ikhlas' | 'sppg-bina-umat' | 'sppg-nurul-hidayah';
 
-export default function KeuanganPage() {
+type KeuanganPageProps = {
+    userRole: 'Admin Pusat' | 'SPPG';
+}
+
+export default function KeuanganPage({ userRole }: KeuanganPageProps) {
   const [selectedSppg, setSelectedSppg] = useState<SppgId>('all');
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [showPorsiInput, setShowPorsiInput] = useState(false);
+  const [isAdminMode, setIsAdminMode] = useState(false);
 
   const handleBuatLaporanClick = () => {
     setShowPorsiInput(true);
   }
 
-  return (
-    <div className="space-y-6 max-w-2xl mx-auto">
-        <div className="space-y-2">
-            <h2 className="text-2xl font-bold">Laporan Keuangan</h2>
-            <p className="text-muted-foreground">
-                Pilih SPPG dan tanggal untuk membuat laporan keuangan harian.
-            </p>
-        </div>
+  const renderRegularMode = () => (
+    <>
+      <div className="space-y-2">
+        <h2 className="text-2xl font-bold">Laporan Keuangan</h2>
+        <p className="text-muted-foreground">
+          Pilih SPPG dan tanggal untuk membuat laporan keuangan harian.
+        </p>
+      </div>
 
-        <div className="space-y-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="grid gap-2 flex-1">
-              <Label htmlFor="sppg-select">Pilih SPPG</Label>
-              <Select onValueChange={(v) => setSelectedSppg(v as SppgId)} value={selectedSppg}>
-                <SelectTrigger id="sppg-select">
-                  <SelectValue placeholder="Pilih SPPG" />
-                </SelectTrigger>
-                <SelectContent>
-                  {sppgOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      <div>
-                        <p className="font-medium">{option.label}</p>
-                        {option.address && <p className="text-xs text-muted-foreground">{option.address}</p>}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid gap-2 flex-1">
-              <Label>Pilih Tanggal</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    id="date"
-                    variant={"outline"}
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !date && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {date ? format(date, "d LLL y", { locale: id }) : <span>Pilih tanggal</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    initialFocus
-                    mode="single"
-                    selected={date}
-                    onSelect={setDate}
-                    locale={id}
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
+      <div className="space-y-6">
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="grid gap-2 flex-1">
+            <Label htmlFor="sppg-select">Pilih SPPG</Label>
+            <Select onValueChange={(v) => setSelectedSppg(v as SppgId)} value={selectedSppg}>
+              <SelectTrigger id="sppg-select">
+                <SelectValue placeholder="Pilih SPPG" />
+              </SelectTrigger>
+              <SelectContent>
+                {sppgOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    <div>
+                      <p className="font-medium">{option.label}</p>
+                      {option.address && <p className="text-xs text-muted-foreground">{option.address}</p>}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="grid gap-2 flex-1">
+            <Label>Pilih Tanggal</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  id="date"
+                  variant={"outline"}
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !date && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {date ? format(date, "d LLL y", { locale: id }) : <span>Pilih tanggal</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  initialFocus
+                  mode="single"
+                  selected={date}
+                  onSelect={setDate}
+                  locale={id}
+                />
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
-        <div className="flex justify-end">
-          <Button onClick={handleBuatLaporanClick}>
-            <FilePlus className="mr-2 h-4 w-4" />
-            Buat Laporan Keuangan Hari Ini
-          </Button>
-        </div>
-        
-        {showPorsiInput && (
-            <Card className="mt-6">
-                <CardHeader>
-                    <CardTitle>Input Porsi Hari Ini</CardTitle>
-                    <CardDescription>
-                        Masukkan jumlah porsi besar dan kecil yang disalurkan hari ini.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div className="grid md:grid-cols-2 gap-4">
-                        <div className="grid gap-2">
-                            <Label htmlFor="porsi-besar">Jumlah Porsi Besar</Label>
-                            <Input id="porsi-besar" type="number" placeholder="Contoh: 50" />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="porsi-kecil">Jumlah Porsi Kecil</Label>
-                            <Input id="porsi-kecil" type="number" placeholder="Contoh: 30" />
-                        </div>
-                    </div>
-                </CardContent>
-                <CardFooter className="justify-end">
-                    <Button>
-                        <Save className="mr-2 h-4 w-4" />
-                        Simpan Laporan
-                    </Button>
-                </CardFooter>
-            </Card>
+      </div>
+      <div className="flex justify-end">
+        <Button onClick={handleBuatLaporanClick}>
+          <FilePlus className="mr-2 h-4 w-4" />
+          Buat Laporan Keuangan Hari Ini
+        </Button>
+      </div>
+      
+      {showPorsiInput && (
+          <Card className="mt-6">
+              <CardHeader>
+                  <CardTitle>Input Porsi Hari Ini</CardTitle>
+                  <CardDescription>
+                      Masukkan jumlah porsi besar dan kecil yang disalurkan hari ini.
+                  </CardDescription>
+              </CardHeader>
+              <CardContent>
+                  <div className="grid md:grid-cols-2 gap-4">
+                      <div className="grid gap-2">
+                          <Label htmlFor="porsi-besar">Jumlah Porsi Besar</Label>
+                          <Input id="porsi-besar" type="number" placeholder="Contoh: 50" />
+                      </div>
+                      <div className="grid gap-2">
+                          <Label htmlFor="porsi-kecil">Jumlah Porsi Kecil</Label>
+                          <Input id="porsi-kecil" type="number" placeholder="Contoh: 30" />
+                      </div>
+                  </div>
+              </CardContent>
+              <CardFooter className="justify-end">
+                  <Button>
+                      <Save className="mr-2 h-4 w-4" />
+                      Simpan Laporan
+                  </Button>
+              </CardFooter>
+          </Card>
+      )}
+    </>
+  );
+
+  const renderAdminMode = () => (
+    <Card>
+        <CardHeader>
+            <CardTitle>Input Porsi Harian (Admin Mode)</CardTitle>
+            <CardDescription>
+                Masukkan jumlah porsi harian untuk setiap SPPG secara langsung.
+            </CardDescription>
+        </CardHeader>
+        <CardContent>
+            <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead>Nama SPPG</TableHead>
+                        <TableHead className="w-[180px]">Jumlah Porsi Besar</TableHead>
+                        <TableHead className="w-[180px]">Jumlah Porsi Kecil</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {sppgOptions.filter(opt => opt.value !== 'all').map(sppg => (
+                        <TableRow key={sppg.value}>
+                            <TableCell className="font-medium">{sppg.label}</TableCell>
+                            <TableCell>
+                                <Input type="number" placeholder="0" />
+                            </TableCell>
+                            <TableCell>
+                                <Input type="number" placeholder="0" />
+                            </TableCell>
+                        </TableRow>
+                    ))}
+                </TableBody>
+            </Table>
+        </CardContent>
+        <CardFooter className="justify-end">
+            <Button>
+                <Save className="mr-2 h-4 w-4" />
+                Simpan Semua
+            </Button>
+        </CardFooter>
+    </Card>
+  );
+
+  return (
+    <div className="space-y-6 max-w-4xl mx-auto">
+        {userRole === 'Admin Pusat' && (
+            <div className="flex items-center space-x-2 justify-end">
+                <Label htmlFor="admin-mode-switch">Admin Mode</Label>
+                <Switch
+                    id="admin-mode-switch"
+                    checked={isAdminMode}
+                    onCheckedChange={setIsAdminMode}
+                />
+            </div>
         )}
+        {isAdminMode ? renderAdminMode() : renderRegularMode()}
     </div>
   );
 }
