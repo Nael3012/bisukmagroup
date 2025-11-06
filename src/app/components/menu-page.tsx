@@ -47,6 +47,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { CardDescription } from '@/components/ui/card';
 import Image from 'next/image';
+import { TabelAkgHarian } from './tabel-akg-harian';
 
 type DayOfWeek = 'Senin' | 'Selasa' | 'Rabu' | 'Kamis' | 'Jumat';
 type Nutrient = { id: number; source: string; amount: string };
@@ -510,8 +511,9 @@ export default function MenuPage({ userRole, userSppgId, sppgList }: MenuPagePro
   return (
     <>
     <Card>
-      <CardHeader>
+      <CardHeader className="flex-row items-center justify-between">
         <CardTitle>Menu</CardTitle>
+        <TabelAkgHarian />
       </CardHeader>
       <CardContent className="space-y-4">
         {userRole === 'Admin Pusat' && (
@@ -595,7 +597,7 @@ export default function MenuPage({ userRole, userSppgId, sppgList }: MenuPagePro
               </div>
               <div className="grid gap-2">
                 <Label>Pilih Hari</Label>
-                <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:flex md:flex-wrap gap-2">
                   {(Object.keys(currentWeeklyMenu.weekStatus) as DayOfWeek[]).map((day) => {
                     const isFilled = currentWeeklyMenu.weekStatus[day];
                     const isSelected = selectedDay === day;
@@ -604,7 +606,7 @@ export default function MenuPage({ userRole, userSppgId, sppgList }: MenuPagePro
                         key={day}
                         variant={isSelected ? 'default' : 'outline'}
                         onClick={() => handleDayClick(day)}
-                        className="w-full justify-center"
+                        className="w-full justify-center md:w-auto"
                       >
                         {isFilled ? (
                           <CheckCircle2 className="mr-2 h-4 w-4 text-green-500" />
