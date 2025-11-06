@@ -11,13 +11,6 @@ import { supabase } from '@/utils/supabase/client';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 
-const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" {...props}>
-        <path d="M12.48 10.92v3.28h7.84c-.24 1.84-.85 3.18-1.73 4.1-1.02 1.02-2.62 2.04-4.82 2.04-5.82 0-9.46-4.82-9.46-9.46s3.64-9.46 9.46-9.46c2.86 0 4.82 1.2 5.9 2.22l2.42-2.42C20.2 1.62 17.1.6 12.48.6c-6.94 0-12.48 5.54-12.48 12.48s5.54 12.48 12.48 12.48c6.94 0 12.48-5.54 12.48-12.48 0-1.02-.12-1.84-.24-2.62h-12z" fill="currentColor"/>
-    </svg>
-);
-
-
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
@@ -134,7 +127,6 @@ export default function LoginPage() {
                 </div>
             </div>
              <Button variant="outline" className="w-full" onClick={handleGoogleLogin} disabled={loading}>
-                <GoogleIcon className="mr-2 h-4 w-4" />
                 Google
             </Button>
         </div>
