@@ -57,7 +57,7 @@ const positionOptions = ['Ka. SPPG', 'Ahli Gizi', 'Akuntan', 'Asisten Lapangan']
 
 
 const AccountForm = ({ account }: { account?: Account | null }) => {
-    const [role, setRole] = useState(account?.role || 'SPPG');
+    const [role, setRole] = useState<'Admin Pusat' | 'SPPG'>(account?.role || 'SPPG');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [passwordError, setPasswordError] = useState('');
@@ -128,7 +128,7 @@ const AccountForm = ({ account }: { account?: Account | null }) => {
                 </Alert>
                  <div className="grid gap-2">
                     <Label htmlFor="role">Role</Label>
-                    <Select value={role} onValueChange={setRole}>
+                    <Select value={role} onValueChange={(value) => setRole(value as 'Admin Pusat' | 'SPPG')}>
                     <SelectTrigger id="role">
                         <SelectValue placeholder="Pilih Role" />
                     </SelectTrigger>
@@ -328,3 +328,5 @@ export default function AccountsPage() {
     </>
   );
 }
+
+    

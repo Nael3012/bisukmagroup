@@ -69,7 +69,7 @@ export default function KeuanganPage({ userRole, userSppgId }: KeuanganPageProps
         if (!weekStatus[day]) {
             const dateOfDay = addDays(currentWeekStart, index);
             missingDays.push({
-                day: day,
+                day: String(day),
                 date: format(dateOfDay, 'd MMMM yyyy', { locale: id }),
             });
         }
@@ -251,3 +251,5 @@ export default function KeuanganPage({ userRole, userSppgId }: KeuanganPageProps
     </div>
   );
 }
+
+    

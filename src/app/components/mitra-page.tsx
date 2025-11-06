@@ -62,8 +62,8 @@ type B3Data = {
 };
 
 type Jenjang = 'PAUD' | 'TK' | 'SD' | 'SMP' | 'SMA' | '';
-type SortableKeysSekolah = keyof Omit<Sekolah, 'id' | 'sppgId'>;
-type SortableKeysB3 = keyof Omit<B3Data, 'id' | 'jenis' | 'sppgId'>;
+type SortableKeysSekolah = keyof Omit<Sekolah, 'id' | 'sppgId' | 'wilayah'>;
+type SortableKeysB3 = keyof Omit<B3Data, 'id' | 'jenis' | 'sppgId' | 'wilayah'>;
 type SppgId = 'all' | 'sppg-al-ikhlas' | 'sppg-bina-umat' | 'sppg-nurul-hidayah';
 
 type MitraPageProps = {
@@ -453,17 +453,18 @@ export default function MitraPage({ userRole, userSppgId }: MitraPageProps) {
         )}
 
         <Tabs defaultValue="sekolah" onValueChange={setActiveTab} className="relative">
-          <TabsList>
+          <TabsList ref={el => {
+              if (!el) return;
+              tabsRef.current = Array.from(el.children) as HTMLButtonElement[];
+          }}>
             <TabsTrigger
               value="sekolah"
-              ref={(el) => tabsRef.current.push(el)}
               data-value="sekolah"
             >
               Sekolah Penerima Manfaat
             </TabsTrigger>
             <TabsTrigger
               value="b3"
-              ref={(el) => tabsRef.current.push(el)}
               data-value="b3"
             >
               B3 Penerima Manfaat
@@ -785,5 +786,7 @@ export default function MitraPage({ userRole, userSppgId }: MitraPageProps) {
     </>
   );
 }
+
+    
 
     

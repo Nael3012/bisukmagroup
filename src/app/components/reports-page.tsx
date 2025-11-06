@@ -379,8 +379,10 @@ export default function ReportsPage({ userRole, userSppgId }: ReportsPageProps) 
     dataToDownload.forEach((row, rowIndex) => {
         row.forEach((cell, cellIndex) => {
             if (typeof cell === 'string' && cell.includes('\n')) {
-                 if (!worksheet['!rows'][rowIndex]) worksheet['!rows'][rowIndex] = {};
-                 worksheet['!rows'][rowIndex].hpt = (cell.split('\n').length) * 15;
+                 if (worksheet['!rows'] && !worksheet['!rows'][rowIndex]) worksheet['!rows'][rowIndex] = {};
+                 if (worksheet['!rows']?.[rowIndex]) {
+                    worksheet['!rows'][rowIndex].hpt = (cell.split('\n').length) * 15;
+                 }
                  if(worksheet[XLSX.utils.encode_cell({c: cellIndex, r: rowIndex})]){
                     worksheet[XLSX.utils.encode_cell({c: cellIndex, r: rowIndex})].s = { alignment: { wrapText: true } };
                  }
@@ -523,3 +525,5 @@ export default function ReportsPage({ userRole, userSppgId }: ReportsPageProps) 
     </>
   );
 }
+
+    
