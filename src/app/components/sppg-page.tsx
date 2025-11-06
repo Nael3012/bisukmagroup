@@ -30,8 +30,8 @@ import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Info, ChevronLeft, ChevronRight, Pencil, Upload, X } from 'lucide-react';
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { Info, ChevronLeft, ChevronRight, Pencil } from 'lucide-react';
+import { useState, useMemo, useEffect } from 'react';
 import { WilayahSelector } from './wilayah-selector';
 import Image from 'next/image';
 import { supabase } from '@/utils/supabase/client';
@@ -75,66 +75,25 @@ const yayasanLogos: Record<string, string> = {
 
 const SppgForm = ({ sppg, onSave }: { sppg?: SppgData | null, onSave: () => void }) => {
     const [selectedYayasan, setSelectedYayasan] = useState(sppg?.yayasan || '');
-    const [logoFile, setLogoFile] = useState<File | null>(null);
-    const [imagePreview, setImagePreview] = useState<string | null>(sppg?.logo_url || null);
-    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [logoUrl, setLogoUrl] = useState<string | null>(sppg?.logo_url || null);
 
     useEffect(() => {
         setSelectedYayasan(sppg?.yayasan || '');
-        setImagePreview(sppg?.logo_url || null);
-        setLogoFile(null);
+        setLogoUrl(sppg?.logo_url || null);
     }, [sppg]);
 
     const handleYayasanChange = (yayasan: string) => {
         setSelectedYayasan(yayasan);
-        // Automatically set the logo if one is available and no logo is currently set
-        if (yayasanLogos[yayasan] && !imagePreview) {
-            setImagePreview(yayasanLogos[yayasan]);
-            setLogoFile(null); // It's a pre-existing URL, not a new file
-        }
-    };
-
-    const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (file) {
-            setLogoFile(file);
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setImagePreview(reader.result as string);
-            };
-            reader.readAsDataURL(file);
-        }
+        setLogoUrl(yayasanLogos[yayasan] || null);
     };
     
     const handleSave = async () => {
-        let logoUrlToSave = imagePreview; // Start with current preview
-
-        // If a new file was selected, upload it
-        if (logoFile) {
-            const fileName = `${Date.now()}_${logoFile.name}`;
-            const { data, error } = await supabase.storage
-                .from('logos')
-                .upload(fileName, logoFile);
-
-            if (error) {
-                console.error('Error uploading logo:', error);
-                // Handle error notification to user here
-                return;
-            }
-
-            const { data: { publicUrl } } = supabase.storage
-                .from('logos')
-                .getPublicUrl(data.path);
-            
-            logoUrlToSave = publicUrl;
-        }
-
-        // Logika untuk menyimpan data sppg ke database (termasuk logoUrlToSave)
+        // Logika untuk menyimpan data sppg ke database (termasuk logoUrl)
         // ...
         // Misalnya:
-        // const { error } = await supabase.from('sppg').update({ logo_url: logoUrlToSave }).eq('id', sppg.id);
+        // const { error } = await supabase.from('sppg').update({ logo_url: logoUrl }).eq('id', sppg.id);
         
-        console.log("URL to save:", logoUrlToSave);
+        console.log("URL to save:", logoUrl);
         onSave(); // Panggil onSave untuk menutup dialog
     }
 
@@ -205,53 +164,20 @@ const SppgForm = ({ sppg, onSave }: { sppg?: SppgData | null, onSave: () => void
                 <Input id="asisten-lapangan" placeholder="Contoh: Joko" defaultValue={sppg?.asistenLapangan} />
                 </div>
                  <div className="grid gap-2">
-                  <Label htmlFor="logo-upload">Logo Yayasan</Label>
-                  <div 
-                    className="relative flex flex-col items-center justify-center w-full h-40 border-2 border-dashed rounded-lg cursor-pointer bg-muted/20 hover:bg-muted/50"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                     {imagePreview ? (
-                          <>
+                  <Label>Logo Yayasan</Label>
+                  <div className="relative flex items-center justify-center w-full h-40 border rounded-lg bg-muted/20">
+                     {logoUrl ? (
                           <Image
-                            src={imagePreview}
-                            alt="Pratinjau logo"
+                            src={logoUrl}
+                            alt="Logo yayasan"
                             fill
                             className="p-2 object-contain rounded-md"
                           />
-                          <Button
-                              type="button"
-                              variant="destructive"
-                              size="icon"
-                              onClick={(e) => {
-                                  e.stopPropagation();
-                                  setImagePreview(null);
-                                  setLogoFile(null);
-                                  if (fileInputRef.current) {
-                                      fileInputRef.current.value = '';
-                                  }
-                              }}
-                              className="absolute top-1 right-1 h-6 w-6"
-                          >
-                              <X className="h-4 w-4" />
-                          </Button>
-                          </>
                      ) : (
-                        <div className="flex flex-col items-center justify-center text-center text-muted-foreground">
-                            <Upload className="w-8 h-8 mb-2" />
-                            <p className="mb-1 text-xs">
-                              <span className="font-semibold">Klik untuk mengunggah</span>
-                            </p>
-                            <p className="text-xs">PNG, JPG (MAX. 2MB)</p>
+                        <div className="text-center text-muted-foreground text-sm">
+                            Logo akan tampil di sini setelah memilih yayasan.
                         </div>
                      )}
-                     <Input 
-                        ref={fileInputRef}
-                        id="logo-upload" 
-                        type="file" 
-                        className="hidden" 
-                        accept="image/png, image/jpeg"
-                        onChange={handleImageChange}
-                     />
                   </div>
                 </div>
             </div>
