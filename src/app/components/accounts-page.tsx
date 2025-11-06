@@ -84,12 +84,23 @@ const positionOptions = ['Ka. SPPG', 'Ahli Gizi', 'Akuntan', 'Asisten Lapangan']
 
 const AccountForm = ({ account }: { account?: Account | null }) => {
     const [role, setRole] = useState(account?.role || 'SPPG');
+    const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [passwordError, setPasswordError] = useState('');
 
     useEffect(() => {
         if(account?.role) {
             setRole(account.role);
         }
     }, [account]);
+
+    useEffect(() => {
+        if (password && confirmPassword && password !== confirmPassword) {
+            setPasswordError('Password tidak cocok.');
+        } else {
+            setPasswordError('');
+        }
+    }, [password, confirmPassword]);
     
     return (
         <div className="flex flex-col md:flex-row gap-8 py-4">
@@ -111,11 +122,22 @@ const AccountForm = ({ account }: { account?: Account | null }) => {
                 
                 <div className="grid gap-2">
                     <Label htmlFor="password">{account ? 'Password Baru (Opsional)' : 'Password'}</Label>
-                    <Input id="password" type="password" />
+                    <Input 
+                        id="password" 
+                        type="password" 
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                    />
                 </div>
                 <div className="grid gap-2">
                     <Label htmlFor="retype-password">{account ? 'Ulangi Password Baru' : 'Ulangi Password'}</Label>
-                    <Input id="retype-password" type="password" />
+                    <Input 
+                        id="retype-password" 
+                        type="password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                    />
+                    {passwordError && <p className="text-sm text-destructive">{passwordError}</p>}
                 </div>
             </div>
 
