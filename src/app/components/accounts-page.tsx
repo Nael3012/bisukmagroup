@@ -231,19 +231,16 @@ export default function AccountsPage() {
   // Fetch pending users when the add dialog is opened
   useEffect(() => {
     const fetchPendingUsers = async () => {
-      // NOTE: This requires admin privileges on the Supabase client.
-      // This call should be moved to a server action/API route to be secure.
-      // This is temporarily re-enabled for UI functionality but will throw an error
-      // in the console without a proper server-side implementation.
-      
-      // The error "AuthApiError: User not allowed" is expected if this runs in the browser.
+      // NOTE: This call requires admin privileges and should not be done from the client.
+      // It is wrapped in a try/catch to prevent the app from crashing.
+      // To implement this feature correctly, this logic must be moved to a server-side function.
       try {
         const { data: { users }, error } = await supabase.auth.admin.listUsers({
             perPage: 1000 // Adjust as needed
         });
 
         if (error) {
-            console.error("Error fetching users (expected in browser):", error);
+            console.error("Error fetching users (expected in browser, as this is an admin action):", error);
             // Don't throw, just log it, so the rest of the UI doesn't break.
             return;
         }
@@ -251,7 +248,7 @@ export default function AccountsPage() {
         const pending = users.filter(user => !user.user_metadata?.sppgId);
         setPendingUsers(pending);
       } catch (error) {
-         console.error("Caught an error during user fetch:", error);
+         console.error("Caught an error during admin user fetch (this is expected on the client):", error);
       }
     };
 
