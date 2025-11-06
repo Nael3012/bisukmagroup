@@ -39,37 +39,11 @@ import { Separator } from '@/components/ui/separator';
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { ArrowUpDown, ChevronLeft, ChevronRight, Download, Edit, Pencil } from 'lucide-react';
 import { WilayahSelector } from './wilayah-selector';
-
-type SppgData = {
-  id: string;
-  nama: string;
-  yayasan: string;
-  alamat: string;
-};
-
-type Sekolah = {
-  id: string;
-  nama: string;
-  alamat: string;
-  jenjang: string;
-  jumlahPM: number;
-  sppgId: string;
-  wilayah: any;
-};
-
-type B3Data = {
-  id: string;
-  namaDesa: string;
-  alamat: string;
-  jenis: { bumil: number; busui: number; balita: number };
-  jumlah: number;
-  sppgId: string;
-  wilayah: any;
-};
+import type { SppgData, Sekolah, B3Data } from '../client-page';
 
 type Jenjang = 'PAUD' | 'TK' | 'SD' | 'SMP' | 'SMA' | '';
-type SortableKeysSekolah = keyof Omit<Sekolah, 'id' | 'sppgId' | 'wilayah'>;
-type SortableKeysB3 = keyof Omit<B3Data, 'id' | 'jenis' | 'sppgId' | 'wilayah'>;
+type SortableKeysSekolah = keyof Omit<Sekolah, 'id' | 'sppg_id' | 'wilayah'>;
+type SortableKeysB3 = keyof Omit<B3Data, 'id' | 'jenis' | 'sppg_id' | 'wilayah'>;
 type SppgId = 'all' | string;
 
 type MitraPageProps = {
@@ -173,15 +147,15 @@ const SekolahForm = ({ sekolah }: { sekolah?: Sekolah | null }) => {
         </h3>
         <div className="grid gap-1.5">
           <Label htmlFor="nama-kepala-sekolah" className="text-xs">Nama Kepala Sekolah</Label>
-          <Input id="nama-kepala-sekolah" placeholder="Contoh: Budi Santoso" className="text-xs h-9" />
+          <Input id="nama-kepala-sekolah" placeholder="Contoh: Budi Santoso" defaultValue={sekolah?.nama_kepala_sekolah || ''} className="text-xs h-9" />
         </div>
         <div className="grid gap-1.5">
           <Label htmlFor="nama-pic" className="text-xs">Nama PIC</Label>
-          <Input id="nama-pic" placeholder="Contoh: Siti Aminah" className="text-xs h-9" />
+          <Input id="nama-pic" placeholder="Contoh: Siti Aminah" defaultValue={sekolah?.nama_pic || ''} className="text-xs h-9" />
         </div>
         <div className="grid gap-1.5">
             <Label htmlFor="telp-pic" className="text-xs">Nomor Telepon PIC</Label>
-            <Input id="telp-pic" type="tel" placeholder="0812..." className="text-xs h-9" />
+            <Input id="telp-pic" type="tel" placeholder="0812..." defaultValue={sekolah?.telepon_pic || ''} className="text-xs h-9" />
         </div>
         {renderPorsiInputs()}
       </div>
@@ -198,7 +172,7 @@ const B3Form = ({ b3 }: { b3?: B3Data | null }) => {
                 </h3>
                 <div className="grid gap-1.5">
                     <Label htmlFor="nama-desa" className="text-xs">Nama Posyandu/Puskesmas</Label>
-                    <Input id="nama-desa" placeholder="Contoh: Posyandu Melati" defaultValue={b3?.namaDesa} className="text-xs h-9" />
+                    <Input id="nama-desa" placeholder="Contoh: Posyandu Melati" defaultValue={b3?.namadesa} className="text-xs h-9" />
                 </div>
                  <WilayahSelector onWilayahChange={() => {}} initialData={b3?.wilayah} />
                 <div className="grid gap-1.5">
@@ -207,11 +181,11 @@ const B3Form = ({ b3 }: { b3?: B3Data | null }) => {
                 </div>
                 <div className="grid gap-1.5">
                     <Label htmlFor="nama-pic-b3" className="text-xs">Nama PIC</Label>
-                    <Input id="nama-pic-b3" placeholder="Contoh: Dewi Lestari" className="text-xs h-9" />
+                    <Input id="nama-pic-b3" placeholder="Contoh: Dewi Lestari" defaultValue={b3?.nama_pic || ''} className="text-xs h-9" />
                 </div>
                  <div className="grid gap-1.5">
                     <Label htmlFor="telp-pic-b3" className="text-xs">Nomor Telepon PIC</Label>
-                    <Input id="telp-pic-b3" type="tel" placeholder="0812..." className="text-xs h-9" />
+                    <Input id="telp-pic-b3" type="tel" placeholder="0812..." defaultValue={b3?.telepon_pic || ''} className="text-xs h-9" />
                 </div>
             </div>
             <Separator orientation="vertical" className="h-auto hidden md:block" />
@@ -312,12 +286,12 @@ export default function MitraPage({ userRole, userSppgId, semuaDaftarSekolah, se
   // Memoized filtered data for both tabs
   const filteredSekolah = useMemo(() => {
     if (selectedSppg === 'all') return semuaDaftarSekolah;
-    return semuaDaftarSekolah.filter((sekolah) => sekolah.sppgId === selectedSppg);
+    return semuaDaftarSekolah.filter((sekolah) => sekolah.sppg_id === selectedSppg);
   }, [selectedSppg, semuaDaftarSekolah]);
   
   const filteredB3 = useMemo(() => {
     if (selectedSppg === 'all') return semuaDaftarB3;
-    return semuaDaftarB3.filter((b3) => b3.sppgId === selectedSppg);
+    return semuaDaftarB3.filter((b3) => b3.sppg_id === selectedSppg);
   }, [selectedSppg, semuaDaftarB3]);
 
   // Effects and handlers for Sekolah
@@ -523,9 +497,9 @@ export default function MitraPage({ userRole, userSppgId, semuaDaftarSekolah, se
                         </Button>
                       </TableHead>
                       <TableHead>
-                        <Button variant="ghost" onClick={() => requestSortSekolah('jumlahPM')}>
+                        <Button variant="ghost" onClick={() => requestSortSekolah('jumlahpm')}>
                           Jumlah PM
-                          {getSortIndicatorSekolah('jumlahPM')}
+                          {getSortIndicatorSekolah('jumlahpm')}
                         </Button>
                       </TableHead>
                     </TableRow>
@@ -537,7 +511,7 @@ export default function MitraPage({ userRole, userSppgId, semuaDaftarSekolah, se
                           <TableCell>{sekolah.nama}</TableCell>
                           <TableCell>{sekolah.alamat}</TableCell>
                           <TableCell>{sekolah.jenjang}</TableCell>
-                          <TableCell>{sekolah.jumlahPM}</TableCell>
+                          <TableCell>{sekolah.jumlahpm}</TableCell>
                         </TableRow>
                       ))
                     ) : (
@@ -617,9 +591,9 @@ export default function MitraPage({ userRole, userSppgId, semuaDaftarSekolah, se
                     <TableHeader>
                       <TableRow className="bg-muted/50">
                         <TableHead>
-                          <Button variant="ghost" onClick={() => requestSortB3('namaDesa')}>
+                          <Button variant="ghost" onClick={() => requestSortB3('namadesa')}>
                             Nama Desa/Kelurahan
-                            {getSortIndicatorB3('namaDesa')}
+                            {getSortIndicatorB3('namadesa')}
                           </Button>
                         </TableHead>
                         <TableHead>
@@ -643,7 +617,7 @@ export default function MitraPage({ userRole, userSppgId, semuaDaftarSekolah, se
                       {paginatedB3.length > 0 ? (
                         paginatedB3.map((item) => (
                           <TableRow key={item.id} onClick={() => handleB3RowClick(item)} className="cursor-pointer">
-                            <TableCell>{item.namaDesa}</TableCell>
+                            <TableCell>{item.namadesa}</TableCell>
                             <TableCell>{item.alamat}</TableCell>
                             <TableCell>
                               <div>Bumil: {item.jenis.bumil}</div>
@@ -738,8 +712,8 @@ export default function MitraPage({ userRole, userSppgId, semuaDaftarSekolah, se
                         <h3 className="font-semibold">Data Sekolah</h3>
                         <dl className="grid gap-2">
                             <DetailItem label="Alamat" value={selectedSekolah.alamat} />
-                            <DetailItem label="Jumlah PM" value={selectedSekolah.jumlahPM} />
-                            <DetailItem label="SPPG" value={sppgList.find(opt => opt.id === selectedSekolah.sppgId)?.nama} />
+                            <DetailItem label="Jumlah PM" value={selectedSekolah.jumlahpm} />
+                            <DetailItem label="SPPG" value={sppgList.find(opt => opt.id === selectedSekolah.sppg_id)?.nama} />
                         </dl>
                     </div>
                 </div>
@@ -772,7 +746,7 @@ export default function MitraPage({ userRole, userSppgId, semuaDaftarSekolah, se
         <Dialog open={isDetailB3Open} onOpenChange={setIsDetailB3Open}>
             <DialogContent className="max-w-2xl">
                 <DialogHeader>
-                    <DialogTitle>{selectedB3.namaDesa}</DialogTitle>
+                    <DialogTitle>{selectedB3.namadesa}</DialogTitle>
                     <DialogDescription>{selectedB3.alamat}</DialogDescription>
                 </DialogHeader>
                  <div className="grid gap-6 py-4">
@@ -783,7 +757,7 @@ export default function MitraPage({ userRole, userSppgId, semuaDaftarSekolah, se
                             <DetailItem label="Ibu Hamil" value={selectedB3.jenis.bumil} />
                             <DetailItem label="Ibu Menyusui" value={selectedB3.jenis.busui} />
                             <DetailItem label="Balita" value={selectedB3.jenis.balita} />
-                            <DetailItem label="SPPG" value={sppgList.find(opt => opt.id === selectedB3.sppgId)?.nama} />
+                            <DetailItem label="SPPG" value={sppgList.find(opt => opt.id === selectedB3.sppg_id)?.nama} />
                         </dl>
                     </div>
                 </div>
@@ -801,7 +775,7 @@ export default function MitraPage({ userRole, userSppgId, semuaDaftarSekolah, se
             <DialogContent className="max-w-4xl">
                 <DialogHeader>
                     <DialogTitle>Edit Data B3</DialogTitle>
-                    <DialogDescription>Ubah data untuk {selectedB3.namaDesa}.</DialogDescription>
+                    <DialogDescription>Ubah data untuk {selectedB3.namadesa}.</DialogDescription>
                 </DialogHeader>
                 <B3Form b3={selectedB3} />
                 <DialogFooter>
@@ -813,3 +787,5 @@ export default function MitraPage({ userRole, userSppgId, semuaDaftarSekolah, se
     </>
   );
 }
+
+    

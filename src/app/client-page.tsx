@@ -39,38 +39,43 @@ const allMenuItems: Menu[] = ['Dashboard', 'SPPG', 'Mitra', 'Menu', 'Keuangan', 
 // NOTE: This logic will need to be updated to use actual user roles from the database
 const adminOnlyMenus: Menu[] = ['SPPG', 'Laporan', 'Kelola Penanggung Jawab'];
 
-type SppgData = {
+export type SppgData = {
   id: string;
   nama: string;
   yayasan: string;
   alamat: string;
-  penerimaManfaat: number;
-  namaKaSppg: string;
-  namaAkuntan: string;
-  ahliGizi: string;
-  asistenLapangan: string;
+  penerimamanfaat: number;
+  nama_ka_sppg: string;
+  nama_akuntan: string;
+  ahli_gizi: string;
+  asisten_lapangan: string;
   wilayah: any;
   logo_url: string | null;
 };
 
-type Sekolah = {
+export type Sekolah = {
   id: string;
   nama: string;
   alamat: string;
   jenjang: string;
-  jumlahPM: number;
-  sppgId: string;
+  jumlahpm: number;
+  sppg_id: string;
   wilayah: any;
+  nama_kepala_sekolah: string | null;
+  nama_pic: string | null;
+  telepon_pic: string | null;
 };
 
-type B3Data = {
+export type B3Data = {
   id: string;
-  namaDesa: string;
+  namadesa: string;
   alamat: string;
   jenis: { bumil: number; busui: number; balita: number };
   jumlah: number;
-  sppgId: string;
+  sppg_id: string;
   wilayah: any;
+  nama_pic: string | null;
+  telepon_pic: string | null;
 };
 
 type ClientPageProps = {
@@ -86,9 +91,10 @@ export default function ClientPage({ user, sppgList, sekolahList, b3List, assign
   const supabase = createClient();
   const [activeMenu, setActiveMenu] = useState<Menu>('Dashboard');
 
+  // These will be replaced by data from user_profiles table
   const userRole = user.user_metadata?.role || 'SPPG';
-  const userSppgId = user.user_metadata?.sppgId;
-  const userName = user.user_metadata?.full_name || user.email;
+  const userSppgId = user.user_metadata?.sppg_id;
+  const userName = user.user_metadata?.nama || user.email;
   const userAvatar = user.user_metadata?.avatar_url;
 
   const sppgName = sppgList.find(s => s.id === userSppgId)?.nama || userSppgId;
@@ -243,3 +249,5 @@ export default function ClientPage({ user, sppgList, sekolahList, b3List, assign
     </div>
   );
 }
+
+    

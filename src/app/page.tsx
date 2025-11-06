@@ -23,6 +23,7 @@ export default async function Page() {
 
   // Jika tidak ada profil, arahkan ke halaman pending
   if (!userProfile || profileError) {
+    console.error('Profile error or not found:', profileError?.message);
     return redirect('/pending');
   }
   
@@ -31,10 +32,7 @@ export default async function Page() {
       ...user,
       user_metadata: {
           ...user.user_metadata,
-          role: userProfile.role,
-          sppgId: userProfile.sppg_id,
-          full_name: userProfile.nama,
-          avatar_url: userProfile.avatar_url,
+          ...userProfile
       }
   };
 
@@ -56,3 +54,5 @@ export default async function Page() {
     />
   )
 }
+
+    

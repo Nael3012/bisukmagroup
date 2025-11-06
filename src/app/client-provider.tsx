@@ -1,43 +1,10 @@
 
 'use client';
 
-import ClientPage from './client-page';
+import ClientPage, { type SppgData, type Sekolah, type B3Data } from './client-page';
 import type { User } from '@supabase/supabase-js';
 import type { UserProfile } from './actions/accounts';
 
-type SppgData = {
-  id: string;
-  nama: string;
-  yayasan: string;
-  alamat: string;
-  penerimaManfaat: number;
-  namaKaSppg: string;
-  namaAkuntan: string;
-  ahliGizi: string;
-  asistenLapangan: string;
-  wilayah: any;
-  logo_url: string | null;
-};
-
-type Sekolah = {
-  id: string;
-  nama: string;
-  alamat: string;
-  jenjang: string;
-  jumlahPM: number;
-  sppgId: string;
-  wilayah: any;
-};
-
-type B3Data = {
-  id: string;
-  namaDesa: string;
-  alamat: string;
-  jenis: { bumil: number; busui: number; balita: number };
-  jumlah: number;
-  sppgId: string;
-  wilayah: any;
-};
 
 type ClientProviderProps = {
   user: User;
@@ -50,3 +17,5 @@ type ClientProviderProps = {
 export default function ClientProvider(props: ClientProviderProps) {
   return <ClientPage {...props} />;
 }
+
+    
