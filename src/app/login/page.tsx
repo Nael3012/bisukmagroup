@@ -19,6 +19,13 @@ const yayasanLogos = [
     { name: "Bisukma Generasi Emas Indonesia", url: "https://oilvtefzzupggnstgpsa.supabase.co/storage/v1/object/public/logos/1762413958140_Bisukma%20Generasi%20Emas%20Indonesia.png"}
 ];
 
+const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" {...props}>
+        <path d="M12.48 10.92v3.28h7.84c-.24 1.84-.85 3.18-1.73 4.1-1.02 1.08-2.58 2.03-4.56 2.03-3.86 0-6.99-3.16-6.99-7.01s3.13-7.01 6.99-7.01c2.2 0 3.63.86 4.47 1.64l2.69-2.61C18.01 2.49 15.45 1 12.48 1 5.88 1 1 5.98 1 12.5s4.88 11.5 11.48 11.5c3.54 0 6.28-1.18 8.37-3.37 2.17-2.26 2.8-5.41 2.8-8.52 0-.75-.07-1.42-.2-2.09H12.48z" />
+    </svg>
+);
+
+
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
@@ -44,6 +51,21 @@ export default function LoginPage() {
     }
     setLoading(false);
   };
+  
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    setError(null);
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+     if (error) {
+      setError(error.message);
+      setLoading(false);
+    }
+  }
 
   return (
     <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2">
@@ -108,6 +130,20 @@ export default function LoginPage() {
               {loading ? 'Memproses...' : 'Masuk'}
             </Button>
           </form>
+           <div className="relative my-2">
+                <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-2 text-muted-foreground">
+                    Atau lanjutkan dengan
+                    </span>
+                </div>
+            </div>
+             <Button variant="outline" className="w-full" onClick={handleGoogleLogin} disabled={loading}>
+                <GoogleIcon className="mr-2 h-4 w-4" />
+                Google
+            </Button>
         </div>
       </div>
       <div className="hidden bg-muted lg:flex flex-col items-center justify-center p-8 gap-10">
