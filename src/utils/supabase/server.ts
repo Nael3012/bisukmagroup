@@ -1,6 +1,6 @@
+
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { type ReadonlyRequestCookies } from 'next/dist/server/web/spec-extension/adapters/request-cookies'
-import { cookies } from 'next/headers'
 
 export function createClient(cookieStore: ReadonlyRequestCookies) {
   return createServerClient(
@@ -33,5 +33,3 @@ export function createClient(cookieStore: ReadonlyRequestCookies) {
     }
   )
 }
-
-    
