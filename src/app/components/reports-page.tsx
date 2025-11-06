@@ -294,41 +294,74 @@ export default function ReportsPage() {
     }
     setError(null);
     
-    // This is a placeholder. In a real app, you'd fetch data similar to handlePreview
-    // and then format it for XLSX. For now, we'll use a simple example.
-    const dataToDownload = [
-        ["Laporan", reportTypeOptions.find(opt => opt.value === selectedReport)?.label || ''],
-        ["SPPG", sppgOptions.find(opt => opt.value === selectedSppg)?.label || ''],
-        ["Tanggal", date ? format(date, "d LLL y", { locale: id }) : 'N/A'],
-        [], // empty row as separator
-        ["Kolom 1", "Kolom 2", "Kolom 3"],
-        ["Data 1A", "Data 1B", "Data 1C"],
-        ["Data 2A", "Data 2B", "Data 2C"],
-    ];
+    // Trigger preview logic to ensure previewData is up-to-date
+    handlePreview();
 
-    if (previewData.length > 0) {
-        // A more sophisticated mapping would be needed here based on report type
-        console.log("Downloading actual data:", previewData);
-    } else {
-        // Temporary logic if preview data isn't directly usable
-        const checkDataForDownload = () => {
-             if (selectedReport === 'mitra') return true;
-             if (selectedReport === 'menu') return true;
-             return false; // No data for 'keuangan' yet
-        }
-        if (!checkDataForDownload()) {
-            setError("Data tidak ditemukan untuk diunduh.");
+    // Use a short timeout to allow state to update before proceeding
+    setTimeout(async () => {
+        if (previewData.length === 0 && selectedReport !== 'keuangan') {
+            setError("Tidak ada data untuk diunduh berdasarkan filter yang dipilih.");
             return;
         }
-    }
+        
+        if (selectedReport === 'keuangan') {
+            setError("Fitur unduh untuk Laporan Keuangan belum tersedia.");
+            return;
+        }
 
-    // Dynamically import xlsx library
-    const XLSX = await import('xlsx');
-    const worksheet = XLSX.utils.aoa_to_sheet(dataToDownload);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Laporan");
-    const fileName = `${selectedReport}_${selectedSppg}_${new Date().toISOString().split('T')[0]}.xlsx`;
-    XLSX.writeFile(workbook, fileName);
+        const XLSX = await import('xlsx');
+        let dataToDownload: any[][] = [];
+        const reportTitle = reportTypeOptions.find(opt => opt.value === selectedReport)?.label || 'Laporan';
+        const sppgTitle = sppgOptions.find(opt => opt.value === selectedSppg)?.label || 'Semua SPPG';
+        
+        // Add header rows
+        dataToDownload.push(['Jenis Laporan:', reportTitle]);
+        dataToDownload.push(['SPPG:', sppgTitle]);
+        if (showDatePicker && date) {
+            dataToDownload.push(['Tanggal:', format(date, "d LLL y", { locale: id })]);
+        }
+        if (selectedReport === 'menu') {
+            dataToDownload.push(['Tipe Menu:', menuReportType === 'harian' ? 'Harian' : 'Mingguan']);
+        }
+        dataToDownload.push([]); // Spacer
+
+        // Format data based on report type
+        if (selectedReport === 'mitra') {
+            dataToDownload.push(['Tipe Mitra', 'Nama', 'Alamat/Desa', 'Jenjang', 'Jumlah PM', 'Detail PM']);
+            const sekolahData = previewData.filter(item => 'jenjang' in item);
+            const b3Data = previewData.filter(item => 'namaDesa' in item);
+            sekolahData.forEach(s => dataToDownload.push(['Sekolah', s.nama, s.alamat, s.jenjang, s.jumlahPM, '']));
+            b3Data.forEach(b => dataToDownload.push(['B3', b.namaDesa, b.alamat, '', b.jumlah, `Bumil: ${b.jenis.bumil}, Busui: ${b.jenis.busui}, Balita: ${b.jenis.balita}`]));
+        } else if (selectedReport === 'menu') {
+            if (menuReportType === 'harian') {
+                dataToDownload.push(['Nama Menu', 'Kandungan Gizi Porsi Besar', 'Kandungan Gizi Porsi Kecil']);
+                previewData.forEach(menu => {
+                    const largePortionStr = Array.isArray(menu.largePortion) ? menu.largePortion.map((n:any) => `${n.source}: ${n.amount}`).join('\n') : '';
+                    const smallPortionStr = Array.isArray(menu.smallPortion) ? menu.smallPortion.map((n:any) => `${n.source}: ${n.amount}`).join('\n') : '';
+                    dataToDownload.push([menu.menuName, largePortionStr, smallPortionStr]);
+                });
+            } else if (menuReportType === 'mingguan') {
+                dataToDownload.push(['Hari', 'Nama Menu', 'Status']);
+                 previewData.forEach(sppgMenu => {
+                    dataToDownload.push([sppgOptions.find(opt => opt.value === sppgMenu.sppgId)?.label || 'SPPG Data']);
+                    Object.entries(sppgMenu.menuData).forEach(([day, menu]: [string, any]) => {
+                        dataToDownload.push([day, menu?.menuName || 'Belum diisi', sppgMenu.weekStatus[day] ? 'Terisi' : 'Kosong']);
+                    });
+                     dataToDownload.push([]); // Spacer between SPPGs if 'all' is selected
+                });
+            }
+        }
+        
+        const worksheet = XLSX.utils.aoa_to_sheet(dataToDownload);
+        // Set column widths
+        const colWidths = dataToDownload[0].map((_, i) => ({ wch: Math.max(...dataToDownload.map(row => row[i] ? String(row[i]).length : 0)) + 5 }));
+        worksheet['!cols'] = colWidths;
+
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Laporan");
+        const fileName = `${selectedReport}_${selectedSppg}_${new Date().toISOString().split('T')[0]}.xlsx`;
+        XLSX.writeFile(workbook, fileName);
+    }, 100);
   };
   
   const reportLabel = reportTypeOptions.find(opt => opt.value === selectedReport)?.label || "Laporan";
@@ -457,8 +490,3 @@ export default function ReportsPage() {
     </>
   );
 }
-
-    
-    
-
-    
