@@ -119,7 +119,7 @@ export default function LoginPage() {
             </h1>
             <p className="text-4xl font-light tracking-wide">report</p>
         </div>
-        <div className="grid grid-cols-2 gap-8">
+        <div className="flex flex-row items-center justify-center gap-8 flex-wrap">
             {yayasanLogos.map((logo) => (
                 <div key={logo.name} className="relative h-20 w-40">
                     <Image
