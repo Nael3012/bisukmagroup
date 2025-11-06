@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -37,22 +38,21 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background">
-      <Card className="w-full max-w-sm">
-        <CardHeader className="text-center">
-            <div className="mb-4">
-                <h1 className="text-3xl">
-                    <span className="font-bold bg-gradient-to-r from-blue-500 via-purple-500 to-orange-500 bg-clip-text text-transparent">
-                        BETA
-                    </span>
-                    <span className="text-2xl font-light text-slate-600">report</span>
-                </h1>
-            </div>
-          <CardTitle className="text-2xl">Masuk</CardTitle>
-          <CardDescription>Masukkan email dan password Anda untuk melanjutkan</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleLogin} className="space-y-4">
+    <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2">
+      <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto grid w-[350px] gap-6">
+          <div className="grid gap-2 text-center">
+             <h1 className="text-3xl font-bold">
+                <span className="font-bold bg-gradient-to-r from-blue-500 via-purple-500 to-orange-500 bg-clip-text text-transparent">
+                    BETA
+                </span>
+                <span className="text-2xl font-light text-slate-600 dark:text-slate-300">report</span>
+            </h1>
+            <p className="text-balance text-muted-foreground">
+              Masukkan email dan password Anda untuk masuk
+            </p>
+          </div>
+          <form onSubmit={handleLogin} className="grid gap-4">
             <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -62,20 +62,31 @@ export default function LoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                disabled={loading}
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="password">Password</Label>
-              <Input 
-                id="password" 
-                type="password" 
-                required 
+              <div className="flex items-center">
+                <Label htmlFor="password">Password</Label>
+                {/* Optional: Add Forgot Password link here */}
+                {/* <Link
+                  href="/forgot-password"
+                  className="ml-auto inline-block text-sm underline"
+                >
+                  Forgot your password?
+                </Link> */}
+              </div>
+              <Input
+                id="password"
+                type="password"
+                required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                disabled={loading}
               />
             </div>
 
-            {error && (
+             {error && (
                 <Alert variant="destructive">
                     <AlertCircle className="h-4 w-4" />
                     <AlertTitle>Login Gagal</AlertTitle>
@@ -89,8 +100,14 @@ export default function LoginPage() {
               {loading ? 'Memproses...' : 'Masuk'}
             </Button>
           </form>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
+      <div className="hidden lg:flex items-center justify-center bg-gradient-to-br from-blue-600 via-purple-600 to-orange-500 p-8">
+        <div className="text-white text-center">
+            <h1 className="text-7xl font-bold tracking-tighter">BETA</h1>
+            <p className="text-4xl font-light tracking-wide">report</p>
+        </div>
+      </div>
     </div>
   );
 }
