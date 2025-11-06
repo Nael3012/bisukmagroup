@@ -9,7 +9,7 @@ import DashboardPage from './components/dashboard-page';
 import AccountsPage from './components/accounts-page';
 import ReportsPage from './components/reports-page';
 import { cn } from '@/lib/utils';
-import { PanelLeft, UserCircle } from 'lucide-react';
+import { LogOut, PanelLeft, UserCircle } from 'lucide-react';
 import {
   Sheet,
   SheetContent,
@@ -28,31 +28,16 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ThemeToggle } from '@/components/theme-toggle';
 import KeuanganPage from './components/keuangan-page';
+import type { User } from '@supabase/supabase-js';
+import { supabase } from '@/utils/supabase/client';
+import { useRouter } from 'next/navigation';
 
 type Menu = 'Dashboard' | 'SPPG' | 'Mitra' | 'Menu' | 'Keuangan' | 'Laporan' | 'Kelola Penanggung Jawab';
 
 const allMenuItems: Menu[] = ['Dashboard', 'SPPG', 'Mitra', 'Menu', 'Keuangan', 'Laporan', 'Kelola Penanggung Jawab'];
+
+// NOTE: This logic will need to be updated to use actual user roles from the database
 const adminOnlyMenus: Menu[] = ['SPPG', 'Laporan', 'Kelola Penanggung Jawab'];
-
-type UserData = {
-    name: string;
-    role: "Admin Pusat" | "SPPG";
-    avatar: string;
-    sppgId?: 'sppg-al-ikhlas' | 'sppg-bina-umat' | 'sppg-nurul-hidayah';
-}
-
-const adminUser: UserData = {
-    name: "Admin BGN",
-    role: "Admin Pusat",
-    avatar: "https://github.com/shadcn.png" 
-}
-
-const sppgUser: UserData = {
-    name: "John Doe",
-    role: "SPPG",
-    avatar: "https://github.com/johndoe.png",
-    sppgId: 'sppg-al-ikhlas'
-}
 
 type SppgData = {
   id: string;
@@ -65,6 +50,7 @@ type SppgData = {
   ahliGizi: string;
   asistenLapangan: string;
   wilayah: any;
+  logo_url: string | null;
 };
 
 type Sekolah = {
@@ -88,21 +74,34 @@ type B3Data = {
 };
 
 type ClientPageProps = {
+  user: User;
   sppgList: SppgData[];
   sekolahList: Sekolah[];
   b3List: B3Data[];
 }
 
-export default function ClientPage({ sppgList, sekolahList, b3List }: ClientPageProps) {
-  const [currentUser, setCurrentUser] = useState<UserData>(adminUser);
+export default function ClientPage({ user, sppgList, sekolahList, b3List }: ClientPageProps) {
+  const router = useRouter();
   const [activeMenu, setActiveMenu] = useState<Menu>('Dashboard');
+
+  // This is a placeholder for actual role management
+  const userRole = user.email?.includes('admin') ? 'Admin Pusat' : 'SPPG';
+  const userSppgId = user.user_metadata?.sppgId;
+  const userName = user.user_metadata?.full_name || user.email;
+  const userAvatar = user.user_metadata?.avatar_url;
 
   const handleMenuClick = (menu: Menu) => {
     setActiveMenu(menu);
   };
   
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push('/login');
+    router.refresh();
+  };
+
   const availableMenus = allMenuItems.filter(menu => {
-    if (currentUser.role === 'SPPG' && adminOnlyMenus.includes(menu)) {
+    if (userRole === 'SPPG' && adminOnlyMenus.includes(menu)) {
         return false;
     }
     return true;
@@ -110,8 +109,8 @@ export default function ClientPage({ sppgList, sekolahList, b3List }: ClientPage
 
   const renderContent = () => {
     const props = {
-        userRole: currentUser.role,
-        userSppgId: currentUser.sppgId,
+        userRole: userRole,
+        userSppgId: userSppgId,
     };
 
     switch (activeMenu) {
@@ -200,11 +199,11 @@ export default function ClientPage({ sppgList, sekolahList, b3List }: ClientPage
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative flex items-center gap-3 px-2">
                     <div className='text-right hidden sm:block'>
-                        <p className='text-sm font-medium'>{currentUser.name}</p>
-                        <p className='text-xs text-muted-foreground'>{currentUser.role}</p>
+                        <p className='text-sm font-medium'>{userName}</p>
+                        <p className='text-xs text-muted-foreground'>{userRole}</p>
                     </div>
                     <Avatar className="h-9 w-9">
-                        <AvatarImage src={currentUser.avatar} alt={`@${currentUser.name}`} />
+                        <AvatarImage src={userAvatar} alt={`@${userName}`} />
                         <AvatarFallback>
                             <UserCircle />
                         </AvatarFallback>
@@ -214,15 +213,12 @@ export default function ClientPage({ sppgList, sekolahList, b3List }: ClientPage
             <DropdownMenuContent className="w-56" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
-                        <p className="text-sm font-medium leading-none">{currentUser.name}</p>
+                        <p className="text-sm font-medium leading-none">{userName}</p>
                         <p className="text-xs leading-none text-muted-foreground">
-                            {currentUser.role}
+                            {user.email}
                         </p>
                     </div>
                 </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                 <DropdownMenuItem onClick={() => setCurrentUser(adminUser)}>Login as Admin</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setCurrentUser(sppgUser)}>Login as SPPG</DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>
                     Profil
@@ -231,8 +227,9 @@ export default function ClientPage({ sppgList, sekolahList, b3List }: ClientPage
                     Pengaturan
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                    Logout
+                <DropdownMenuItem onClick={handleLogout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Logout</span>
                 </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

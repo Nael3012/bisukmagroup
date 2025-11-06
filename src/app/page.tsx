@@ -1,11 +1,18 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
 import ClientPage from './client-page';
 
 export default async function Page() {
   const cookieStore = cookies()
   const supabase = createClient(cookieStore)
+
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return redirect('/login')
+  }
 
   const { data: sppgData } = await supabase.from('sppg').select()
   const { data: sekolahData } = await supabase.from('sekolah').select()
@@ -13,6 +20,7 @@ export default async function Page() {
 
   return (
     <ClientPage
+      user={user}
       sppgList={sppgData || []}
       sekolahList={sekolahData || []}
       b3List={b3Data || []}
