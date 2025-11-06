@@ -37,30 +37,19 @@ import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import type { User } from '@supabase/supabase-js';
 import { Switch } from '@/components/ui/switch';
-import { getPendingUsers, updateUserMetadata, createUser } from '@/app/actions/accounts';
+import { getUsers, updateUserMetadata, createUser } from '@/app/actions/accounts';
 import { useForm, Controller, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 
-
-type Account = {
-  id: string;
-  name: string;
-  email: string;
-  phone?: string;
-  role: 'Admin Pusat' | 'SPPG';
-  sppgManaged: string | null; // SPPG ID
-  position?: 'Ka. SPPG' | 'Ahli Gizi' | 'Akuntan' | 'Asisten Lapangan';
-};
-
-const accountList: Account[] = [];
-
 const sppgOptions = [
     { value: 'sppg-al-ikhlas', label: 'SPPG Al-Ikhlas' },
     { value: 'sppg-bina-umat', label: 'SPPG Bina Umat' },
     { value: 'sppg-nurul-hidayah', label: 'SPPG Nurul Hidayah' },
+    // Add a generic admin one
+    { value: 'admin-pusat', label: 'Admin Pusat' },
 ];
 
 const positionOptions = ['Ka. SPPG', 'Ahli Gizi', 'Akuntan', 'Asisten Lapangan'];
@@ -83,7 +72,6 @@ const createUserFormSchema = baseSchema.extend({
     path: ["confirmPassword"],
 });
 
-// Separate schema for updating from pending, where 'email' field holds the User ID
 const updateFromPendingSchema = baseSchema.extend({
     email: z.string().min(1, "Harap pilih akun pending."), // Now holds the user ID
 });
@@ -104,7 +92,7 @@ const AccountForm = ({
     onUsePendingChange,
     onFormSubmit
 }: { 
-    account?: Account | null,
+    account?: User | null,
     pendingUsers: User[],
     usePending: boolean,
     onUsePendingChange: (value: boolean) => void,
@@ -112,28 +100,35 @@ const AccountForm = ({
 }) => {
     const [selectedPendingData, setSelectedPendingData] = useState<{id: string, email: string, name: string} | null>(null);
     
-    // Dynamically select the right schema
     const activeSchema = useMemo(() => {
-        if (account) { // Edit mode
+        if (account) {
             return editUserFormSchema;
         }
-        if (usePending) { // Create from pending mode
+        if (usePending) {
             return updateFromPendingSchema;
         }
-        return createUserFormSchema; // Create new mode
+        return createUserFormSchema;
     }, [account, usePending]);
 
+    const defaultValues = useMemo(() => {
+        if (account) {
+            return {
+                full_name: account.user_metadata?.full_name || '',
+                email: account.email || '',
+                phone: account.user_metadata?.phone || '',
+                role: account.user_metadata?.role || 'SPPG',
+                sppgId: account.user_metadata?.sppgId || '',
+                position: account.user_metadata?.position || '',
+            }
+        }
+        return {
+             full_name: '', email: '', phone: '', role: 'SPPG', sppgId: '', position: ''
+        }
+    }, [account]);
 
     const { register, handleSubmit, control, watch, setValue, formState: { errors } } = useForm({
         resolver: zodResolver(activeSchema),
-        defaultValues: {
-            full_name: account?.name || '',
-            email: account?.email || '',
-            phone: account?.phone || '',
-            role: account?.role || 'SPPG',
-            sppgId: account?.sppgManaged || '',
-            position: account?.position || '',
-        }
+        defaultValues
     });
 
     const role = watch('role');
@@ -141,7 +136,7 @@ const AccountForm = ({
     useEffect(() => {
         if (!usePending) {
             setSelectedPendingData(null);
-            if (!account) { // Reset fields if switching back from pending on a new account form
+            if (!account) { 
                 setValue('email', '');
                 setValue('full_name', '');
             }
@@ -161,7 +156,6 @@ const AccountForm = ({
     return (
         <form onSubmit={handleSubmit(onFormSubmit)} id="account-form" className="space-y-4">
             <div className="flex flex-col md:flex-row gap-8 py-4">
-                {/* Segment 1: Data Pribadi */}
                 <div className="flex-1 space-y-4">
                     <h3 className="text-lg font-semibold text-muted-foreground">Data Pribadi</h3>
                     
@@ -180,7 +174,7 @@ const AccountForm = ({
                         <div className="grid gap-2">
                             <Label htmlFor="pending-email">Email Akun Pending</Label>
                              <Controller
-                                name="email" // This will now hold the User ID
+                                name="email" 
                                 control={control}
                                 render={({ field }) => (
                                     <Select onValueChange={(value) => {
@@ -219,7 +213,7 @@ const AccountForm = ({
 
                     <div className="grid gap-2">
                         <Label htmlFor="name">Nama Lengkap</Label>
-                        <Input id="name" placeholder="Contoh: Budi Santoso" {...register('full_name')} disabled={usePending && !account}/>
+                        <Input id="name" placeholder="Contoh: Budi Santoso" {...register('full_name')} />
                          {errors.full_name && <p className="text-sm text-destructive">{(errors.full_name as any).message}</p>}
                     </div>
 
@@ -246,7 +240,6 @@ const AccountForm = ({
 
                 <Separator orientation="vertical" className="h-auto hidden md:block" />
 
-                {/* Segment 2: Penugasan & Role */}
                 <div className="flex-1 space-y-4">
                     <h3 className="text-lg font-semibold text-muted-foreground">Penugasan & Role</h3>
                     <Alert>
@@ -274,49 +267,47 @@ const AccountForm = ({
                         />
                          {errors.role && <p className="text-sm text-destructive">{(errors.role as any).message}</p>}
                     </div>
-
+                    
+                    <div className="grid gap-2">
+                        <Label htmlFor="sppg">SPPG yang Dikelola</Label>
+                        <Controller
+                            name="sppgId"
+                            control={control}
+                            render={({ field }) => (
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                    <SelectTrigger id="sppg">
+                                    <SelectValue placeholder="Pilih SPPG" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                    {sppgOptions.map(opt => (
+                                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                                    ))}
+                                    </SelectContent>
+                                </Select>
+                            )}
+                        />
+                        {errors.sppgId && <p className="text-sm text-destructive">{(errors.sppgId as any).message}</p>}
+                    </div>
                     { role === 'SPPG' && (
-                        <>
-                            <div className="grid gap-2">
-                                <Label htmlFor="sppg">SPPG yang Dikelola</Label>
-                                <Controller
-                                    name="sppgId"
-                                    control={control}
-                                    render={({ field }) => (
-                                        <Select onValueChange={field.onChange} value={field.value}>
-                                            <SelectTrigger id="sppg">
-                                            <SelectValue placeholder="Pilih SPPG" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                            {sppgOptions.map(opt => (
-                                                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                                            ))}
-                                            </SelectContent>
-                                        </Select>
-                                    )}
-                                />
-                                {errors.sppgId && <p className="text-sm text-destructive">{(errors.sppgId as any).message}</p>}
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="position">Jabatan</Label>
-                                <Controller
-                                    name="position"
-                                    control={control}
-                                    render={({ field }) => (
-                                        <Select onValueChange={field.onChange} value={field.value}>
-                                            <SelectTrigger id="position">
-                                            <SelectValue placeholder="Pilih Jabatan" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                            {positionOptions.map(opt => (
-                                                <SelectItem key={opt} value={opt}>{opt}</SelectItem>
-                                            ))}
-                                            </SelectContent>
-                                        </Select>
-                                    )}
-                                />
-                            </div>
-                        </>
+                        <div className="grid gap-2">
+                            <Label htmlFor="position">Jabatan</Label>
+                            <Controller
+                                name="position"
+                                control={control}
+                                render={({ field }) => (
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                        <SelectTrigger id="position">
+                                        <SelectValue placeholder="Pilih Jabatan" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                        {positionOptions.map(opt => (
+                                            <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                                        ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
+                        </div>
                     )}
                 </div>
             </div>
@@ -324,17 +315,22 @@ const AccountForm = ({
     );
 }
 
-export default function AccountsPage() {
+type AccountsPageProps = {
+    accountList: User[];
+}
+
+export default function AccountsPage({ accountList }: AccountsPageProps) {
   const router = useRouter();
   const { toast } = useToast();
   const [itemsPerPage, setClientItemsPerPage] = useState(15);
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
+  const [selectedAccount, setSelectedAccount] = useState<User | null>(null);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [pendingUsers, setPendingUsers] = useState<User[]>([]);
   const [usePendingAccount, setUsePendingAccount] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isFetchingPending, setIsFetchingPending] = useState(false);
 
 
   useEffect(() => {
@@ -342,19 +338,19 @@ export default function AccountsPage() {
   }, [itemsPerPage]);
   
   const fetchPending = async () => {
-    setIsLoading(true);
+    setIsFetchingPending(true);
     try {
-        const users = await getPendingUsers();
+        const users = await getUsers({ type: 'pending' });
         setPendingUsers(users || []);
-    } catch (error) {
+    } catch (error: any) {
         console.error("Gagal mengambil data pengguna pending:", error);
         toast({
             variant: "destructive",
             title: "Gagal mengambil data",
-            description: "Tidak dapat memuat daftar akun pending. Anda mungkin tidak memiliki izin.",
+            description: error.message || "Tidak dapat memuat daftar akun pending.",
         });
     } finally {
-        setIsLoading(false);
+        setIsFetchingPending(false);
     }
   };
 
@@ -368,11 +364,11 @@ export default function AccountsPage() {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     return accountList.slice(startIndex, endIndex);
-  }, [currentPage, itemsPerPage]);
+  }, [accountList, currentPage, itemsPerPage]);
 
   const totalPages = Math.ceil(accountList.length / itemsPerPage);
 
-  const handleEditClick = (account: Account) => {
+  const handleEditClick = (account: User) => {
     setSelectedAccount(account);
     setIsEditOpen(true);
   }
@@ -396,9 +392,8 @@ export default function AccountsPage() {
         };
 
         if (usePendingAccount && !selectedAccount) {
-            // This is UpdateFromPendingFormValues
             const updateData = data as UpdateFromPendingFormValues;
-            const userId = updateData.email; // The email field holds the User ID
+            const userId = updateData.email; 
             if (!userId) {
                 toast({ variant: "destructive", title: "Error", description: "Pengguna pending tidak valid." });
                 setIsLoading(false);
@@ -407,11 +402,9 @@ export default function AccountsPage() {
              result = await updateUserMetadata(userId, metadata);
 
         } else if (selectedAccount) {
-            // This is EditUserFormValues
             const editData = data as EditUserFormValues;
              result = await updateUserMetadata(selectedAccount.id, editData);
         } else {
-            // This is CreateUserFormValues
             const createData = data as CreateUserFormValues;
             if (!createData.password) {
                  toast({ variant: "destructive", title: "Error", description: "Password harus diisi untuk akun baru." });
@@ -427,7 +420,6 @@ export default function AccountsPage() {
                 description: "Data akun berhasil disimpan.",
             });
             handleCloseDialogs();
-            // This is a temp fix to reload data. A proper state management is needed.
             router.refresh(); 
         } else {
             toast({
@@ -461,14 +453,14 @@ export default function AccountsPage() {
             <TableBody>
               {paginatedAccounts.map((account) => (
                 <TableRow key={account.id}>
-                  <TableCell className="font-medium">{account.name}</TableCell>
+                  <TableCell className="font-medium">{account.user_metadata.full_name || account.email}</TableCell>
                   <TableCell>{account.email}</TableCell>
                   <TableCell>
-                    <Badge variant={account.role === 'Admin Pusat' ? 'secondary' : 'default'}>
-                      {account.role}
+                    <Badge variant={account.user_metadata.role === 'Admin Pusat' ? 'secondary' : 'default'}>
+                      {account.user_metadata.role}
                     </Badge>
                   </TableCell>
-                  <TableCell>{account.sppgManaged || '-'}</TableCell>
+                  <TableCell>{sppgOptions.find(s => s.value === account.user_metadata.sppgId)?.label || account.user_metadata.sppgId || '-'}</TableCell>
                   <TableCell>
                     <div className="flex gap-2">
                         <Button variant="ghost" size="icon" onClick={() => handleEditClick(account)}>
@@ -486,7 +478,7 @@ export default function AccountsPage() {
                 {paginatedAccounts.length === 0 && (
                     <TableRow>
                         <TableCell colSpan={5} className="text-center h-24">
-                            Belum ada akun penanggung jawab.
+                            Belum ada akun penanggung jawab yang ditugaskan.
                         </TableCell>
                     </TableRow>
                 )}
@@ -552,9 +544,9 @@ export default function AccountsPage() {
             />
             <DialogFooter>
                 <DialogClose asChild>
-                    <Button variant="outline" disabled={isLoading}>Batal</Button>
+                    <Button variant="outline" disabled={isLoading || isFetchingPending}>Batal</Button>
                 </DialogClose>
-              <Button type="submit" form="account-form" disabled={isLoading}>
+              <Button type="submit" form="account-form" disabled={isLoading || isFetchingPending}>
                 {isLoading ? 'Menyimpan...' : 'Simpan Akun'}
               </Button>
             </DialogFooter>
@@ -563,13 +555,12 @@ export default function AccountsPage() {
       </div>
     </div>
     
-    {/* Edit Dialog */}
     <Dialog open={isEditOpen} onOpenChange={(open) => !open && handleCloseDialogs()}>
       <DialogContent className="max-w-4xl">
         <DialogHeader>
           <DialogTitle>Edit Akun & Penugasan</DialogTitle>
           <DialogDescription>
-            Ubah detail akun dan penugasan untuk {selectedAccount?.name}.
+            Ubah detail akun dan penugasan untuk {selectedAccount?.user_metadata.full_name || selectedAccount?.email}.
           </DialogDescription>
         </DialogHeader>
          <AccountForm 
@@ -592,5 +583,3 @@ export default function AccountsPage() {
     </>
   );
 }
-
-    

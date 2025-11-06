@@ -3,6 +3,7 @@
 
 import { createAdminClient } from '@/utils/supabase/admin';
 import { z } from 'zod';
+import type { User } from '@supabase/supabase-js';
 
 // Skema validasi untuk metadata pengguna
 const metadataSchema = z.object({
@@ -20,25 +21,29 @@ const createUserSchema = z.object({
 }).merge(metadataSchema);
 
 
-export async function getPendingUsers() {
+export async function getUsers({ type = 'assigned' }: { type: 'pending' | 'assigned' }) {
   const supabase = createAdminClient();
 
   const { data: { users }, error } = await supabase.auth.admin.listUsers({
-      perPage: 1000 // Ambil lebih banyak pengguna jika diperlukan
+      perPage: 1000
   });
 
   if (error) {
     console.error('Error fetching users:', error);
-    // Di lingkungan produksi, Anda mungkin ingin melempar error yang lebih umum
+    if (error.message.includes('User not allowed')) {
+        console.error('Security alert: Admin action attempted from an unauthorized context.');
+        // In a real app, you'd have more robust logging/alerting here.
+        return [];
+    }
     throw new Error('Gagal mengambil data pengguna dari server.');
   }
+  
+  if (type === 'pending') {
+      return users.filter(user => !user.user_metadata?.role || !user.user_metadata?.sppgId);
+  }
 
-  // Filter pengguna yang belum punya role atau sppgId
-  const pendingUsers = users.filter(user => 
-    !user.user_metadata?.role || !user.user_metadata?.sppgId
-  );
-
-  return pendingUsers;
+  // 'assigned' users
+  return users.filter(user => user.user_metadata?.role && user.user_metadata?.sppgId);
 }
 
 
@@ -58,7 +63,6 @@ export async function updateUserMetadata(userId: string, metadata: unknown) {
 
         return { success: true, data };
     } catch (e: any) {
-        // Tangani error validasi Zod atau error dari Supabase
         const errorMessage = e.errors ? e.errors.map((err: any) => err.message).join(', ') : e.message;
         console.error('Update user metadata failed:', errorMessage);
         return { success: false, error: errorMessage };
@@ -70,15 +74,13 @@ export async function createUser(userData: unknown) {
      const supabase = createAdminClient();
      
     try {
-        // 1. Validasi semua data termasuk email dan password
         const validatedData = createUserSchema.parse(userData);
         const { email, password, ...metadata } = validatedData;
 
-        // 2. Buat pengguna baru
         const { data: newUser, error: creationError } = await supabase.auth.admin.createUser({
             email,
             password,
-            email_confirm: true, // Otomatis konfirmasi email
+            email_confirm: true, 
             user_metadata: metadata,
         });
 

@@ -42,6 +42,7 @@ type ClientProviderProps = {
   sppgList: SppgData[];
   sekolahList: Sekolah[];
   b3List: B3Data[];
+  assignedUsers: User[];
 }
 
 export default function ClientProvider(props: ClientProviderProps) {

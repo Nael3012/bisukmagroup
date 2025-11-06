@@ -78,9 +78,10 @@ type ClientPageProps = {
   sppgList: SppgData[];
   sekolahList: Sekolah[];
   b3List: B3Data[];
+  assignedUsers: User[];
 }
 
-export default function ClientPage({ user, sppgList, sekolahList, b3List }: ClientPageProps) {
+export default function ClientPage({ user, sppgList, sekolahList, b3List, assignedUsers }: ClientPageProps) {
   const router = useRouter();
   const [activeMenu, setActiveMenu] = useState<Menu>('Dashboard');
 
@@ -123,7 +124,7 @@ export default function ClientPage({ user, sppgList, sekolahList, b3List }: Clie
       case 'Laporan':
         return <ReportsPage {...props} />;
       case 'Kelola Penanggung Jawab':
-        return <AccountsPage />;
+        return <AccountsPage accountList={assignedUsers} />;
       case 'Dashboard':
       default:
         return <DashboardPage {...props} />;
