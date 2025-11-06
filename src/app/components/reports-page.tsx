@@ -50,10 +50,10 @@ const sppgOptions = [
 ];
 
 const yayasanLogos: Record<string, string> = {
-    "Yayasan Bisukma Bangun Bangsa": "/logos/1762413828035_Bisukma_Bangun_Bangsa.png",
-    "Yayasan Patriot Generasi Emas Indonesia": "/logos/1762413871003_Patriot_Generasi_Emas_Indonesia.png",
-    "Yayasan Bisukma Hita Mangula": "/logos/1762413915579_Bisukma_Hita_Mangula.png",
-    "Yayasan Bisukma Generasi Emas Indonesia": "/logos/1762413958140_Bisukma_Generasi_Emas_Indonesia.png"
+    "Yayasan Bisukma Bangun Bangsa": "https://oilvtefzzupggnstgpsa.supabase.co/storage/v1/object/public/logos/1762413828035_Bisukma%20Bangun%20Bangsa.png",
+    "Yayasan Patriot Generasi Emas Indonesia": "https://oilvtefzzupggnstgpsa.supabase.co/storage/v1/object/public/logos/1762413871003_Patriot%20Generasi%20Emas%20Indonesia.png",
+    "Yayasan Bisukma Hita Mangula": "https://oilvtefzzupggnstgpsa.supabase.co/storage/v1/object/public/logos/1762413915579_Bisukma%20Hita%20Mangula.png",
+    "Yayasan Bisukma Generasi Emas Indonesia": "https://oilvtefzzupggnstgpsa.supabase.co/storage/v1/object/public/logos/1762413958140_Bisukma%20Generasi%20Emas%20Indonesia.png"
 };
 
 const reportTypeOptions = [
@@ -295,14 +295,24 @@ export default function ReportsPage({ userRole, userSppgId }: ReportsPageProps) 
      return true;
   },[selectedSppg, selectedReport, showDatePicker, date]);
   
-  const handleDownloadLogo = () => {
-    if (selectedSppgDetails && selectedSppgDetails.yayasan && yayasanLogos[selectedSppgDetails.yayasan]) {
-      const link = document.createElement('a');
-      link.href = yayasanLogos[selectedSppgDetails.yayasan];
-      link.download = `${selectedSppgDetails.yayasan.replace(/ /g, '_')}-logo.png`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+  const handleDownloadLogo = async () => {
+    const yayasan = selectedSppgDetails?.yayasan;
+    if (yayasan && yayasanLogos[yayasan]) {
+      try {
+        const response = await fetch(yayasanLogos[yayasan]);
+        if (!response.ok) throw new Error('Network response was not ok.');
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${yayasan.replace(/ /g, '_')}-logo.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      } catch (error) {
+        console.error("Download failed:", error);
+      }
     }
   };
 

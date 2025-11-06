@@ -77,6 +77,7 @@ const yayasanLogos: Record<string, string> = {
 const SppgForm = ({ sppg, onSave }: { sppg?: SppgData | null, onSave: () => void }) => {
     const [selectedYayasan, setSelectedYayasan] = useState(sppg?.yayasan || '');
     const [logoUrl, setLogoUrl] = useState<string | null>(sppg?.logo_url || null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         setSelectedYayasan(sppg?.yayasan || '');
@@ -86,6 +87,25 @@ const SppgForm = ({ sppg, onSave }: { sppg?: SppgData | null, onSave: () => void
     const handleYayasanChange = (yayasan: string) => {
         setSelectedYayasan(yayasan);
         setLogoUrl(yayasanLogos[yayasan] || null);
+    };
+
+    const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        const fileName = `${Date.now()}_${file.name}`;
+        const { data, error } = await supabase.storage
+            .from('logos')
+            .upload(fileName, file);
+
+        if (error) {
+            console.error('Error uploading file:', error);
+            // Handle error (e.g., show a toast notification)
+        } else {
+            const { data: { publicUrl } } = supabase.storage.from('logos').getPublicUrl(fileName);
+            setLogoUrl(publicUrl);
+            console.log('File uploaded successfully:', publicUrl);
+        }
     };
     
     const handleSave = async () => {
@@ -139,6 +159,23 @@ const SppgForm = ({ sppg, onSave }: { sppg?: SppgData | null, onSave: () => void
                         </SelectContent>
                     </Select>
                 </div>
+                 <div className="grid gap-2">
+                  <Label>Logo Yayasan</Label>
+                  <div className="relative flex items-center justify-center w-full h-40 border rounded-lg bg-muted/20">
+                     {logoUrl ? (
+                          <Image
+                            src={logoUrl}
+                            alt="Logo yayasan"
+                            fill
+                            className="p-2 object-contain rounded-md"
+                          />
+                     ) : (
+                        <div className="text-center text-muted-foreground text-sm">
+                            Logo akan tampil di sini setelah memilih yayasan.
+                        </div>
+                     )}
+                  </div>
+                </div>
             </div>
 
             <Separator orientation="vertical" className="h-auto hidden md:block" />
@@ -163,23 +200,6 @@ const SppgForm = ({ sppg, onSave }: { sppg?: SppgData | null, onSave: () => void
                 <div className="grid gap-2">
                 <Label htmlFor="asisten-lapangan">Asisten Lapangan</Label>
                 <Input id="asisten-lapangan" placeholder="Contoh: Joko" defaultValue={sppg?.asistenLapangan} />
-                </div>
-                 <div className="grid gap-2">
-                  <Label>Logo Yayasan</Label>
-                  <div className="relative flex items-center justify-center w-full h-40 border rounded-lg bg-muted/20">
-                     {logoUrl ? (
-                          <Image
-                            src={logoUrl}
-                            alt="Logo yayasan"
-                            fill
-                            className="p-2 object-contain rounded-md"
-                          />
-                     ) : (
-                        <div className="text-center text-muted-foreground text-sm">
-                            Logo akan tampil di sini setelah memilih yayasan.
-                        </div>
-                     )}
-                  </div>
                 </div>
             </div>
         </div>
