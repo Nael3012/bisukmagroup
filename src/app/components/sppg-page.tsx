@@ -153,9 +153,9 @@ const SppgForm = ({ sppg }: { sppg?: SppgData | null }) => {
                           <Image
                             src={logoUrl}
                             alt={`Logo ${selectedYayasan}`}
-                            layout="fill"
-                            objectFit="contain"
-                            className="p-2"
+                            width={1920}
+                            height={1080}
+                            className="p-2 object-contain h-full w-full"
                           />
                      ) : (
                         <>
@@ -366,4 +366,3 @@ export default function SppgPage({ sppgList }: SppgPageProps) {
     </>
   );
 }
-
