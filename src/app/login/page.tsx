@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState } from 'react';
@@ -10,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/utils/supabase/client';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Info } from 'lucide-react';
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="24px" height="24px" {...props}>
@@ -74,9 +73,12 @@ export default function LoginPage() {
                 </span>
                 <span className="text-2xl font-light text-slate-600 dark:text-slate-300">report</span>
             </h1>
-            <p className="text-balance text-muted-foreground">
-              Masukkan email dan password Anda untuk masuk
-            </p>
+            <Alert>
+                <Info className="h-4 w-4" />
+                <AlertDescription className="text-xs">
+                    Masukkan email dan password jika sudah memiliki akun, dan login dengan akun, atau login dengan akun Google
+                </AlertDescription>
+            </Alert>
           </div>
           <form onSubmit={handleLogin} className="grid gap-4">
             <div className="grid gap-2">
