@@ -15,9 +15,9 @@ export default async function Page() {
   }
 
   // --- START OF SUPER ADMIN LOGIC ---
-  // If the logged-in user is naelsianipar544@gmail.com, grant them super admin privileges.
+  // If the logged-in user is itbisukma@gmail.com, grant them super admin privileges.
   // This gives them an 'sppgId' to bypass the pending page and ensures they get the 'Admin Pusat' role.
-  if (user.email === 'naelsianipar544@gmail.com') {
+  if (user.email === 'itbisukma@gmail.com') {
     if (!user.user_metadata.sppgId || !user.user_metadata.role) {
       const { data, error } = await supabase.auth.updateUser({
         data: { 
