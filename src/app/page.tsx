@@ -1,158 +1,209 @@
+
 'use client';
-
 import { useState } from 'react';
-import {
-  Users,
-  LayoutDashboard,
-  Building,
-  Handshake,
-  Utensils,
-  Wallet,
-  ScrollText,
-  LogOut,
-  Menu as MenuIcon,
-  X,
-} from 'lucide-react';
-import { ThemeToggle } from '@/components/theme-toggle';
-import Image from 'next/image';
-import { useIsMobile } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-
-// Import Page Components
-import DashboardPage from './components/dashboard-page';
 import SppgPage from './components/sppg-page';
 import MitraPage from './components/mitra-page';
 import MenuPage from './components/menu-page';
-import KeuanganPage from './components/keuangan-page';
-import ReportsPage from './components/reports-page';
+import DashboardPage from './components/dashboard-page';
 import AccountsPage from './components/accounts-page';
+import ReportsPage from './components/reports-page';
+import { cn } from '@/lib/utils';
+import { PanelLeft, UserCircle } from 'lucide-react';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ThemeToggle } from '@/components/theme-toggle';
+import KeuanganPage from './components/keuangan-page';
 
-type NavItem = {
-  id: string;
-  label: string;
-  icon: React.ElementType;
-  component: React.ReactNode;
-  roles: ('Admin Pusat' | 'SPPG')[];
-};
 
-type UserRole = 'Admin Pusat' | 'SPPG';
-type SppgId = 'sppg-al-ikhlas' | 'sppg-bina-umat' | 'sppg-nurul-hidayah';
+type Menu = 'Dashboard' | 'SPPG' | 'Mitra' | 'Menu' | 'Keuangan' | 'Laporan' | 'Kelola Penanggung Jawab';
 
-const user: { role: UserRole; sppgId?: SppgId, name: string, email: string } = {
-  role: 'Admin Pusat',
-  // role: 'SPPG',
-  // sppgId: 'sppg-al-ikhlas',
-  name: 'Admin BGN',
-  email: 'admin.bgn@gmail.com'
-};
+const allMenuItems: Menu[] = ['Dashboard', 'SPPG', 'Mitra', 'Menu', 'Keuangan', 'Laporan', 'Kelola Penanggung Jawab'];
+const adminOnlyMenus: Menu[] = ['SPPG', 'Laporan', 'Kelola Penanggung Jawab'];
 
-const navItems: NavItem[] = [
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, component: <DashboardPage userRole={user.role} userSppgId={user.sppgId} />, roles: ['Admin Pusat', 'SPPG'] },
-  { id: 'sppg', label: 'SPPG', icon: Building, component: <SppgPage />, roles: ['Admin Pusat'] },
-  { id: 'mitra', label: 'Mitra', icon: Handshake, component: <MitraPage userRole={user.role} userSppgId={user.sppgId} />, roles: ['Admin Pusat', 'SPPG'] },
-  { id: 'menu', label: 'Menu', icon: Utensils, component: <MenuPage userRole={user.role} userSppgId={user.sppgId} />, roles: ['Admin Pusat', 'SPPG'] },
-  { id: 'keuangan', label: 'Keuangan', icon: Wallet, component: <KeuanganPage userRole={user.role} userSppgId={user.sppgId} />, roles: ['Admin Pusat', 'SPPG'] },
-  { id: 'laporan', label: 'Laporan', icon: ScrollText, component: <ReportsPage userRole={user.role} userSppgId={user.sppgId} />, roles: ['Admin Pusat'] },
-  { id: 'akun', label: 'Kelola Penanggung Jawab', icon: Users, component: <AccountsPage />, roles: ['Admin Pusat'] },
-];
+type UserData = {
+    name: string;
+    role: "Admin Pusat" | "SPPG";
+    avatar: string;
+    sppgId?: 'sppg-al-ikhlas' | 'sppg-bina-umat' | 'sppg-nurul-hidayah';
+}
 
-const renderContent = (activePage: string) => {
-  const item = navItems.find((item) => item.id === activePage);
-  return item ? item.component : <div>Pilih halaman</div>;
-};
+// Mock user data - in a real app, this would come from an auth context
+const adminUser: UserData = {
+    name: "Admin BGN",
+    role: "Admin Pusat",
+    avatar: "https://github.com/shadcn.png" 
+}
+
+const sppgUser: UserData = {
+    name: "John Doe",
+    role: "SPPG",
+    avatar: "https://github.com/johndoe.png",
+    sppgId: 'sppg-al-ikhlas'
+}
+
 
 export default function Home() {
-  const [activePage, setActivePage] = useState('dashboard');
-  const isMobile = useIsMobile();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  // Simulate user login - change this to `sppgUser` to test SPPG role
+  const [currentUser, setCurrentUser] = useState<UserData>(adminUser);
+  const [activeMenu, setActiveMenu] = useState<Menu>('Dashboard');
 
-  const filteredNavItems = navItems.filter(item => item.roles.includes(user.role));
-
-  const handleNavClick = (pageId: string) => {
-    setActivePage(pageId);
-    if(isMobile) {
-      setIsSidebarOpen(false);
+  const handleMenuClick = (menu: Menu) => {
+    setActiveMenu(menu);
+  };
+  
+  const availableMenus = allMenuItems.filter(menu => {
+    if (currentUser.role === 'SPPG' && adminOnlyMenus.includes(menu)) {
+        return false;
     }
-  }
+    return true;
+  });
 
-  const SidebarContent = () => (
-    <div className="flex h-full flex-col">
-      <div className="flex h-20 items-center justify-center px-6">
-        <Image src="https://placehold.co/150x50/000000/FFFFFF/png?text=BGN" width={150} height={50} alt="Logo" data-ai-hint="logo" />
+
+  const renderContent = () => {
+    const props = {
+        userRole: currentUser.role,
+        userSppgId: currentUser.sppgId
+    };
+
+    switch (activeMenu) {
+      case 'SPPG':
+        return <SppgPage />;
+      case 'Mitra':
+        return <MitraPage {...props} />;
+      case 'Menu':
+        return <MenuPage {...props} />;
+      case 'Keuangan':
+        return <KeuanganPage {...props} />;
+      case 'Laporan':
+        return <ReportsPage {...props} />;
+      case 'Kelola Penanggung Jawab':
+        return <AccountsPage />;
+      case 'Dashboard':
+      default:
+        return <DashboardPage {...props} />;
+    }
+  };
+
+  const sidebarContent = (
+    <div className="flex flex-col h-full">
+      <div className="h-16 flex items-center px-4">
+        <h1 className="text-2xl">
+          <span className="font-bold bg-gradient-to-r from-blue-500 via-purple-500 to-orange-500 bg-clip-text text-transparent">
+            BETA
+          </span>
+          <span className="text-xl font-light text-slate-600">report</span>
+        </h1>
       </div>
-      <div className="flex-1 overflow-y-auto">
-        <nav className="grid items-start px-4 text-sm font-medium">
-          {filteredNavItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => handleNavClick(item.id)}
-              className={`flex items-center gap-3 rounded-lg px-3 py-3 transition-all ${
-                activePage === item.id
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:bg-muted'
-              }`}
-            >
-              <item.icon className="h-4 w-4" />
-              {item.label}
-            </button>
+      <div className="flex-1 overflow-y-auto p-4">
+        <ul className="flex w-full min-w-0 flex-col gap-1">
+          {availableMenus.map((menu) => (
+             <li key={menu}>
+                <Button
+                  variant="ghost"
+                  className={cn(
+                    "w-full justify-start", 
+                    activeMenu === menu 
+                        ? "bg-accent text-accent-foreground font-semibold" 
+                        : "text-muted-foreground font-normal"
+                  )}
+                  onClick={() => handleMenuClick(menu)}
+                >
+                  {menu}
+                </Button>
+              </li>
           ))}
-        </nav>
+        </ul>
       </div>
-      <div className="mt-auto p-4 border-t">
-        <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:bg-muted">
-          <LogOut className="h-4 w-4" />
-          Logout
-        </button>
+       <div className="mt-auto p-4 border-t">
+        <ThemeToggle />
       </div>
     </div>
   );
 
-  if (isMobile) {
-    return (
-      <div className="flex min-h-screen w-full flex-col">
-        <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6 z-50">
-           <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
-            <SheetTrigger asChild>
-              <Button variant="outline" size="icon">
-                <MenuIcon className="h-6 w-6" />
-                <span className="sr-only">Toggle navigation menu</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="flex flex-col p-0">
-               <SidebarContent />
-            </SheetContent>
-          </Sheet>
-          <div className="flex-1">
-            <h1 className="font-semibold text-lg">{navItems.find(item => item.id === activePage)?.label}</h1>
-          </div>
-          <ThemeToggle />
-        </header>
-        <main className="flex-1 p-4 md:p-6">{renderContent(activePage)}</main>
-      </div>
-    );
-  }
-
-
   return (
-    <div className="grid min-h-screen w-full lg:grid-cols-[280px_1fr]">
-      <div className="hidden border-r bg-card text-card-foreground lg:block">
-        <SidebarContent />
+    <div className="flex h-screen bg-background">
+      {/* Static Sidebar for Desktop */}
+      <div className="border-r w-64 hidden md:flex flex-col">
+        {sidebarContent}
       </div>
-      <div className="flex flex-col">
-        <header className="flex h-16 items-center justify-end gap-4 border-b bg-background px-6">
-          <div className="flex items-center gap-4">
-             <div className="text-right">
-                <p className="font-semibold">{user.name}</p>
-                <p className="text-xs text-muted-foreground">{user.email}</p>
-            </div>
-            <ThemeToggle />
+
+      <div className="flex flex-col flex-1 overflow-auto">
+        <header className="flex items-center justify-between p-4 border-b h-16 sticky top-0 bg-background z-10">
+           <div className="flex items-center gap-4">
+            {/* Mobile Sidebar Trigger */}
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="md:hidden">
+                  <PanelLeft />
+                  <span className="sr-only">Buka Menu</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="p-0 w-64">
+                <SheetHeader className="sr-only">
+                  <SheetTitle>Menu Utama</SheetTitle>
+                </SheetHeader>
+                {sidebarContent}
+              </SheetContent>
+            </Sheet>
+            <h1 className="text-xl font-semibold">{activeMenu}</h1>
           </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative flex items-center gap-3 px-2">
+                    <div className='text-right hidden sm:block'>
+                        <p className='text-sm font-medium'>{currentUser.name}</p>
+                        <p className='text-xs text-muted-foreground'>{currentUser.role}</p>
+                    </div>
+                    <Avatar className="h-9 w-9">
+                        <AvatarImage src={currentUser.avatar} alt={`@${currentUser.name}`} />
+                        <AvatarFallback>
+                            <UserCircle />
+                        </AvatarFallback>
+                    </Avatar>
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none">{currentUser.name}</p>
+                        <p className="text-xs leading-none text-muted-foreground">
+                            {currentUser.role}
+                        </p>
+                    </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                 <DropdownMenuItem onClick={() => setCurrentUser(adminUser)}>Login as Admin</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setCurrentUser(sppgUser)}>Login as SPPG</DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                    Profil
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                    Pengaturan
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                    Logout
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </header>
-        <main className="flex-1 overflow-y-auto p-6">
-           <h1 className="text-3xl font-bold mb-6">{navItems.find(item => item.id === activePage)?.label}</h1>
-          {renderContent(activePage)}
-        </main>
+        <main className="flex-1 p-6">{renderContent()}</main>
       </div>
     </div>
   );
