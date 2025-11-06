@@ -24,7 +24,6 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
 
 
 export default function LoginPage() {
-  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -43,8 +42,7 @@ export default function LoginPage() {
     if (error) {
       setError(error.message);
     } else {
-      router.push('/');
-      router.refresh(); // Refresh the page to get the new auth state on the server
+      window.location.assign('/');
     }
     setLoading(false);
   };
