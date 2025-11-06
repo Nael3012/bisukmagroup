@@ -69,6 +69,8 @@ type SppgId = 'all' | 'sppg-al-ikhlas' | 'sppg-bina-umat' | 'sppg-nurul-hidayah'
 type MitraPageProps = {
     userRole: 'Admin Pusat' | 'SPPG';
     userSppgId?: SppgId;
+    semuaDaftarSekolah: Sekolah[];
+    semuaDaftarB3: B3Data[];
 }
 
 const sppgOptions = [
@@ -238,7 +240,7 @@ const B3Form = ({ b3 }: { b3?: B3Data | null }) => {
     );
 }
 
-export default function MitraPage({ userRole, userSppgId }: MitraPageProps) {
+export default function MitraPage({ userRole, userSppgId, semuaDaftarSekolah, semuaDaftarB3 }: MitraPageProps) {
   const [activeTab, setActiveTab] = useState('sekolah');
   const [indicatorStyle, setIndicatorStyle] = useState({});
   const tabsRef = useRef<(HTMLButtonElement | null)[]>([]);
@@ -261,10 +263,6 @@ export default function MitraPage({ userRole, userSppgId }: MitraPageProps) {
   const [selectedB3, setSelectedB3] = useState<B3Data | null>(null);
   const [isDetailB3Open, setIsDetailB3Open] = useState(false);
   const [isEditB3Open, setIsEditB3Open] = useState(false);
-
-  // Data will come from props
-  const semuaDaftarSekolah: Sekolah[] = [];
-  const semuaDaftarB3: B3Data[] = [];
 
   useEffect(() => {
     if (userRole === 'SPPG' && userSppgId) {
@@ -786,7 +784,3 @@ export default function MitraPage({ userRole, userSppgId }: MitraPageProps) {
     </>
   );
 }
-
-    
-
-    

@@ -115,16 +115,17 @@ const SppgForm = ({ sppg }: { sppg?: SppgData | null }) => {
     );
 };
 
+type SppgPageProps = {
+  sppgList: SppgData[];
+}
 
-export default function SppgPage() {
+export default function SppgPage({ sppgList }: SppgPageProps) {
   const [itemsPerPage, setItemsPerPage] = useState(15);
   const [currentPage, setCurrentPage] = useState(1);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedSppg, setSelectedSppg] = useState<SppgData | null>(null);
-
-  const sppgList: SppgData[] = useMemo(() => [], []);
 
   useEffect(() => {
     setCurrentPage(1);
