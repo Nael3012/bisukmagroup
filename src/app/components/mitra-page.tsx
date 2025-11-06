@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -31,6 +30,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogTrigger,
+  DialogClose
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -40,6 +40,10 @@ import { useState, useRef, useEffect, useMemo } from 'react';
 import { ArrowUpDown, ChevronLeft, ChevronRight, Download, Edit, Pencil } from 'lucide-react';
 import { WilayahSelector } from './wilayah-selector';
 import type { SppgData, Sekolah, B3Data } from '../client-page';
+import { useFormState, useFormStatus } from 'react-dom';
+import { saveSekolah, saveB3, type MitraFormState } from '@/app/actions/mitra';
+import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
 
 type Jenjang = 'PAUD' | 'TK' | 'SD' | 'SMP' | 'SMA' | '';
 type SortableKeysSekolah = keyof Omit<Sekolah, 'id' | 'sppg_id' | 'wilayah'>;
@@ -68,10 +72,60 @@ const DetailItem = ({ label, value }: { label: string; value: React.ReactNode })
   </div>
 );
 
-const SekolahForm = ({ sekolah }: { sekolah?: Sekolah | null }) => {
-  const [selectedJenjang, setSelectedJenjang] = useState<Jenjang>(
-    (sekolah?.jenjang as Jenjang) || ''
-  );
+const SubmitButton = () => {
+    const { pending } = useFormStatus();
+    return (
+        <Button type="submit" disabled={pending}>
+            {pending ? 'Menyimpan...' : 'Simpan'}
+        </Button>
+    );
+};
+
+const SekolahForm = ({ 
+    sekolah, 
+    sppgList, 
+    userRole, 
+    userSppgId, 
+    onSaveSuccess 
+}: { 
+    sekolah?: Sekolah | null,
+    sppgList: SppgData[],
+    userRole: 'Admin Pusat' | 'SPPG',
+    userSppgId?: SppgId,
+    onSaveSuccess: () => void
+}) => {
+  const { toast } = useToast();
+  const router = useRouter();
+  const formRef = useRef<HTMLFormElement>(null);
+  
+  const initialState: MitraFormState = { message: '', errors: {} };
+  const [state, dispatch] = useFormState(saveSekolah, initialState);
+  
+  const [selectedJenjang, setSelectedJenjang] = useState<Jenjang>((sekolah?.jenjang as Jenjang) || '');
+  const [wilayah, setWilayah] = useState(sekolah?.wilayah || {});
+  
+  useEffect(() => {
+    if (state.message) {
+        if (state.errors) {
+            toast({ variant: "destructive", title: "Gagal Menyimpan", description: state.message });
+        } else {
+            toast({ title: "Sukses!", description: state.message });
+            onSaveSuccess();
+            router.refresh();
+        }
+    }
+  }, [state, toast, onSaveSuccess, router]);
+
+  useEffect(() => {
+    if (!sekolah) {
+        formRef.current?.reset();
+        setSelectedJenjang('');
+        setWilayah({});
+    } else {
+        setSelectedJenjang(sekolah.jenjang as Jenjang);
+        setWilayah(sekolah.wilayah);
+    }
+  }, [sekolah]);
 
   const renderPorsiInputs = () => {
     switch (selectedJenjang) {
@@ -80,7 +134,7 @@ const SekolahForm = ({ sekolah }: { sekolah?: Sekolah | null }) => {
         return (
           <div className="grid gap-1.5">
             <Label htmlFor="porsi-kecil" className="text-xs">Jumlah Porsi Kecil</Label>
-            <Input id="porsi-kecil" type="number" placeholder="Contoh: 50" className="text-xs h-9" />
+            <Input name="porsi-kecil" id="porsi-kecil" type="number" placeholder="Contoh: 50" className="text-xs h-9" />
           </div>
         );
       case 'SD':
@@ -88,11 +142,11 @@ const SekolahForm = ({ sekolah }: { sekolah?: Sekolah | null }) => {
           <>
             <div className="grid gap-1.5">
               <Label htmlFor="porsi-kecil" className="text-xs">Jumlah Porsi Kecil (Kelas 1-3)</Label>
-              <Input id="porsi-kecil" type="number" placeholder="Contoh: 30" className="text-xs h-9" />
+              <Input name="porsi-kecil" id="porsi-kecil" type="number" placeholder="Contoh: 30" className="text-xs h-9" />
             </div>
             <div className="grid gap-1.5">
               <Label htmlFor="porsi-besar" className="text-xs">Jumlah Porsi Besar (Kelas 4-6)</Label>
-              <Input id="porsi-besar" type="number" placeholder="Contoh: 20" className="text-xs h-9" />
+              <Input name="porsi-besar" id="porsi-besar" type="number" placeholder="Contoh: 20" className="text-xs h-9" />
             </div>
           </>
         );
@@ -101,7 +155,7 @@ const SekolahForm = ({ sekolah }: { sekolah?: Sekolah | null }) => {
         return (
           <div className="grid gap-1.5">
             <Label htmlFor="porsi-besar" className="text-xs">Jumlah Porsi Besar</Label>
-            <Input id="porsi-besar" type="number" placeholder="Contoh: 80" className="text-xs h-9" />
+            <Input name="porsi-besar" id="porsi-besar" type="number" placeholder="Contoh: 80" className="text-xs h-9" />
           </div>
         );
       default:
@@ -110,103 +164,192 @@ const SekolahForm = ({ sekolah }: { sekolah?: Sekolah | null }) => {
   };
 
   return (
-    <div className="flex flex-col md:flex-row gap-6 py-4">
-      <div className="flex-1 space-y-3">
-        <h3 className="text-base font-semibold text-muted-foreground">
-          Data Umum
-        </h3>
-        <div className="grid gap-1.5">
-          <Label htmlFor="nama-sekolah" className="text-xs">Nama Sekolah</Label>
-          <Input id="nama-sekolah" placeholder="Contoh: SD Negeri 1" defaultValue={sekolah?.nama} className="text-xs h-9" />
+    <form ref={formRef} action={dispatch}>
+      <input type="hidden" name="id" value={sekolah?.id || ''} />
+      <input type="hidden" name="wilayah_province" value={wilayah?.province || ''} />
+      <input type="hidden" name="wilayah_regency" value={wilayah?.regency || ''} />
+      <input type="hidden" name="wilayah_district" value={wilayah?.district || ''} />
+      <input type="hidden" name="wilayah_village" value={wilayah?.village || ''} />
+
+      <div className="flex flex-col md:flex-row gap-6 py-4">
+        <div className="flex-1 space-y-3">
+          <h3 className="text-base font-semibold text-muted-foreground">
+            Data Umum
+          </h3>
+           {userRole === 'Admin Pusat' && (
+                <div className="grid gap-1.5">
+                    <Label htmlFor="sppg_id" className="text-xs">SPPG Penanggung Jawab</Label>
+                    <Select name="sppg_id" defaultValue={sekolah?.sppg_id}>
+                        <SelectTrigger id="sppg_id" className="text-xs h-9">
+                            <SelectValue placeholder="Pilih SPPG" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {sppgList.map(s => <SelectItem key={s.id} value={s.id} className="text-xs">{s.nama}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                </div>
+            )}
+            {userRole === 'SPPG' && userSppgId && <input type="hidden" name="sppg_id" value={userSppgId} />}
+          <div className="grid gap-1.5">
+            <Label htmlFor="nama-sekolah" className="text-xs">Nama Sekolah</Label>
+            <Input name="nama" id="nama-sekolah" placeholder="Contoh: SD Negeri 1" defaultValue={sekolah?.nama} className="text-xs h-9" />
+          </div>
+          <WilayahSelector onWilayahChange={setWilayah} initialData={sekolah?.wilayah} />
+          <div className="grid gap-1.5">
+            <Label htmlFor="alamat-sekolah" className="text-xs">Alamat Detail</Label>
+            <Input name="alamat" id="alamat-sekolah" placeholder="Contoh: Jl. Pendidikan No. 1" defaultValue={sekolah?.alamat} className="text-xs h-9" />
+          </div>
+          <div className="grid gap-1.5">
+            <Label htmlFor="jenjang" className="text-xs">Jenjang</Label>
+            <Select name="jenjang" onValueChange={(value) => setSelectedJenjang(value as Jenjang)} value={selectedJenjang}>
+              <SelectTrigger id="jenjang" className="text-xs h-9">
+                <SelectValue placeholder="Pilih Jenjang" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="PAUD" className="text-xs">PAUD</SelectItem>
+                <SelectItem value="TK" className="text-xs">TK</SelectItem>
+                <SelectItem value="SD" className="text-xs">SD</SelectItem>
+                <SelectItem value="SMP" className="text-xs">SMP</SelectItem>
+                <SelectItem value="SMA" className="text-xs">SMA</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-        <WilayahSelector onWilayahChange={() => {}} initialData={sekolah?.wilayah} />
-        <div className="grid gap-1.5">
-          <Label htmlFor="alamat-sekolah" className="text-xs">Alamat Detail</Label>
-          <Input id="alamat-sekolah" placeholder="Contoh: Jl. Pendidikan No. 1" defaultValue={sekolah?.alamat} className="text-xs h-9" />
-        </div>
-        <div className="grid gap-1.5">
-          <Label htmlFor="jenjang" className="text-xs">Jenjang</Label>
-          <Select onValueChange={(value) => setSelectedJenjang(value as Jenjang)} value={selectedJenjang}>
-            <SelectTrigger id="jenjang" className="text-xs h-9">
-              <SelectValue placeholder="Pilih Jenjang" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="PAUD" className="text-xs">PAUD</SelectItem>
-              <SelectItem value="TK" className="text-xs">TK</SelectItem>
-              <SelectItem value="SD" className="text-xs">SD</SelectItem>
-              <SelectItem value="SMP" className="text-xs">SMP</SelectItem>
-              <SelectItem value="SMA" className="text-xs">SMA</SelectItem>
-            </SelectContent>
-          </Select>
+        <Separator orientation="vertical" className="h-auto hidden md:block" />
+        <div className="flex-1 space-y-3">
+          <h3 className="text-base font-semibold text-muted-foreground">
+            Data Personel &amp; Porsi
+          </h3>
+          <div className="grid gap-1.5">
+            <Label htmlFor="nama-kepala-sekolah" className="text-xs">Nama Kepala Sekolah</Label>
+            <Input name="nama_kepala_sekolah" id="nama-kepala-sekolah" placeholder="Contoh: Budi Santoso" defaultValue={sekolah?.nama_kepala_sekolah || ''} className="text-xs h-9" />
+          </div>
+          <div className="grid gap-1.5">
+            <Label htmlFor="nama-pic" className="text-xs">Nama PIC</Label>
+            <Input name="nama_pic" id="nama-pic" placeholder="Contoh: Siti Aminah" defaultValue={sekolah?.nama_pic || ''} className="text-xs h-9" />
+          </div>
+          <div className="grid gap-1.5">
+              <Label htmlFor="telp-pic" className="text-xs">Nomor Telepon PIC</Label>
+              <Input name="telepon_pic" id="telp-pic" type="tel" placeholder="0812..." defaultValue={sekolah?.telepon_pic || ''} className="text-xs h-9" />
+          </div>
+            <div className="grid gap-1.5">
+                <Label htmlFor="jumlahpm" className="text-xs">Total Penerima Manfaat</Label>
+                <Input name="jumlahpm" id="jumlahpm" type="number" placeholder="0" defaultValue={sekolah?.jumlahpm || ''} className="text-xs h-9" />
+            </div>
         </div>
       </div>
-      <Separator orientation="vertical" className="h-auto hidden md:block" />
-      <div className="flex-1 space-y-3">
-        <h3 className="text-base font-semibold text-muted-foreground">
-          Data Personel &amp; Porsi
-        </h3>
-        <div className="grid gap-1.5">
-          <Label htmlFor="nama-kepala-sekolah" className="text-xs">Nama Kepala Sekolah</Label>
-          <Input id="nama-kepala-sekolah" placeholder="Contoh: Budi Santoso" defaultValue={sekolah?.nama_kepala_sekolah || ''} className="text-xs h-9" />
-        </div>
-        <div className="grid gap-1.5">
-          <Label htmlFor="nama-pic" className="text-xs">Nama PIC</Label>
-          <Input id="nama-pic" placeholder="Contoh: Siti Aminah" defaultValue={sekolah?.nama_pic || ''} className="text-xs h-9" />
-        </div>
-        <div className="grid gap-1.5">
-            <Label htmlFor="telp-pic" className="text-xs">Nomor Telepon PIC</Label>
-            <Input id="telp-pic" type="tel" placeholder="0812..." defaultValue={sekolah?.telepon_pic || ''} className="text-xs h-9" />
-        </div>
-        {renderPorsiInputs()}
-      </div>
-    </div>
+      <DialogFooter>
+        <SubmitButton />
+      </DialogFooter>
+    </form>
   );
 };
 
-const B3Form = ({ b3 }: { b3?: B3Data | null }) => {
+const B3Form = ({ b3, sppgList, userRole, userSppgId, onSaveSuccess }: { 
+    b3?: B3Data | null,
+    sppgList: SppgData[],
+    userRole: 'Admin Pusat' | 'SPPG',
+    userSppgId?: SppgId,
+    onSaveSuccess: () => void
+}) => {
+    const { toast } = useToast();
+    const router = useRouter();
+    const formRef = useRef<HTMLFormElement>(null);
+    
+    const initialState: MitraFormState = { message: '', errors: {} };
+    const [state, dispatch] = useFormState(saveB3, initialState);
+    const [wilayah, setWilayah] = useState(b3?.wilayah || {});
+
+    useEffect(() => {
+        if (state.message) {
+            if (state.errors) {
+                toast({ variant: "destructive", title: "Gagal Menyimpan", description: state.message });
+            } else {
+                toast({ title: "Sukses!", description: state.message });
+                onSaveSuccess();
+                router.refresh();
+            }
+        }
+    }, [state, toast, onSaveSuccess, router]);
+
+    useEffect(() => {
+        if (!b3) {
+            formRef.current?.reset();
+            setWilayah({});
+        } else {
+            setWilayah(b3.wilayah);
+        }
+    }, [b3]);
+
     return (
-        <div className="flex flex-col md:flex-row gap-6 py-4">
-            <div className="flex-1 space-y-3">
-                <h3 className="text-base font-semibold text-muted-foreground">
-                    Data Umum
-                </h3>
-                <div className="grid gap-1.5">
-                    <Label htmlFor="nama-desa" className="text-xs">Nama Posyandu/Puskesmas</Label>
-                    <Input id="nama-desa" placeholder="Contoh: Posyandu Melati" defaultValue={b3?.namadesa} className="text-xs h-9" />
+        <form ref={formRef} action={dispatch}>
+            <input type="hidden" name="id" value={b3?.id || ''} />
+            <input type="hidden" name="wilayah_province" value={wilayah?.province || ''} />
+            <input type="hidden" name="wilayah_regency" value={wilayah?.regency || ''} />
+            <input type="hidden" name="wilayah_district" value={wilayah?.district || ''} />
+            <input type="hidden" name="wilayah_village" value={wilayah?.village || ''} />
+            
+            <div className="flex flex-col md:flex-row gap-6 py-4">
+                <div className="flex-1 space-y-3">
+                    <h3 className="text-base font-semibold text-muted-foreground">
+                        Data Umum
+                    </h3>
+                    {userRole === 'Admin Pusat' && (
+                        <div className="grid gap-1.5">
+                            <Label htmlFor="sppg_id_b3" className="text-xs">SPPG Penanggung Jawab</Label>
+                            <Select name="sppg_id" defaultValue={b3?.sppg_id}>
+                                <SelectTrigger id="sppg_id_b3" className="text-xs h-9">
+                                    <SelectValue placeholder="Pilih SPPG" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {sppgList.map(s => <SelectItem key={s.id} value={s.id} className="text-xs">{s.nama}</SelectItem>)}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    )}
+                    {userRole === 'SPPG' && userSppgId && <input type="hidden" name="sppg_id" value={userSppgId} />}
+
+                    <div className="grid gap-1.5">
+                        <Label htmlFor="nama-desa" className="text-xs">Nama Posyandu/Puskesmas</Label>
+                        <Input name="namadesa" id="nama-desa" placeholder="Contoh: Posyandu Melati" defaultValue={b3?.namadesa} className="text-xs h-9" />
+                    </div>
+                    <WilayahSelector onWilayahChange={setWilayah} initialData={b3?.wilayah} />
+                    <div className="grid gap-1.5">
+                        <Label htmlFor="alamat-b3" className="text-xs">Alamat Detail</Label>
+                        <Input name="alamat" id="alamat-b3" placeholder="Contoh: Jl. Sejahtera No. 1" defaultValue={b3?.alamat} className="text-xs h-9" />
+                    </div>
+                    <div className="grid gap-1.5">
+                        <Label htmlFor="nama-pic-b3" className="text-xs">Nama PIC</Label>
+                        <Input name="nama_pic" id="nama-pic-b3" placeholder="Contoh: Dewi Lestari" defaultValue={b3?.nama_pic || ''} className="text-xs h-9" />
+                    </div>
+                    <div className="grid gap-1.5">
+                        <Label htmlFor="telp-pic-b3" className="text-xs">Nomor Telepon PIC</Label>
+                        <Input name="telepon_pic" id="telp-pic-b3" type="tel" placeholder="0812..." defaultValue={b3?.telepon_pic || ''} className="text-xs h-9" />
+                    </div>
                 </div>
-                 <WilayahSelector onWilayahChange={() => {}} initialData={b3?.wilayah} />
-                <div className="grid gap-1.5">
-                    <Label htmlFor="alamat-b3" className="text-xs">Alamat Detail</Label>
-                    <Input id="alamat-b3" placeholder="Contoh: Jl. Sejahtera No. 1" defaultValue={b3?.alamat} className="text-xs h-9" />
-                </div>
-                <div className="grid gap-1.5">
-                    <Label htmlFor="nama-pic-b3" className="text-xs">Nama PIC</Label>
-                    <Input id="nama-pic-b3" placeholder="Contoh: Dewi Lestari" defaultValue={b3?.nama_pic || ''} className="text-xs h-9" />
-                </div>
-                 <div className="grid gap-1.5">
-                    <Label htmlFor="telp-pic-b3" className="text-xs">Nomor Telepon PIC</Label>
-                    <Input id="telp-pic-b3" type="tel" placeholder="0812..." defaultValue={b3?.telepon_pic || ''} className="text-xs h-9" />
+                <Separator orientation="vertical" className="h-auto hidden md:block" />
+                <div className="flex-1 space-y-3">
+                    <h3 className="text-base font-semibold text-muted-foreground">
+                        Data Penerima Manfaat
+                    </h3>
+                    <div className="grid gap-1.5">
+                        <Label htmlFor="jumlah-bumil" className="text-xs">Ibu Hamil (Bumil)</Label>
+                        <Input name="bumil" id="jumlah-bumil" type="number" placeholder="0" defaultValue={b3?.jenis.bumil} className="text-xs h-9" />
+                    </div>
+                    <div className="grid gap-1.5">
+                        <Label htmlFor="jumlah-busui" className="text-xs">Ibu Menyusui (Busui)</Label>
+                        <Input name="busui" id="jumlah-busui" type="number" placeholder="0" defaultValue={b3?.jenis.busui} className="text-xs h-9" />
+                    </div>
+                    <div className="grid gap-1.5">
+                        <Label htmlFor="jumlah-balita" className="text-xs">Balita</Label>
+                        <Input name="balita" id="jumlah-balita" type="number" placeholder="0" defaultValue={b3?.jenis.balita} className="text-xs h-9" />
+                    </div>
                 </div>
             </div>
-            <Separator orientation="vertical" className="h-auto hidden md:block" />
-            <div className="flex-1 space-y-3">
-                <h3 className="text-base font-semibold text-muted-foreground">
-                    Data Penerima Manfaat
-                </h3>
-                <div className="grid gap-1.5">
-                    <Label htmlFor="jumlah-bumil" className="text-xs">Ibu Hamil (Bumil)</Label>
-                    <Input id="jumlah-bumil" type="number" placeholder="0" defaultValue={b3?.jenis.bumil} className="text-xs h-9" />
-                </div>
-                <div className="grid gap-1.5">
-                    <Label htmlFor="jumlah-busui" className="text-xs">Ibu Menyusui (Busui)</Label>
-                    <Input id="jumlah-busui" type="number" placeholder="0" defaultValue={b3?.jenis.busui} className="text-xs h-9" />
-                </div>
-                <div className="grid gap-1.5">
-                    <Label htmlFor="jumlah-balita" className="text-xs">Balita</Label>
-                    <Input id="jumlah-balita" type="number" placeholder="0" defaultValue={b3?.jenis.balita} className="text-xs h-9" />
-                </div>
-            </div>
-        </div>
+             <DialogFooter>
+                <SubmitButton />
+            </DialogFooter>
+        </form>
     );
 }
 
@@ -224,7 +367,7 @@ export default function MitraPage({ userRole, userSppgId, semuaDaftarSekolah, se
   const [currentPageSekolah, setCurrentPageSekolah] = useState(1);
   const [selectedSekolah, setSelectedSekolah] = useState<Sekolah | null>(null);
   const [isDetailSekolahOpen, setIsDetailSekolahOpen] = useState(false);
-  const [isEditSekolahOpen, setIsEditSekolahOpen] = useState(false);
+  const [isFormSekolahOpen, setIsFormSekolahOpen] = useState(false);
   
   // State for B3 tab
   const [sortConfigB3, setSortConfigB3] = useState<{ key: SortableKeysB3; direction: 'ascending' | 'descending' } | null>(null);
@@ -232,7 +375,8 @@ export default function MitraPage({ userRole, userSppgId, semuaDaftarSekolah, se
   const [currentPageB3, setCurrentPageB3] = useState(1);
   const [selectedB3, setSelectedB3] = useState<B3Data | null>(null);
   const [isDetailB3Open, setIsDetailB3Open] = useState(false);
-  const [isEditB3Open, setIsEditB3Open] = useState(false);
+  const [isFormB3Open, setIsFormB3Open] = useState(false);
+
 
   useEffect(() => {
     if (userRole === 'SPPG' && userSppgId) {
@@ -347,9 +491,13 @@ export default function MitraPage({ userRole, userSppgId, semuaDaftarSekolah, se
 
   const handleEditSekolahClick = () => {
     setIsDetailSekolahOpen(false);
-    setIsEditSekolahOpen(true);
+    setIsFormSekolahOpen(true);
   }
 
+  const handleAddSekolahClick = () => {
+    setSelectedSekolah(null);
+    setIsFormSekolahOpen(true);
+  }
 
   // Effects and handlers for B3
   useEffect(() => {
@@ -406,7 +554,12 @@ export default function MitraPage({ userRole, userSppgId, semuaDaftarSekolah, se
 
   const handleEditB3Click = () => {
     setIsDetailB3Open(false);
-    setIsEditB3Open(true);
+    setIsFormB3Open(true);
+  }
+  
+  const handleAddB3Click = () => {
+      setSelectedB3(null);
+      setIsFormB3Open(true);
   }
   
   return (
@@ -567,20 +720,7 @@ export default function MitraPage({ userRole, userSppgId, semuaDaftarSekolah, se
                     </Button>
                   </div>
                 
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button className="w-full sm:w-auto">Tambah Sekolah</Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-4xl">
-                    <DialogHeader>
-                      <DialogTitle>Tambah Sekolah Penerima Manfaat</DialogTitle>
-                    </DialogHeader>
-                    <SekolahForm />
-                    <DialogFooter>
-                      <Button type="submit">Simpan</Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
+                <Button className="w-full sm:w-auto" onClick={handleAddSekolahClick}>Tambah Sekolah</Button>
               </div>
             </div>
           </TabsContent>
@@ -678,20 +818,7 @@ export default function MitraPage({ userRole, userSppgId, semuaDaftarSekolah, se
                       <span className="sr-only">Selanjutnya</span>
                     </Button>
                   </div>
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button className="w-full sm:w-auto">Tambah B3</Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-4xl">
-                      <DialogHeader>
-                        <DialogTitle>Tambah B3 Penerima Manfaat</DialogTitle>
-                      </DialogHeader>
-                      <B3Form />
-                       <DialogFooter>
-                            <Button type="submit">Simpan</Button>
-                        </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
+                  <Button className="w-full sm:w-auto" onClick={handleAddB3Click}>Tambah B3</Button>
                 </div>
               </div>
           </TabsContent>
@@ -714,6 +841,9 @@ export default function MitraPage({ userRole, userSppgId, semuaDaftarSekolah, se
                             <DetailItem label="Alamat" value={selectedSekolah.alamat} />
                             <DetailItem label="Jumlah PM" value={selectedSekolah.jumlahpm} />
                             <DetailItem label="SPPG" value={sppgList.find(opt => opt.id === selectedSekolah.sppg_id)?.nama} />
+                             <DetailItem label="Kepala Sekolah" value={selectedSekolah.nama_kepala_sekolah} />
+                            <DetailItem label="PIC" value={selectedSekolah.nama_pic} />
+                            <DetailItem label="Telepon PIC" value={selectedSekolah.telepon_pic} />
                         </dl>
                     </div>
                 </div>
@@ -726,20 +856,23 @@ export default function MitraPage({ userRole, userSppgId, semuaDaftarSekolah, se
             </DialogContent>
         </Dialog>
     )}
-    {selectedSekolah && (
-        <Dialog open={isEditSekolahOpen} onOpenChange={setIsEditSekolahOpen}>
-            <DialogContent className="max-w-4xl">
-                <DialogHeader>
-                    <DialogTitle>Edit Data Sekolah</DialogTitle>
-                    <DialogDescription>Ubah data untuk {selectedSekolah.nama}.</DialogDescription>
-                </DialogHeader>
-                <SekolahForm sekolah={selectedSekolah} />
-                <DialogFooter>
-                    <Button type="submit">Simpan Perubahan</Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-    )}
+    
+    <Dialog open={isFormSekolahOpen} onOpenChange={setIsFormSekolahOpen}>
+        <DialogContent className="max-w-4xl">
+            <DialogHeader>
+                <DialogTitle>{selectedSekolah ? 'Edit Data Sekolah' : 'Tambah Sekolah Penerima Manfaat'}</DialogTitle>
+                 {selectedSekolah && <DialogDescription>Ubah data untuk {selectedSekolah.nama}.</DialogDescription>}
+            </DialogHeader>
+            <SekolahForm 
+                sekolah={selectedSekolah} 
+                sppgList={sppgList}
+                userRole={userRole}
+                userSppgId={userSppgId}
+                onSaveSuccess={() => setIsFormSekolahOpen(false)}
+            />
+        </DialogContent>
+    </Dialog>
+
 
     {/* Dialogs for B3 */}
     {selectedB3 && (
@@ -758,6 +891,8 @@ export default function MitraPage({ userRole, userSppgId, semuaDaftarSekolah, se
                             <DetailItem label="Ibu Menyusui" value={selectedB3.jenis.busui} />
                             <DetailItem label="Balita" value={selectedB3.jenis.balita} />
                             <DetailItem label="SPPG" value={sppgList.find(opt => opt.id === selectedB3.sppg_id)?.nama} />
+                            <DetailItem label="PIC" value={selectedB3.nama_pic} />
+                            <DetailItem label="Telepon PIC" value={selectedB3.telepon_pic} />
                         </dl>
                     </div>
                 </div>
@@ -770,22 +905,22 @@ export default function MitraPage({ userRole, userSppgId, semuaDaftarSekolah, se
             </DialogContent>
         </Dialog>
     )}
-     {selectedB3 && (
-        <Dialog open={isEditB3Open} onOpenChange={setIsEditB3Open}>
-            <DialogContent className="max-w-4xl">
-                <DialogHeader>
-                    <DialogTitle>Edit Data B3</DialogTitle>
-                    <DialogDescription>Ubah data untuk {selectedB3.namadesa}.</DialogDescription>
-                </DialogHeader>
-                <B3Form b3={selectedB3} />
-                <DialogFooter>
-                    <Button type="submit">Simpan Perubahan</Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-    )}
+     
+    <Dialog open={isFormB3Open} onOpenChange={setIsFormB3Open}>
+        <DialogContent className="max-w-4xl">
+            <DialogHeader>
+                <DialogTitle>{selectedB3 ? 'Edit Data B3' : 'Tambah B3 Penerima Manfaat'}</DialogTitle>
+                {selectedB3 && <DialogDescription>Ubah data untuk {selectedB3.namadesa}.</DialogDescription>}
+            </DialogHeader>
+            <B3Form 
+                b3={selectedB3}
+                sppgList={sppgList}
+                userRole={userRole}
+                userSppgId={userSppgId}
+                onSaveSuccess={() => setIsFormB3Open(false)}
+            />
+        </DialogContent>
+    </Dialog>
     </>
   );
 }
-
-    
