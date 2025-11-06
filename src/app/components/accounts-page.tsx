@@ -75,10 +75,18 @@ const formSchema = z.object({
     role: z.enum(['Admin Pusat', 'SPPG'], { required_error: 'Role harus dipilih' }),
     sppgId: z.string().min(1, 'SPPG harus dipilih'),
     position: z.string().optional(),
+}).refine(data => {
+    // Password required only for new users not from pending list
+    if (!data.email.includes('@') && !data.password) return false;
+    return true;
+}, {
+    message: "Password harus diisi untuk akun baru.",
+    path: ["password"],
 }).refine(data => data.password === data.confirmPassword, {
     message: "Password tidak cocok",
     path: ["confirmPassword"],
 });
+
 
 type FormValues = z.infer<typeof formSchema>;
 
@@ -96,7 +104,6 @@ const AccountForm = ({
     onUsePendingChange: (value: boolean) => void,
     onFormSubmit: SubmitHandler<FormValues>
 }) => {
-    
     const [selectedPendingData, setSelectedPendingData] = useState<{id: string, email: string, name: string} | null>(null);
 
     const { register, handleSubmit, control, watch, setValue, formState: { errors } } = useForm<FormValues>({
@@ -113,16 +120,26 @@ const AccountForm = ({
 
     const role = watch('role');
 
+    useEffect(() => {
+        if (!usePending) {
+            setSelectedPendingData(null);
+            if (!account) { // Reset fields if switching back from pending on a new account form
+                setValue('email', '');
+                setValue('full_name', '');
+            }
+        }
+    }, [usePending, account, setValue]);
+
     const handlePendingUserChange = (userId: string) => {
         const user = pendingUsers.find(u => u.id === userId);
         if (user) {
             const fullName = user.user_metadata?.full_name || user.email?.split('@')[0] || '';
-            setValue('email', user.email || '');
+            setValue('email', user.id); // Set the ID to the email field for submission
             setValue('full_name', fullName);
             setSelectedPendingData({ id: user.id, email: user.email || '', name: fullName });
         }
     };
-
+    
     return (
         <form onSubmit={handleSubmit(onFormSubmit)} id="account-form" className="space-y-4">
             <div className="flex flex-col md:flex-row gap-8 py-4">
@@ -145,13 +162,15 @@ const AccountForm = ({
                         <div className="grid gap-2">
                             <Label htmlFor="pending-email">Email Akun Pending</Label>
                              <Controller
-                                name="email"
+                                name="email" // This will now hold the User ID
                                 control={control}
                                 render={({ field }) => (
                                     <Select onValueChange={(value) => {
                                         field.onChange(value);
                                         handlePendingUserChange(value);
-                                    }}>
+                                    }}
+                                    value={field.value}
+                                    >
                                         <SelectTrigger id="pending-email">
                                             <SelectValue placeholder="Pilih email dari akun pending" />
                                         </SelectTrigger>
@@ -169,12 +188,13 @@ const AccountForm = ({
                                     </Select>
                                 )}
                             />
+                            {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
                             {selectedPendingData && <Input readOnly disabled value={selectedPendingData.email} className="mt-2" />}
                         </div>
                     ) : (
                          <div className="grid gap-2">
                             <Label htmlFor="email">Email</Label>
-                            <Input id="email" type="email" placeholder="contoh@email.com" {...register('email')} disabled={!!account || usePending} />
+                            <Input id="email" type="email" placeholder="contoh@email.com" {...register('email')} disabled={!!account} />
                              {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
                         </div>
                     )}
@@ -190,7 +210,7 @@ const AccountForm = ({
                         <Input id="phone" type="tel" placeholder="0812..." {...register('phone')} />
                     </div>
                     
-                    {!usePending && (
+                    {!usePending && !account && (
                         <>
                         <div className="grid gap-2">
                             <Label htmlFor="password">{account ? 'Password Baru (Opsional)' : 'Password'}</Label>
@@ -268,7 +288,7 @@ const AccountForm = ({
                                         <Select onValueChange={field.onChange} value={field.value}>
                                             <SelectTrigger id="position">
                                             <SelectValue placeholder="Pilih Jabatan" />
-                                            </Trigger>
+                                            </SelectTrigger>
                                             <SelectContent>
                                             {positionOptions.map(opt => (
                                                 <SelectItem key={opt} value={opt}>{opt}</SelectItem>
@@ -283,7 +303,7 @@ const AccountForm = ({
                 </div>
             </div>
         </form>
-    )
+    );
 }
 
 export default function AccountsPage() {
@@ -296,12 +316,15 @@ export default function AccountsPage() {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [pendingUsers, setPendingUsers] = useState<User[]>([]);
   const [usePendingAccount, setUsePendingAccount] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
 
   useEffect(() => {
     setCurrentPage(1);
   }, [itemsPerPage]);
   
   const fetchPending = async () => {
+    setIsLoading(true);
     try {
         const users = await getPendingUsers();
         setPendingUsers(users || []);
@@ -310,8 +333,10 @@ export default function AccountsPage() {
         toast({
             variant: "destructive",
             title: "Gagal mengambil data",
-            description: "Tidak dapat memuat daftar akun pending.",
+            description: "Tidak dapat memuat daftar akun pending. Anda mungkin tidak memiliki izin.",
         });
+    } finally {
+        setIsLoading(false);
     }
   };
 
@@ -342,6 +367,7 @@ export default function AccountsPage() {
   }
 
   const handleFormSubmit: SubmitHandler<FormValues> = async (data) => {
+        setIsLoading(true);
         let result;
         const metadata = {
             full_name: data.full_name,
@@ -351,22 +377,24 @@ export default function AccountsPage() {
             phone: data.phone,
         };
 
-        if (usePendingAccount) {
-            // mode update
-            const selectedUser = pendingUsers.find(u => u.id === data.email); // data.email now holds the user ID
-            if (!selectedUser) {
+        if (usePendingAccount && !selectedAccount) {
+            // mode update from pending
+            const userId = data.email; // The email field now holds the User ID
+            if (!userId) {
                 toast({ variant: "destructive", title: "Error", description: "Pengguna pending tidak valid." });
+                setIsLoading(false);
                 return;
             }
-             result = await updateUserMetadata(selectedUser.id, metadata);
+             result = await updateUserMetadata(userId, metadata);
 
         } else if (selectedAccount) {
-            // mode edit
+            // mode edit existing account
              result = await updateUserMetadata(selectedAccount.id, metadata);
         } else {
-            // mode create
+            // mode create new account
             if (!data.password) {
                  toast({ variant: "destructive", title: "Error", description: "Password harus diisi untuk akun baru." });
+                 setIsLoading(false);
                 return;
             }
             result = await createUser({ email: data.email, password: data.password, ...metadata });
@@ -378,7 +406,8 @@ export default function AccountsPage() {
                 description: "Data akun berhasil disimpan.",
             });
             handleCloseDialogs();
-            router.refresh(); // Refresh data on page
+            // This is a temp fix to reload data. A proper state management is needed.
+            router.refresh(); 
         } else {
             toast({
                 variant: "destructive",
@@ -386,6 +415,7 @@ export default function AccountsPage() {
                 description: result.error || "Terjadi kesalahan yang tidak diketahui.",
             });
         }
+         setIsLoading(false);
   };
 
 
@@ -478,7 +508,7 @@ export default function AccountsPage() {
             variant="ghost"
             size="icon"
             onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-            disabled={currentPage === totalPages}
+            disabled={currentPage === totalPages || totalPages === 0}
           >
             <ChevronRight className="h-4 w-4" />
             <span className="sr-only">Selanjutnya</span>
@@ -501,9 +531,11 @@ export default function AccountsPage() {
             />
             <DialogFooter>
                 <DialogClose asChild>
-                    <Button variant="outline">Batal</Button>
+                    <Button variant="outline" disabled={isLoading}>Batal</Button>
                 </DialogClose>
-              <Button type="submit" form="account-form">Simpan Akun</Button>
+              <Button type="submit" form="account-form" disabled={isLoading}>
+                {isLoading ? 'Menyimpan...' : 'Simpan Akun'}
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -528,12 +560,16 @@ export default function AccountsPage() {
         />
         <DialogFooter>
             <DialogClose asChild>
-                <Button variant="outline">Batal</Button>
+                <Button variant="outline" disabled={isLoading}>Batal</Button>
             </DialogClose>
-          <Button type="submit" form="account-form">Simpan Perubahan</Button>
+          <Button type="submit" form="account-form" disabled={isLoading}>
+            {isLoading ? 'Menyimpan...' : 'Simpan Perubahan'}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
     </>
   );
 }
+
+    
