@@ -142,7 +142,7 @@ export default function KeuanganPage({ userRole, userSppgId, sppgList }: Keuanga
       <div className="space-y-6">
         <div className="flex flex-col md:flex-row gap-4 items-end">
             {userRole === 'Admin Pusat' && (
-                <div className="grid gap-2 flex-1">
+                <div className="grid gap-2 w-full md:flex-1">
                     <Label htmlFor="sppg-select">Pilih SPPG</Label>
                     <div className="flex items-center gap-2">
                         <Select onValueChange={(v) => setSelectedSppg(v as SppgId)} value={selectedSppg}>
@@ -167,7 +167,7 @@ export default function KeuanganPage({ userRole, userSppgId, sppgList }: Keuanga
                     </div>
                 </div>
             )}
-          <div className="grid gap-2 flex-1">
+          <div className="grid gap-2 w-full md:flex-1">
             <Label>Pilih Tanggal</Label>
             <Popover>
               <PopoverTrigger asChild>
@@ -197,7 +197,7 @@ export default function KeuanganPage({ userRole, userSppgId, sppgList }: Keuanga
         </div>
       </div>
       <div className="flex justify-end">
-        <Button onClick={handleBuatLaporanClick}>
+        <Button onClick={handleBuatLaporanClick} className="w-full sm:w-auto">
           <FilePlus className="mr-2 h-4 w-4" />
           Buat Laporan Keuangan Hari Ini
         </Button>
@@ -224,7 +224,7 @@ export default function KeuanganPage({ userRole, userSppgId, sppgList }: Keuanga
                   </div>
               </CardContent>
               <CardFooter className="justify-end">
-                  <Button>
+                  <Button className="w-full sm:w-auto">
                       <Save className="mr-2 h-4 w-4" />
                       Simpan Laporan
                   </Button>
@@ -243,31 +243,33 @@ export default function KeuanganPage({ userRole, userSppgId, sppgList }: Keuanga
             </CardDescription>
         </CardHeader>
         <CardContent>
-            <Table>
-                <TableHeader>
-                    <TableRow>
-                        <TableHead>Nama SPPG</TableHead>
-                        <TableHead className="w-[180px]">Jumlah Porsi Besar</TableHead>
-                        <TableHead className="w-[180px]">Jumlah Porsi Kecil</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {sppgList.map(sppg => (
-                        <TableRow key={sppg.id}>
-                            <TableCell className="font-medium">{sppg.nama}</TableCell>
-                            <TableCell>
-                                <Input type="number" placeholder="0" />
-                            </TableCell>
-                            <TableCell>
-                                <Input type="number" placeholder="0" />
-                            </TableCell>
+            <div className='overflow-x-auto'>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Nama SPPG</TableHead>
+                            <TableHead className="w-[180px]">Jumlah Porsi Besar</TableHead>
+                            <TableHead className="w-[180px]">Jumlah Porsi Kecil</TableHead>
                         </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
+                    </TableHeader>
+                    <TableBody>
+                        {sppgList.map(sppg => (
+                            <TableRow key={sppg.id}>
+                                <TableCell className="font-medium">{sppg.nama}</TableCell>
+                                <TableCell>
+                                    <Input type="number" placeholder="0" />
+                                </TableCell>
+                                <TableCell>
+                                    <Input type="number" placeholder="0" />
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </div>
         </CardContent>
         <CardFooter className="justify-end">
-            <Button>
+            <Button className="w-full sm:w-auto">
                 <Save className="mr-2 h-4 w-4" />
                 Simpan Semua
             </Button>

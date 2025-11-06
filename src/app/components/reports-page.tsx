@@ -491,7 +491,7 @@ export default function ReportsPage({ userRole, userSppgId, sppgList }: ReportsP
             {selectedReport === 'menu' && (
                 <div className="grid gap-3 p-4 border rounded-md">
                     <Label>Pilih Tipe Laporan Menu</Label>
-                    <RadioGroup defaultValue="harian" onValueChange={(value: string) => setMenuReportType(value as MenuReportType)} className="flex gap-4">
+                    <RadioGroup defaultValue="harian" onValueChange={(value: string) => setMenuReportType(value as MenuReportType)} className="flex flex-col sm:flex-row gap-4">
                         <div className="flex items-center space-x-2">
                             <RadioGroupItem value="harian" id="harian" />
                             <Label htmlFor="harian">Harian</Label>
@@ -544,12 +544,12 @@ export default function ReportsPage({ userRole, userSppgId, sppgList }: ReportsP
             )}
 
           </CardContent>
-          <CardFooter className='flex justify-end gap-2'>
-              <Button variant="outline" onClick={handlePreview} disabled={!isFilterComplete}>
+          <CardFooter className='flex flex-col sm:flex-row justify-end gap-2'>
+              <Button variant="outline" onClick={handlePreview} disabled={!isFilterComplete} className="w-full sm:w-auto">
                   <Eye className="mr-2 h-4 w-4" />
                   Lihat Laporan
               </Button>
-              <Button onClick={handleDownload} disabled={!isFilterComplete}>
+              <Button onClick={handleDownload} disabled={!isFilterComplete} className="w-full sm:w-auto">
                   <Download className="mr-2 h-4 w-4" />
                   Unduh Data
               </Button>

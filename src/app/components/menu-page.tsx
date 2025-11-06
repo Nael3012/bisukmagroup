@@ -595,7 +595,7 @@ export default function MenuPage({ userRole, userSppgId, sppgList }: MenuPagePro
               </div>
               <div className="grid gap-2">
                 <Label>Pilih Hari</Label>
-                <div className="flex flex-wrap gap-2">
+                <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
                   {(Object.keys(currentWeeklyMenu.weekStatus) as DayOfWeek[]).map((day) => {
                     const isFilled = currentWeeklyMenu.weekStatus[day];
                     const isSelected = selectedDay === day;
@@ -604,7 +604,7 @@ export default function MenuPage({ userRole, userSppgId, sppgList }: MenuPagePro
                         key={day}
                         variant={isSelected ? 'default' : 'outline'}
                         onClick={() => handleDayClick(day)}
-                        className="flex-1 min-w-[100px]"
+                        className="w-full justify-center"
                       >
                         {isFilled ? (
                           <CheckCircle2 className="mr-2 h-4 w-4 text-green-500" />
@@ -633,12 +633,12 @@ export default function MenuPage({ userRole, userSppgId, sppgList }: MenuPagePro
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <div className="flex justify-center items-center gap-4 py-8">
-                        <Button variant="outline">
+                    <div className="flex flex-col sm:flex-row justify-center items-center gap-4 py-8">
+                        <Button variant="outline" className="w-full sm:w-auto">
                             <Download className="mr-2 h-4 w-4" />
                             Download Format
                         </Button>
-                        <Button>
+                        <Button className="w-full sm:w-auto">
                             <Upload className="mr-2 h-4 w-4" />
                             Upload Laporan
                         </Button>
