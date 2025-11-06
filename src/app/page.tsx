@@ -7,6 +7,7 @@ import MitraPage from './components/mitra-page';
 import MenuPage from './components/menu-page';
 import DashboardPage from './components/dashboard-page';
 import AccountsPage from './components/accounts-page';
+import ReportsPage from './components/reports-page';
 import { cn } from '@/lib/utils';
 import { PanelLeft, UserCircle } from 'lucide-react';
 import {
@@ -56,7 +57,7 @@ export default function Home() {
       case 'Menu':
         return <MenuPage />;
       case 'Laporan':
-        return <div>Halaman Laporan</div>;
+        return <ReportsPage />;
       case 'Kelola Penanggung Jawab':
         return <AccountsPage />;
       case 'Dashboard':
