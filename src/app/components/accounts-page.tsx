@@ -25,6 +25,7 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogFooter,
+  DialogClose,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -36,7 +37,12 @@ import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import type { User } from '@supabase/supabase-js';
 import { Switch } from '@/components/ui/switch';
-import { getPendingUsers } from '@/app/actions/accounts';
+import { getPendingUsers, updateUserMetadata, createUser } from '@/app/actions/accounts';
+import { useForm, Controller, SubmitHandler } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
 
 
 type Account = {
@@ -60,189 +66,260 @@ const sppgOptions = [
 const positionOptions = ['Ka. SPPG', 'Ahli Gizi', 'Akuntan', 'Asisten Lapangan'];
 
 
-const AccountForm = ({ account }: { account?: Account | null }) => {
-    const [role, setRole] = useState<'Admin Pusat' | 'SPPG'>(account?.role || 'SPPG');
-    const [password, setPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
-    const [passwordError, setPasswordError] = useState('');
-    const [usePendingAccount, setUsePendingAccount] = useState(false);
-    const [pendingUsers, setPendingUsers] = useState<User[]>([]);
-    const [selectedPendingUser, setSelectedPendingUser] = useState('');
+const formSchema = z.object({
+    full_name: z.string().min(1, 'Nama lengkap harus diisi'),
+    email: z.string().email('Email tidak valid'),
+    phone: z.string().optional(),
+    password: z.string().optional(),
+    confirmPassword: z.string().optional(),
+    role: z.enum(['Admin Pusat', 'SPPG'], { required_error: 'Role harus dipilih' }),
+    sppgId: z.string().min(1, 'SPPG harus dipilih'),
+    position: z.string().optional(),
+}).refine(data => data.password === data.confirmPassword, {
+    message: "Password tidak cocok",
+    path: ["confirmPassword"],
+});
 
-    useEffect(() => {
-        if(account?.role) {
-            setRole(account.role);
-        }
-    }, [account]);
+type FormValues = z.infer<typeof formSchema>;
 
-    useEffect(() => {
-        if (password && confirmPassword && password !== confirmPassword) {
-            setPasswordError('Password tidak cocok.');
-        } else {
-            setPasswordError('');
-        }
-    }, [password, confirmPassword]);
 
-    useEffect(() => {
-        async function fetchPendingUsers() {
-          try {
-            const users = await getPendingUsers();
-            setPendingUsers(users || []);
-          } catch (error) {
-            console.error("Gagal mengambil data pengguna pending:", error);
-          }
-        }
-        if (usePendingAccount) {
-          fetchPendingUsers();
-        }
-      }, [usePendingAccount]);
+const AccountForm = ({ 
+    account, 
+    pendingUsers, 
+    usePending, 
+    onUsePendingChange,
+    onFormSubmit
+}: { 
+    account?: Account | null,
+    pendingUsers: User[],
+    usePending: boolean,
+    onUsePendingChange: (value: boolean) => void,
+    onFormSubmit: SubmitHandler<FormValues>
+}) => {
     
+    const [selectedPendingData, setSelectedPendingData] = useState<{id: string, email: string, name: string} | null>(null);
+
+    const { register, handleSubmit, control, watch, setValue, formState: { errors } } = useForm<FormValues>({
+        resolver: zodResolver(formSchema),
+        defaultValues: {
+            full_name: account?.name || '',
+            email: account?.email || '',
+            phone: account?.phone || '',
+            role: account?.role || 'SPPG',
+            sppgId: account?.sppgManaged || '',
+            position: account?.position || '',
+        }
+    });
+
+    const role = watch('role');
+
+    const handlePendingUserChange = (userId: string) => {
+        const user = pendingUsers.find(u => u.id === userId);
+        if (user) {
+            const fullName = user.user_metadata?.full_name || user.email?.split('@')[0] || '';
+            setValue('email', user.email || '');
+            setValue('full_name', fullName);
+            setSelectedPendingData({ id: user.id, email: user.email || '', name: fullName });
+        }
+    };
+
     return (
-        <div className="flex flex-col md:flex-row gap-8 py-4">
-            {/* Segment 1: Data Pribadi */}
-            <div className="flex-1 space-y-4">
-                <h3 className="text-lg font-semibold text-muted-foreground">Data Pribadi</h3>
-                 
-                <div className="grid gap-2">
-                    <Label htmlFor="name">Nama Lengkap</Label>
-                    <Input id="name" placeholder="Contoh: Budi Santoso" defaultValue={account?.name} />
-                </div>
-
-                {!account && (
-                    <div className="flex items-center space-x-2 pt-2">
-                        <Switch
-                        id="use-pending-switch"
-                        checked={usePendingAccount}
-                        onCheckedChange={setUsePendingAccount}
-                        />
-                        <Label htmlFor="use-pending-switch">Pilih dari Akun Pending</Label>
-                    </div>
-                )}
-
-
-                {usePendingAccount && !account ? (
-                     <div className="grid gap-2">
-                        <Label htmlFor="pending-email">Email Akun Pending</Label>
-                        <Select value={selectedPendingUser} onValueChange={setSelectedPendingUser}>
-                            <SelectTrigger id="pending-email">
-                                <SelectValue placeholder="Pilih email dari akun pending" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {pendingUsers.length > 0 ? (
-                                    pendingUsers.map(user => (
-                                        <SelectItem key={user.id} value={user.email || ''}>
-                                            {user.email}
-                                        </SelectItem>
-                                    ))
-                                ) : (
-                                    <div className="p-4 text-sm text-muted-foreground">Tidak ada akun pending.</div>
+        <form onSubmit={handleSubmit(onFormSubmit)} id="account-form" className="space-y-4">
+            <div className="flex flex-col md:flex-row gap-8 py-4">
+                {/* Segment 1: Data Pribadi */}
+                <div className="flex-1 space-y-4">
+                    <h3 className="text-lg font-semibold text-muted-foreground">Data Pribadi</h3>
+                    
+                    {!account && (
+                        <div className="flex items-center space-x-2 pt-2">
+                            <Switch
+                            id="use-pending-switch"
+                            checked={usePending}
+                            onCheckedChange={onUsePendingChange}
+                            />
+                            <Label htmlFor="use-pending-switch">Pilih dari Akun Pending</Label>
+                        </div>
+                    )}
+                    
+                    {usePending && !account ? (
+                        <div className="grid gap-2">
+                            <Label htmlFor="pending-email">Email Akun Pending</Label>
+                             <Controller
+                                name="email"
+                                control={control}
+                                render={({ field }) => (
+                                    <Select onValueChange={(value) => {
+                                        field.onChange(value);
+                                        handlePendingUserChange(value);
+                                    }}>
+                                        <SelectTrigger id="pending-email">
+                                            <SelectValue placeholder="Pilih email dari akun pending" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {pendingUsers.length > 0 ? (
+                                                pendingUsers.map(user => (
+                                                    <SelectItem key={user.id} value={user.id}>
+                                                        {user.email}
+                                                    </SelectItem>
+                                                ))
+                                            ) : (
+                                                <div className="p-4 text-sm text-muted-foreground">Tidak ada akun pending.</div>
+                                            )}
+                                        </SelectContent>
+                                    </Select>
                                 )}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                ) : (
+                            />
+                            {selectedPendingData && <Input readOnly disabled value={selectedPendingData.email} className="mt-2" />}
+                        </div>
+                    ) : (
+                         <div className="grid gap-2">
+                            <Label htmlFor="email">Email</Label>
+                            <Input id="email" type="email" placeholder="contoh@email.com" {...register('email')} disabled={!!account || usePending} />
+                             {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
+                        </div>
+                    )}
+
                     <div className="grid gap-2">
-                        <Label htmlFor="email">Email</Label>
-                        <Input id="email" type="email" placeholder="contoh@email.com" defaultValue={account?.email} disabled={!!account} />
+                        <Label htmlFor="name">Nama Lengkap</Label>
+                        <Input id="name" placeholder="Contoh: Budi Santoso" {...register('full_name')} disabled={usePending}/>
+                         {errors.full_name && <p className="text-sm text-destructive">{errors.full_name.message}</p>}
                     </div>
-                )}
 
-
-                 <div className="grid gap-2">
-                    <Label htmlFor="phone">Nomor Telepon</Label>
-                    <Input id="phone" type="tel" placeholder="0812..." defaultValue={account?.phone} />
-                </div>
-                
-                <div className="grid gap-2">
-                    <Label htmlFor="password">{account ? 'Password Baru (Opsional)' : 'Password'}</Label>
-                    <Input 
-                        id="password" 
-                        type="password" 
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                    />
-                </div>
-                <div className="grid gap-2">
-                    <Label htmlFor="retype-password">{account ? 'Ulangi Password Baru' : 'Ulangi Password'}</Label>
-                    <Input 
-                        id="retype-password" 
-                        type="password"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                    />
-                    {passwordError && <p className="text-sm text-destructive">{passwordError}</p>}
-                </div>
-            </div>
-
-            <Separator orientation="vertical" className="h-auto hidden md:block" />
-
-            {/* Segment 2: Penugasan & Role */}
-            <div className="flex-1 space-y-4">
-                 <h3 className="text-lg font-semibold text-muted-foreground">Penugasan & Role</h3>
-                 <Alert>
-                    <Info className="h-4 w-4" />
-                    <AlertDescription>
-                        Harap teliti dalam memilih SPPG dan Jabatan yang sesuai. Jangan lupa untuk menyimpan dan memberikan password kepada penanggung jawab.
-                    </AlertDescription>
-                </Alert>
-                 <div className="grid gap-2">
-                    <Label htmlFor="role">Role</Label>
-                    <Select value={role} onValueChange={(value) => setRole(value as 'Admin Pusat' | 'SPPG')}>
-                    <SelectTrigger id="role">
-                        <SelectValue placeholder="Pilih Role" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="Admin Pusat">Admin Pusat</SelectItem>
-                        <SelectItem value="SPPG">SPPG</SelectItem>
-                    </SelectContent>
-                    </Select>
-                </div>
-
-                { role === 'SPPG' && (
-                    <>
+                    <div className="grid gap-2">
+                        <Label htmlFor="phone">Nomor Telepon</Label>
+                        <Input id="phone" type="tel" placeholder="0812..." {...register('phone')} />
+                    </div>
+                    
+                    {!usePending && (
+                        <>
                         <div className="grid gap-2">
-                            <Label htmlFor="sppg">SPPG yang Dikelola</Label>
-                            <Select defaultValue={account?.sppgManaged || undefined}>
-                                <SelectTrigger id="sppg">
-                                <SelectValue placeholder="Pilih SPPG" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                {sppgOptions.map(opt => (
-                                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                                ))}
-                                </SelectContent>
-                            </Select>
+                            <Label htmlFor="password">{account ? 'Password Baru (Opsional)' : 'Password'}</Label>
+                            <Input id="password" type="password" {...register('password')} />
+                            {errors.password && <p className="text-sm text-destructive">{errors.password.message}</p>}
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor="position">Jabatan</Label>
-                            <Select defaultValue={account?.position || undefined}>
-                                <SelectTrigger id="position">
-                                <SelectValue placeholder="Pilih Jabatan" />
+                            <Label htmlFor="retype-password">{account ? 'Ulangi Password Baru' : 'Ulangi Password'}</Label>
+                            <Input id="retype-password" type="password" {...register('confirmPassword')} />
+                            {errors.confirmPassword && <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>}
+                        </div>
+                        </>
+                    )}
+                </div>
+
+                <Separator orientation="vertical" className="h-auto hidden md:block" />
+
+                {/* Segment 2: Penugasan & Role */}
+                <div className="flex-1 space-y-4">
+                    <h3 className="text-lg font-semibold text-muted-foreground">Penugasan & Role</h3>
+                    <Alert>
+                        <Info className="h-4 w-4" />
+                        <AlertDescription>
+                            Harap teliti dalam memilih SPPG dan Jabatan yang sesuai.
+                        </AlertDescription>
+                    </Alert>
+                    <div className="grid gap-2">
+                        <Label htmlFor="role">Role</Label>
+                        <Controller
+                            name="role"
+                            control={control}
+                            render={({ field }) => (
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                <SelectTrigger id="role">
+                                    <SelectValue placeholder="Pilih Role" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                {positionOptions.map(opt => (
-                                    <SelectItem key={opt} value={opt}>{opt}</SelectItem>
-                                ))}
+                                    <SelectItem value="Admin Pusat">Admin Pusat</SelectItem>
+                                    <SelectItem value="SPPG">SPPG</SelectItem>
                                 </SelectContent>
-                            </Select>
-                        </div>
-                    </>
-                )}
+                                </Select>
+                            )}
+                        />
+                         {errors.role && <p className="text-sm text-destructive">{errors.role.message}</p>}
+                    </div>
+
+                    { role === 'SPPG' && (
+                        <>
+                            <div className="grid gap-2">
+                                <Label htmlFor="sppg">SPPG yang Dikelola</Label>
+                                <Controller
+                                    name="sppgId"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <Select onValueChange={field.onChange} value={field.value}>
+                                            <SelectTrigger id="sppg">
+                                            <SelectValue placeholder="Pilih SPPG" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                            {sppgOptions.map(opt => (
+                                                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                                            ))}
+                                            </SelectContent>
+                                        </Select>
+                                    )}
+                                />
+                                {errors.sppgId && <p className="text-sm text-destructive">{errors.sppgId.message}</p>}
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="position">Jabatan</Label>
+                                <Controller
+                                    name="position"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <Select onValueChange={field.onChange} value={field.value}>
+                                            <SelectTrigger id="position">
+                                            <SelectValue placeholder="Pilih Jabatan" />
+                                            </Trigger>
+                                            <SelectContent>
+                                            {positionOptions.map(opt => (
+                                                <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                                            ))}
+                                            </SelectContent>
+                                        </Select>
+                                    )}
+                                />
+                            </div>
+                        </>
+                    )}
+                </div>
             </div>
-        </div>
+        </form>
     )
 }
 
 export default function AccountsPage() {
+  const router = useRouter();
+  const { toast } = useToast();
   const [itemsPerPage, setClientItemsPerPage] = useState(15);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [pendingUsers, setPendingUsers] = useState<User[]>([]);
+  const [usePendingAccount, setUsePendingAccount] = useState(false);
 
   useEffect(() => {
     setCurrentPage(1);
   }, [itemsPerPage]);
+  
+  const fetchPending = async () => {
+    try {
+        const users = await getPendingUsers();
+        setPendingUsers(users || []);
+    } catch (error) {
+        console.error("Gagal mengambil data pengguna pending:", error);
+        toast({
+            variant: "destructive",
+            title: "Gagal mengambil data",
+            description: "Tidak dapat memuat daftar akun pending.",
+        });
+    }
+  };
+
+  useEffect(() => {
+      if(isAddOpen && usePendingAccount) {
+          fetchPending();
+      }
+  }, [isAddOpen, usePendingAccount]);
 
   const paginatedAccounts = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -260,8 +337,57 @@ export default function AccountsPage() {
   const handleCloseDialogs = () => {
     setIsAddOpen(false);
     setIsEditOpen(false);
-    setSelectedAccount(null); // Clear selection on close
+    setSelectedAccount(null); 
+    setUsePendingAccount(false);
   }
+
+  const handleFormSubmit: SubmitHandler<FormValues> = async (data) => {
+        let result;
+        const metadata = {
+            full_name: data.full_name,
+            role: data.role,
+            sppgId: data.sppgId,
+            position: data.position,
+            phone: data.phone,
+        };
+
+        if (usePendingAccount) {
+            // mode update
+            const selectedUser = pendingUsers.find(u => u.id === data.email); // data.email now holds the user ID
+            if (!selectedUser) {
+                toast({ variant: "destructive", title: "Error", description: "Pengguna pending tidak valid." });
+                return;
+            }
+             result = await updateUserMetadata(selectedUser.id, metadata);
+
+        } else if (selectedAccount) {
+            // mode edit
+             result = await updateUserMetadata(selectedAccount.id, metadata);
+        } else {
+            // mode create
+            if (!data.password) {
+                 toast({ variant: "destructive", title: "Error", description: "Password harus diisi untuk akun baru." });
+                return;
+            }
+            result = await createUser({ email: data.email, password: data.password, ...metadata });
+        }
+        
+        if (result.success) {
+            toast({
+                title: "Sukses!",
+                description: "Data akun berhasil disimpan.",
+            });
+            handleCloseDialogs();
+            router.refresh(); // Refresh data on page
+        } else {
+            toast({
+                variant: "destructive",
+                title: "Gagal menyimpan akun",
+                description: result.error || "Terjadi kesalahan yang tidak diketahui.",
+            });
+        }
+  };
+
 
   return (
     <>
@@ -306,6 +432,13 @@ export default function AccountsPage() {
                   </TableCell>
                 </TableRow>
               ))}
+                {paginatedAccounts.length === 0 && (
+                    <TableRow>
+                        <TableCell colSpan={5} className="text-center h-24">
+                            Belum ada akun penanggung jawab.
+                        </TableCell>
+                    </TableRow>
+                )}
             </TableBody>
           </Table>
         </CardContent>
@@ -339,7 +472,7 @@ export default function AccountsPage() {
             <span className="sr-only">Sebelumnya</span>
           </Button>
           <span className="text-sm text-muted-foreground">
-            Halaman {currentPage} dari {totalPages}
+            Halaman {currentPage} dari {totalPages || 1}
           </span>
           <Button
             variant="ghost"
@@ -352,7 +485,7 @@ export default function AccountsPage() {
           </Button>
         </div>
         
-        <Dialog open={isAddOpen} onOpenChange={(open) => !open && handleCloseDialogs()}>
+        <Dialog open={isAddOpen} onOpenChange={(open) => { if (!open) handleCloseDialogs(); else setIsAddOpen(true);}}>
           <DialogTrigger asChild>
             <Button onClick={() => setIsAddOpen(true)}>Tambah Akun</Button>
           </DialogTrigger>
@@ -360,9 +493,17 @@ export default function AccountsPage() {
             <DialogHeader>
               <DialogTitle>Tambah Akun Baru</DialogTitle>
             </DialogHeader>
-            <AccountForm />
+             <AccountForm 
+                pendingUsers={pendingUsers}
+                usePending={usePendingAccount}
+                onUsePendingChange={setUsePendingAccount}
+                onFormSubmit={handleFormSubmit}
+            />
             <DialogFooter>
-              <Button type="submit">Simpan Akun</Button>
+                <DialogClose asChild>
+                    <Button variant="outline">Batal</Button>
+                </DialogClose>
+              <Button type="submit" form="account-form">Simpan Akun</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -378,14 +519,21 @@ export default function AccountsPage() {
             Ubah detail akun dan penugasan untuk {selectedAccount?.name}.
           </DialogDescription>
         </DialogHeader>
-        <AccountForm account={selectedAccount} />
+         <AccountForm 
+            account={selectedAccount}
+            pendingUsers={[]}
+            usePending={false}
+            onUsePendingChange={() => {}}
+            onFormSubmit={handleFormSubmit}
+        />
         <DialogFooter>
-          <Button type="submit">Simpan Perubahan</Button>
+            <DialogClose asChild>
+                <Button variant="outline">Batal</Button>
+            </DialogClose>
+          <Button type="submit" form="account-form">Simpan Perubahan</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
     </>
   );
 }
-
-    
