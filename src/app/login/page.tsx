@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState } from 'react';
@@ -144,10 +145,10 @@ export default function LoginPage() {
       </div>
       <div className="hidden lg:flex flex-col items-center justify-center p-8 gap-6 text-center text-white bg-batik-gradient animate-gradient bg-[length:200%_200%]">
         <div>
-            <h1 className="text-7xl font-bold tracking-tighter">
-                BETA
+            <h1 className="text-5xl tracking-tighter">
+                <span className="font-bold">BETA</span>
+                <span className="font-light">report</span>
             </h1>
-            <p className="text-4xl font-light tracking-wide">report</p>
         </div>
         <p className="text-lg text-blue-100 max-w-md">
             Aplikasi pelaporan terpusat untuk memonitor dan mengelola data program gizi dari semua SPPG secara efisien.
