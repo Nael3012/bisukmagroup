@@ -92,7 +92,7 @@ const SekolahForm = ({
     sppgList: SppgData[],
     userRole: 'Admin Pusat' | 'SPPG',
     userSppgId?: SppgId,
-    onSaveSuccess: () => void
+    onSaveSuccess: () => void 
 }) => {
   const { toast } = useToast();
   const router = useRouter();
@@ -126,42 +126,6 @@ const SekolahForm = ({
         setWilayah(sekolah.wilayah);
     }
   }, [sekolah]);
-
-  const renderPorsiInputs = () => {
-    switch (selectedJenjang) {
-      case 'PAUD':
-      case 'TK':
-        return (
-          <div className="grid gap-1.5">
-            <Label htmlFor="porsi-kecil" className="text-xs">Jumlah Porsi Kecil</Label>
-            <Input name="porsi-kecil" id="porsi-kecil" type="number" placeholder="Contoh: 50" className="text-xs h-9" />
-          </div>
-        );
-      case 'SD':
-        return (
-          <>
-            <div className="grid gap-1.5">
-              <Label htmlFor="porsi-kecil" className="text-xs">Jumlah Porsi Kecil (Kelas 1-3)</Label>
-              <Input name="porsi-kecil" id="porsi-kecil" type="number" placeholder="Contoh: 30" className="text-xs h-9" />
-            </div>
-            <div className="grid gap-1.5">
-              <Label htmlFor="porsi-besar" className="text-xs">Jumlah Porsi Besar (Kelas 4-6)</Label>
-              <Input name="porsi-besar" id="porsi-besar" type="number" placeholder="Contoh: 20" className="text-xs h-9" />
-            </div>
-          </>
-        );
-      case 'SMP':
-      case 'SMA':
-        return (
-          <div className="grid gap-1.5">
-            <Label htmlFor="porsi-besar" className="text-xs">Jumlah Porsi Besar</Label>
-            <Input name="porsi-besar" id="porsi-besar" type="number" placeholder="Contoh: 80" className="text-xs h-9" />
-          </div>
-        );
-      default:
-        return null;
-    }
-  };
 
   return (
     <form ref={formRef} action={dispatch}>
@@ -218,7 +182,7 @@ const SekolahForm = ({
         <Separator orientation="vertical" className="h-auto hidden md:block" />
         <div className="flex-1 space-y-3">
           <h3 className="text-base font-semibold text-muted-foreground">
-            Data Personel &amp; Porsi
+            Data Personel &amp; Penerima Manfaat
           </h3>
           <div className="grid gap-1.5">
             <Label htmlFor="nama-kepala-sekolah" className="text-xs">Nama Kepala Sekolah</Label>
@@ -700,7 +664,7 @@ export default function MitraPage({ userRole, userSppgId, semuaDaftarSekolah, se
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => setCurrentPageSekolah((prev) => Math.max(prev - 1, 1))}
+                      onClick={()={() => setCurrentPageSekolah((prev) => Math.max(prev - 1, 1))}
                       disabled={currentPageSekolah === 1}
                     >
                       <ChevronLeft className="h-4 w-4" />
@@ -887,9 +851,9 @@ export default function MitraPage({ userRole, userSppgId, semuaDaftarSekolah, se
                         <h3 className="font-semibold">Data B3</h3>
                         <dl className="grid gap-2">
                             <DetailItem label="Jumlah" value={selectedB3.jumlah} />
-                            <DetailItem label="Ibu Hamil" value={selectedB3.jenis.bumil} />
-                            <DetailItem label="Ibu Menyusui" value={selectedB3.jenis.busui} />
-                            <DetailItem label="Balita" value={selectedB3.jenis.balita} />
+                            <DetailItem label="Ibu Hamil" value={b3?.jenis.bumil} />
+                            <DetailItem label="Ibu Menyusui" value={b3?.jenis.busui} />
+                            <DetailItem label="Balita" value={b3?.jenis.balita} />
                             <DetailItem label="SPPG" value={sppgList.find(opt => opt.id === selectedB3.sppg_id)?.nama} />
                             <DetailItem label="PIC" value={selectedB3.nama_pic} />
                             <DetailItem label="Telepon PIC" value={selectedB3.telepon_pic} />
