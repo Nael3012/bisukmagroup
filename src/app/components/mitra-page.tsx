@@ -446,6 +446,7 @@ export default function MitraPage({ userRole, userSppgId, semuaDaftarSekolah, se
       sortableItems.sort((a, b) => {
         const valA = a[sortConfigB3.key];
         const valB = b[sortConfigB3.key];
+        if (valA === null || valB === null) return 0; // Handle nulls
         if (typeof valA === 'string' && typeof valB === 'string') {
           return sortConfigB3.direction === 'ascending' ? valA.localeCompare(valB) : valB.localeCompare(valA);
         }
@@ -640,7 +641,7 @@ export default function MitraPage({ userRole, userSppgId, semuaDaftarSekolah, se
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => setCurrentPageSekolah((prev) => Math.min(prev + 1, totalPagesSekolah))}
+                      onClick={() => {() => setCurrentPageSekolah((prev) => Math.min(prev + 1, totalPagesSekolah))}}
                       disabled={currentPageSekolah === totalPagesSekolah || totalPagesSekolah === 0}
                     >
                       <ChevronRight className="h-4 w-4" />
@@ -815,9 +816,9 @@ export default function MitraPage({ userRole, userSppgId, semuaDaftarSekolah, se
                         <h3 className="font-semibold">Data B3</h3>
                         <dl className="grid gap-2">
                             <DetailItem label="Jumlah" value={selectedB3.jumlah} />
-                            <DetailItem label="Ibu Hamil" value={b3?.jenis.bumil} />
-                            <DetailItem label="Ibu Menyusui" value={b3?.jenis.busui} />
-                            <DetailItem label="Balita" value={b3?.jenis.balita} />
+                            <DetailItem label="Ibu Hamil" value={selectedB3?.jenis.bumil} />
+                            <DetailItem label="Ibu Menyusui" value={selectedB3?.jenis.busui} />
+                            <DetailItem label="Balita" value={selectedB3?.jenis.balita} />
                             <DetailItem label="SPPG" value={sppgList.find(opt => opt.id === selectedB3.sppg_id)?.nama} />
                             <DetailItem label="PIC" value={selectedB3.nama_pic} />
                             <DetailItem label="Telepon PIC" value={selectedB3.telepon_pic} />

@@ -73,7 +73,7 @@ const AccountForm = ({
 }) => {
     const formRef = useRef<HTMLFormElement>(null);
     const [selectedPendingData, setSelectedPendingData] = useState<{id: string, email: string, name: string} | null>(null);
-    const [selectedRole, setSelectedRole] = useState(account?.role || 'SPPG');
+    const [selectedRole, setSelectedRole] = useState<'Admin Pusat' | 'SPPG'>(account?.role || 'SPPG');
 
     const handlePendingUserChange = (userId: string) => {
         const user = pendingUsers.find(u => u.id === userId);
@@ -176,7 +176,7 @@ const AccountForm = ({
                     </Alert>
                     <div className="grid gap-2">
                         <Label htmlFor="role">Role</Label>
-                        <Select name="role" defaultValue={account?.role} onValueChange={setSelectedRole}>
+                        <Select name="role" defaultValue={account?.role} onValueChange={(value) => setSelectedRole(value as 'Admin Pusat' | 'SPPG')}>
                             <SelectTrigger id="role">
                                 <SelectValue placeholder="Pilih Role" />
                             </SelectTrigger>
