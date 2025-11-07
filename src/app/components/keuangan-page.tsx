@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
@@ -24,6 +23,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { getWeekMenuStatus } from '@/app/actions/menu';
 import { useToast } from '@/hooks/use-toast';
+import type { Sekolah, B3Data } from '../client-page';
+
 
 type SppgData = {
   id: string;
@@ -38,9 +39,11 @@ type KeuanganPageProps = {
     userRole: 'Admin Pusat' | 'SPPG';
     userSppgId?: SppgId;
     sppgList: SppgData[];
+    sekolahList: Sekolah[];
+    b3List: B3Data[];
 }
 
-export default function KeuanganPage({ userRole, userSppgId, sppgList }: KeuanganPageProps) {
+export default function KeuanganPage({ userRole, userSppgId, sppgList, sekolahList, b3List }: KeuanganPageProps) {
   const { toast } = useToast();
   const defaultSppg = userRole === 'SPPG' && userSppgId ? userSppgId : (sppgList[0]?.id || '');
   const [selectedSppg, setSelectedSppg] = useState<SppgId>(defaultSppg);
@@ -49,6 +52,8 @@ export default function KeuanganPage({ userRole, userSppgId, sppgList }: Keuanga
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [missingMenuDays, setMissingMenuDays] = useState<{ day: string; date: string }[]>([]);
   const [isLoadingStatus, setIsLoadingStatus] = useState(false);
+  const [porsiBesar, setPorsiBesar] = useState(0);
+  const [porsiKecil, setPorsiKecil] = useState(0);
   
   useEffect(() => {
     if (userRole === 'SPPG' && userSppgId) {
@@ -57,7 +62,37 @@ export default function KeuanganPage({ userRole, userSppgId, sppgList }: Keuanga
   }, [userRole, userSppgId]);
 
 
+  const calculatePorsi = useCallback(() => {
+    const porsiKecilJenjang = ['PAUD', 'TK', 'SD'];
+    const porsiBesarJenjang = ['SMP', 'SMA'];
+
+    const filteredSekolah = sekolahList.filter(s => s.sppg_id === selectedSppg);
+    const filteredB3 = b3List.filter(b => b.sppg_id === selectedSppg);
+
+    let totalKecil = 0;
+    let totalBesar = 0;
+
+    // Hitung dari sekolah
+    filteredSekolah.forEach(sekolah => {
+        if (porsiKecilJenjang.includes(sekolah.jenjang)) {
+            totalKecil += sekolah.jumlahpm || 0;
+        } else if (porsiBesarJenjang.includes(sekolah.jenjang)) {
+            totalBesar += sekolah.jumlahpm || 0;
+        }
+    });
+
+    // Hitung dari B3 (balita dianggap porsi kecil)
+    filteredB3.forEach(b3 => {
+        totalKecil += b3.jenis?.balita || 0;
+    });
+
+    setPorsiKecil(totalKecil);
+    setPorsiBesar(totalBesar);
+  }, [sekolahList, b3List, selectedSppg]);
+
+
   const handleBuatLaporanClick = () => {
+    calculatePorsi();
     setShowPorsiInput(true);
   }
 
@@ -196,18 +231,18 @@ export default function KeuanganPage({ userRole, userSppgId, sppgList }: Keuanga
               <CardHeader>
                   <CardTitle>Input Porsi Hari Ini</CardTitle>
                   <CardDescription>
-                      Masukkan jumlah porsi besar dan kecil yang disalurkan hari ini.
+                      Jumlah porsi di bawah ini dihitung secara otomatis berdasarkan data mitra. Anda dapat menyesuaikannya jika perlu.
                   </CardDescription>
               </CardHeader>
               <CardContent>
                   <div className="grid md:grid-cols-2 gap-4">
                       <div className="grid gap-2">
                           <Label htmlFor="porsi-besar">Jumlah Porsi Besar</Label>
-                          <Input id="porsi-besar" type="number" placeholder="Contoh: 50" />
+                          <Input id="porsi-besar" type="number" value={porsiBesar} onChange={(e) => setPorsiBesar(Number(e.target.value))} placeholder="Contoh: 50" />
                       </div>
                       <div className="grid gap-2">
                           <Label htmlFor="porsi-kecil">Jumlah Porsi Kecil</Label>
-                          <Input id="porsi-kecil" type="number" placeholder="Contoh: 30" />
+                          <Input id="porsi-kecil" type="number" value={porsiKecil} onChange={(e) => setPorsiKecil(Number(e.target.value))} placeholder="Contoh: 30" />
                       </div>
                   </div>
               </CardContent>

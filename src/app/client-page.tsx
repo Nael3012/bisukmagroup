@@ -1,4 +1,3 @@
-
 'use client';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -150,7 +149,7 @@ export default function ClientPage({ user, sppgList, sekolahList, b3List, assign
       case 'Menu':
         return <MenuPage {...props} />;
       case 'Keuangan':
-        return <KeuanganPage {...props} />;
+        return <KeuanganPage {...props} sekolahList={sekolahList} b3List={b3List} />;
       case 'Laporan':
         return <ReportsPage {...props} />;
       case 'Kelola Penanggung Jawab':
