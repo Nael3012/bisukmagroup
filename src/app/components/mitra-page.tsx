@@ -36,7 +36,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { useState, useRef, useEffect, useMemo, useActionState } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useActionState } from 'react';
 import { ArrowUpDown, ChevronLeft, ChevronRight, Pencil } from 'lucide-react';
 import { WilayahSelector } from './wilayah-selector';
 import type { SppgData, Sekolah, B3Data } from '../client-page';
@@ -383,10 +384,14 @@ export default function MitraPage({ userRole, userSppgId, semuaDaftarSekolah, se
     let sortableItems = [...filteredSekolah];
     if (sortConfigSekolah !== null) {
       sortableItems.sort((a, b) => {
-        if (a[sortConfigSekolah.key] < b[sortConfigSekolah.key]) {
+        const key = sortConfigSekolah.key;
+        const valA = a[key];
+        const valB = b[key];
+        if (valA === null || valB === null) return 0;
+        if (valA < valB) {
           return sortConfigSekolah.direction === 'ascending' ? -1 : 1;
         }
-        if (a[sortConfigSekolah.key] > b[sortConfigSekolah.key]) {
+        if (valA > valB) {
           return sortConfigSekolah.direction === 'ascending' ? 1 : -1;
         }
         return 0;
@@ -444,9 +449,10 @@ export default function MitraPage({ userRole, userSppgId, semuaDaftarSekolah, se
     let sortableItems = [...filteredB3];
     if (sortConfigB3 !== null) {
       sortableItems.sort((a, b) => {
-        const valA = a[sortConfigB3.key];
-        const valB = b[sortConfigB3.key];
-        if (valA === null || valB === null) return 0; // Handle nulls
+        const key = sortConfigB3.key;
+        const valA = a[key];
+        const valB = b[key];
+        if (valA === null || valB === null) return 0;
         if (typeof valA === 'string' && typeof valB === 'string') {
           return sortConfigB3.direction === 'ascending' ? valA.localeCompare(valB) : valB.localeCompare(valA);
         }
@@ -641,7 +647,7 @@ export default function MitraPage({ userRole, userSppgId, semuaDaftarSekolah, se
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => {() => setCurrentPageSekolah((prev) => Math.min(prev + 1, totalPagesSekolah))}}
+                      onClick={() => setCurrentPageSekolah((prev) => Math.min(prev + 1, totalPagesSekolah))}
                       disabled={currentPageSekolah === totalPagesSekolah || totalPagesSekolah === 0}
                     >
                       <ChevronRight className="h-4 w-4" />
@@ -816,9 +822,9 @@ export default function MitraPage({ userRole, userSppgId, semuaDaftarSekolah, se
                         <h3 className="font-semibold">Data B3</h3>
                         <dl className="grid gap-2">
                             <DetailItem label="Jumlah" value={selectedB3.jumlah} />
-                            <DetailItem label="Ibu Hamil" value={selectedB3?.jenis.bumil} />
-                            <DetailItem label="Ibu Menyusui" value={selectedB3?.jenis.busui} />
-                            <DetailItem label="Balita" value={selectedB3?.jenis.balita} />
+                            <DetailItem label="Ibu Hamil" value={selectedB3.jenis.bumil} />
+                            <DetailItem label="Ibu Menyusui" value={selectedB3.jenis.busui} />
+                            <DetailItem label="Balita" value={selectedB3.jenis.balita} />
                             <DetailItem label="SPPG" value={sppgList.find(opt => opt.id === selectedB3.sppg_id)?.nama} />
                             <DetailItem label="PIC" value={selectedB3.nama_pic} />
                             <DetailItem label="Telepon PIC" value={selectedB3.telepon_pic} />
