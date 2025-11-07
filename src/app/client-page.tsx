@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import SppgPage from './components/sppg-page';
 import MitraPage from './components/mitra-page';
@@ -106,6 +106,10 @@ export default function ClientPage({ user, sppgList, sekolahList, b3List, assign
   const supabase = createClient();
   const [activeMenu, setActiveMenu] = useState<Menu>('Dashboard');
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+
+  useEffect(() => {
+    document.title = `BETAreport - ${activeMenu}`;
+  }, [activeMenu]);
 
   const userProfile = user.user_metadata;
   const userRole = userProfile?.role || 'SPPG';
