@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -37,7 +38,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { ArrowUpDown, ChevronLeft, ChevronRight, Download, Edit, Pencil } from 'lucide-react';
+import { ArrowUpDown, ChevronLeft, ChevronRight, Pencil } from 'lucide-react';
 import { WilayahSelector } from './wilayah-selector';
 import type { SppgData, Sekolah, B3Data } from '../client-page';
 import { useFormState, useFormStatus } from 'react-dom';
@@ -57,13 +58,6 @@ type MitraPageProps = {
     semuaDaftarB3: B3Data[];
     sppgList: SppgData[];
 }
-
-const yayasanLogos: Record<string, string> = {
-    "Yayasan Bisukma Bangun Bangsa": "https://oilvtefzzupggnstgpsa.supabase.co/storage/v1/object/public/logos/1762413828035_Bisukma%20Bangun%20Bangsa.png",
-    "Yayasan Patriot Generasi Emas Indonesia": "https://oilvtefzzupggnstgpsa.supabase.co/storage/v1/object/public/logos/1762413871003_Patriot%20Generasi%20Emas%20Indonesia.png",
-    "Yayasan Bisukma Hita Mangula": "https://oilvtefzzupggnstgpsa.supabase.co/storage/v1/object/public/logos/1762413915579_Bisukma%20Hita%20Mangula.png",
-    "Yayasan Bisukma Generasi Emas Indonesia": "https://oilvtefzzupggnstgpsa.supabase.co/storage/v1/object/public/logos/1762413958140_Bisukma%20Generasi%20Emas%20Indonesia.png"
-};
 
 const DetailItem = ({ label, value }: { label: string; value: React.ReactNode }) => (
   <div className="grid grid-cols-3 gap-2 text-sm">
@@ -370,27 +364,6 @@ export default function MitraPage({ userRole, userSppgId, semuaDaftarSekolah, se
     setCurrentPageB3(1);
   };
   
-  const handleDownloadLogo = async () => {
-    const yayasan = selectedSppgDetails?.yayasan;
-    if (yayasan && yayasanLogos[yayasan]) {
-      try {
-        const response = await fetch(yayasanLogos[yayasan]);
-        if (!response.ok) throw new Error('Network response was not ok.');
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `${yayasan.replace(/ /g, '_')}-logo.png`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-      } catch (error) {
-        console.error("Download failed:", error);
-      }
-    }
-  };
-
   // Memoized filtered data for both tabs
   const filteredSekolah = useMemo(() => {
     if (selectedSppg === 'all') return semuaDaftarSekolah;
@@ -534,35 +507,27 @@ export default function MitraPage({ userRole, userSppgId, semuaDaftarSekolah, se
       </CardHeader>
       <CardContent className="space-y-4">
         {userRole === 'Admin Pusat' && (
-            <div className="flex items-center gap-2">
-                <div className="w-full max-w-xs">
-                <Select onValueChange={handleSppgChange} value={selectedSppg}>
-                    <SelectTrigger>
-                        <SelectValue placeholder="Pilih SPPG">{selectedSppg === 'all' ? 'Semua SPPG' : (selectedSppgDetails?.nama || 'Pilih SPPG')}</SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">
-                            <div>
-                                <p className="font-medium">Semua SPPG</p>
-                            </div>
-                        </SelectItem>
-                        {sppgList.map((option) => (
-                        <SelectItem key={option.id} value={option.id}>
-                            <div>
-                                <p className="font-medium">{option.nama}</p>
-                                <p className="text-xs text-muted-foreground">{option.alamat}</p>
-                            </div>
-                        </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-                </div>
-                {selectedSppg !== 'all' && (
-                    <Button variant="outline" size="icon" onClick={handleDownloadLogo} disabled={!selectedSppgDetails?.yayasan}>
-                        <Download className="h-4 w-4" />
-                        <span className="sr-only">Download Logo</span>
-                    </Button>
-                )}
+            <div className="w-full max-w-xs">
+            <Select onValueChange={handleSppgChange} value={selectedSppg}>
+                <SelectTrigger>
+                    <SelectValue placeholder="Pilih SPPG">{selectedSppg === 'all' ? 'Semua SPPG' : (selectedSppgDetails?.nama || 'Pilih SPPG')}</SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">
+                        <div>
+                            <p className="font-medium">Semua SPPG</p>
+                        </div>
+                    </SelectItem>
+                    {sppgList.map((option) => (
+                    <SelectItem key={option.id} value={option.id}>
+                        <div>
+                            <p className="font-medium">{option.nama}</p>
+                            <p className="text-xs text-muted-foreground">{option.alamat}</p>
+                        </div>
+                    </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
             </div>
         )}
 

@@ -13,11 +13,11 @@ import {
   CalendarIcon,
   CheckCircle2,
   Clock,
-  Download,
   Pencil,
   PlusCircle,
   Upload,
   X,
+  Download,
 } from 'lucide-react';
 import { format, startOfWeek, setDay, addWeeks, addDays } from 'date-fns';
 import { id } from 'date-fns/locale';
@@ -77,14 +77,6 @@ type WeeklyMenu = {
     weekStatus: Record<DayOfWeek, boolean>;
     menuData: Record<DayOfWeek, MenuData | null>;
 }
-
-const yayasanLogos: Record<string, string> = {
-    "Yayasan Bisukma Bangun Bangsa": "https://oilvtefzzupggnstgpsa.supabase.co/storage/v1/object/public/logos/1762413828035_Bisukma%20Bangun%20Bangsa.png",
-    "Yayasan Patriot Generasi Emas Indonesia": "https://oilvtefzzupggnstgpsa.supabase.co/storage/v1/object/public/logos/1762413871003_Patriot%20Generasi%20Emas%20Indonesia.png",
-    "Yayasan Bisukma Hita Mangula": "https://oilvtefzzupggnstgpsa.supabase.co/storage/v1/object/public/logos/1762413915579_Bisukma%20Hita%20Mangula.png",
-    "Yayasan Bisukma Generasi Emas Indonesia": "https://oilvtefzzupggnstgpsa.supabase.co/storage/v1/object/public/logos/1762413958140_Bisukma%20Generasi%20Emas%20Indonesia.png"
-};
-
 
 const dayNameToIndex: Record<DayOfWeek, number> = {
   Senin: 1,
@@ -406,27 +398,6 @@ export default function MenuPage({ userRole, userSppgId, sppgList }: MenuPagePro
     return sppgList.find(option => option.id === selectedSppg);
   }, [selectedSppg, sppgList]);
 
-  const handleDownloadLogo = async () => {
-    const yayasan = selectedSppgDetails?.yayasan;
-    if (yayasan && yayasanLogos[yayasan]) {
-      try {
-        const response = await fetch(yayasanLogos[yayasan]);
-        if (!response.ok) throw new Error('Network response was not ok.');
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `${yayasan.replace(/ /g, '_')}-logo.png`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-      } catch (error) {
-        console.error("Download failed:", error);
-      }
-    }
-  };
-
   const nextWeekDateRange = useMemo(() => {
     const today = new Date();
     const nextWeek = addWeeks(today, 1);
@@ -542,8 +513,7 @@ export default function MenuPage({ userRole, userSppgId, sppgList }: MenuPagePro
       </CardHeader>
       <CardContent className="space-y-4">
         {userRole === 'Admin Pusat' && (
-             <div className="flex items-center gap-2">
-                <div className="w-full max-w-xs">
+             <div className="w-full max-w-xs">
                 <Select onValueChange={(value) => setSelectedSppg(value as SppgId)} value={selectedSppg}>
                     <SelectTrigger>
                         <SelectValue placeholder="Pilih SPPG">
@@ -561,11 +531,6 @@ export default function MenuPage({ userRole, userSppgId, sppgList }: MenuPagePro
                         ))}
                     </SelectContent>
                 </Select>
-                </div>
-                <Button variant="outline" size="icon" onClick={handleDownloadLogo} disabled={!selectedSppgDetails?.yayasan}>
-                    <Download className="h-4 w-4" />
-                    <span className="sr-only">Download Logo</span>
-                </Button>
              </div>
         )}
         
@@ -685,5 +650,3 @@ export default function MenuPage({ userRole, userSppgId, sppgList }: MenuPagePro
     </>
   );
 }
-
-    

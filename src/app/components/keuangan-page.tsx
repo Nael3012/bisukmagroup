@@ -12,7 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, FilePlus, Info, Save, Download } from 'lucide-react';
+import { CalendarIcon, FilePlus, Info, Save } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { format, startOfWeek, addDays } from 'date-fns';
@@ -24,13 +24,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { getWeekMenuStatus } from '@/app/actions/menu';
 import { useToast } from '@/hooks/use-toast';
-
-const yayasanLogos: Record<string, string> = {
-    "Yayasan Bisukma Bangun Bangsa": "https://oilvtefzzupggnstgpsa.supabase.co/storage/v1/object/public/logos/1762413828035_Bisukma%20Bangun%20Bangsa.png",
-    "Yayasan Patriot Generasi Emas Indonesia": "https://oilvtefzzupggnstgpsa.supabase.co/storage/v1/object/public/logos/1762413871003_Patriot%20Generasi%20Emas%20Indonesia.png",
-    "Yayasan Bisukma Hita Mangula": "https://oilvtefzzupggnstgpsa.supabase.co/storage/v1/object/public/logos/1762413915579_Bisukma%20Hita%20Mangula.png",
-    "Yayasan Bisukma Generasi Emas Indonesia": "https://oilvtefzzupggnstgpsa.supabase.co/storage/v1/object/public/logos/1762413958140_Bisukma%20Generasi%20Emas%20Indonesia.png"
-};
 
 type SppgData = {
   id: string;
@@ -72,31 +65,6 @@ export default function KeuanganPage({ userRole, userSppgId, sppgList }: Keuanga
     return sppgList.find(option => option.id === selectedSppg);
   }, [selectedSppg, sppgList]);
 
-  const handleDownloadLogo = async () => {
-    const yayasan = selectedSppgDetails?.yayasan;
-    if (yayasan && yayasanLogos[yayasan]) {
-      try {
-        const response = await fetch(yayasanLogos[yayasan]);
-        if (!response.ok) throw new Error('Network response was not ok.');
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `${yayasan.replace(/ /g, '_')}-logo.png`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-      } catch (error) {
-        console.error("Download failed:", error);
-        toast({
-          variant: "destructive",
-          title: "Gagal Mengunduh",
-          description: "Tidak dapat mengunduh logo."
-        });
-      }
-    }
-  };
 
   const fetchMenuData = useCallback(async () => {
       if (!selectedSppg || !date) {
@@ -169,27 +137,21 @@ export default function KeuanganPage({ userRole, userSppgId, sppgList }: Keuanga
                 {userRole === 'Admin Pusat' && (
                     <div className="grid gap-2 w-full md:flex-1">
                         <Label htmlFor="sppg-select">Pilih SPPG</Label>
-                        <div className="flex items-center gap-2">
-                            <Select onValueChange={(v) => setSelectedSppg(v as SppgId)} value={selectedSppg}>
-                            <SelectTrigger id="sppg-select">
-                                <SelectValue placeholder="Pilih SPPG" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {sppgList.map((option) => (
-                                <SelectItem key={option.id} value={option.id}>
-                                    <div>
-                                    <p className="font-medium">{option.nama}</p>
-                                    {option.alamat && <p className="text-xs text-muted-foreground">{option.alamat}</p>}
-                                    </div>
-                                </SelectItem>
-                                ))}
-                            </SelectContent>
-                            </Select>
-                            <Button variant="outline" size="icon" onClick={handleDownloadLogo} disabled={!selectedSppgDetails?.yayasan}>
-                                <Download className="h-4 w-4" />
-                                <span className="sr-only">Download Logo</span>
-                            </Button>
-                        </div>
+                        <Select onValueChange={(v) => setSelectedSppg(v as SppgId)} value={selectedSppg}>
+                        <SelectTrigger id="sppg-select">
+                            <SelectValue placeholder="Pilih SPPG" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {sppgList.map((option) => (
+                            <SelectItem key={option.id} value={option.id}>
+                                <div>
+                                <p className="font-medium">{option.nama}</p>
+                                {option.alamat && <p className="text-xs text-muted-foreground">{option.alamat}</p>}
+                                </div>
+                            </SelectItem>
+                            ))}
+                        </SelectContent>
+                        </Select>
                     </div>
                 )}
             <div className="grid gap-2 w-full md:flex-1">
