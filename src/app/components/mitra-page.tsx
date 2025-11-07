@@ -664,7 +664,7 @@ export default function MitraPage({ userRole, userSppgId, semuaDaftarSekolah, se
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={()={() => setCurrentPageSekolah((prev) => Math.max(prev - 1, 1))}
+                      onClick={() => setCurrentPageSekolah((prev) => Math.max(prev - 1, 1))}
                       disabled={currentPageSekolah === 1}
                     >
                       <ChevronLeft className="h-4 w-4" />
