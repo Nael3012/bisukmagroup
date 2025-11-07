@@ -303,5 +303,4 @@ export default function ClientPage({ user, sppgList, sekolahList, b3List, assign
     </Dialog>
     </>
   );
-
-    
+}
