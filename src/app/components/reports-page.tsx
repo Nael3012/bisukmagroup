@@ -22,6 +22,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { getMitraReportData } from '@/app/actions/reports';
+import type { Sekolah, B3Data } from '../client-page';
+
 
 type SppgData = {
   id: string;
@@ -29,25 +32,6 @@ type SppgData = {
   yayasan: string;
   alamat: string;
 };
-
-type Sekolah = {
-  id: string;
-  nama: string;
-  alamat: string;
-  jenjang: string;
-  jumlahPM: number;
-  sppgId: string;
-};
-
-type B3Data = {
-  id: string;
-  namaDesa: string;
-  alamat: string;
-  jenis: { bumil: number; busui: number; balita: number };
-  jumlah: number;
-  sppgId: string;
-};
-
 
 const yayasanLogos: Record<string, string> = {
     "Yayasan Bisukma Bangun Bangsa": "https://oilvtefzzupggnstgpsa.supabase.co/storage/v1/object/public/logos/1762413828035_Bisukma%20Bangun%20Bangsa.png",
@@ -105,7 +89,7 @@ const ReportPreviewDialog = ({
 
     if (reportType === 'mitra') {
       const sekolahData = data.filter(item => 'jenjang' in item);
-      const b3Data = data.filter(item => 'namaDesa' in item);
+      const b3Data = data.filter(item => 'namadesa' in item);
 
       return (
         <div className="space-y-6">
@@ -125,7 +109,7 @@ const ReportPreviewDialog = ({
                           <TableRow key={item.id}>
                               <TableCell>{item.nama}</TableCell>
                               <TableCell>{item.jenjang}</TableCell>
-                              <TableCell>{item.jumlahPM}</TableCell>
+                              <TableCell>{item.jumlahpm}</TableCell>
                           </TableRow>
                       ))}
                   </TableBody>
@@ -146,7 +130,7 @@ const ReportPreviewDialog = ({
                 <TableBody>
                   {b3Data.map((item: B3Data) => (
                     <TableRow key={item.id}>
-                      <TableCell>{item.namaDesa}</TableCell>
+                      <TableCell>{item.namadesa}</TableCell>
                       <TableCell>{item.jumlah}</TableCell>
                       <TableCell>Bumil: {item.jenis.bumil}, Busui: {item.jenis.busui}, Balita: {item.jenis.balita}</TableCell>
                     </TableRow>
@@ -176,14 +160,14 @@ const ReportPreviewDialog = ({
                                 <TableCell className="font-medium">{item.menuName}</TableCell>
                                 <TableCell>
                                     <ul className="list-disc list-inside space-y-1">
-                                        {Array.isArray(item.largePortion) ? item.largePortion.map((nutrient: any) => (
+                                        {Array.isArray(item.largeportion) ? item.largeportion.map((nutrient: any) => (
                                             <li key={nutrient.id}><span className="capitalize">{nutrient.source.replace('-', ' ')}</span>: {nutrient.amount}</li>
                                         )) : '-'}
                                     </ul>
                                 </TableCell>
                                 <TableCell>
                                     <ul className="list-disc list-inside space-y-1">
-                                        {Array.isArray(item.smallPortion) ? item.smallPortion.map((nutrient: any) => (
+                                        {Array.isArray(item.smallportion) ? item.smallportion.map((nutrient: any) => (
                                             <li key={nutrient.id}><span className="capitalize">{nutrient.source.replace('-', ' ')}</span>: {nutrient.amount}</li>
                                         )) : '-'}
                                     </ul>
@@ -277,6 +261,7 @@ export default function ReportsPage({ userRole, userSppgId, sppgList }: ReportsP
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [previewData, setPreviewData] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (userRole === 'SPPG' && userSppgId) {
@@ -317,35 +302,45 @@ export default function ReportsPage({ userRole, userSppgId, sppgList }: ReportsP
     }
   };
 
-  const handlePreview = () => {
+  const fetchData = async () => {
     if (!isFilterComplete) {
-        setError('Harap lengkapi semua pilihan yang diperlukan untuk melanjutkan.');
-        return;
+      setError('Harap lengkapi semua pilihan yang diperlukan untuk melanjutkan.');
+      return null;
     }
+    setIsLoading(true);
     setError(null);
 
-    let data: any[] = [];
-    // Data fetching logic will be implemented here
-    
-    setPreviewData(data);
-    
-    if (data.length === 0) {
+    let data: any[] | null = [];
+    try {
+      if (selectedReport === 'mitra') {
+        data = await getMitraReportData(selectedSppg);
+      }
+      // TODO: Implement other report types
+    } catch (e: any) {
+      setError(e.message || 'Gagal mengambil data laporan.');
+      data = null;
+    } finally {
+      setIsLoading(false);
+    }
+    return data;
+  };
+
+  const handlePreview = async () => {
+    const data = await fetchData();
+    if (data) {
+      setPreviewData(data);
+      if (data.length === 0) {
         setError("Data tidak ditemukan untuk kriteria yang dipilih.");
-    } else {
+      } else {
         setIsPreviewOpen(true);
+      }
     }
   }
 
 
   const handleDownload = async () => {
-    if (!isFilterComplete) {
-        setError('Harap lengkapi semua pilihan yang diperlukan untuk melanjutkan.');
-        return;
-    }
-    setError(null);
-
-    let data: any[] = [];
-    // Data fetching logic will be implemented here
+    const data = await fetchData();
+    if (!data) return;
 
     if (data.length === 0) {
         setError("Tidak ada data untuk diunduh berdasarkan filter yang dipilih.");
@@ -372,15 +367,15 @@ export default function ReportsPage({ userRole, userSppgId, sppgList }: ReportsP
     if (selectedReport === 'mitra') {
         dataToDownload.push(['Tipe Mitra', 'Nama', 'Alamat/Desa', 'Jenjang', 'Jumlah PM', 'Detail PM']);
         const sekolahData = data.filter(item => 'jenjang' in item);
-        const b3Data = data.filter(item => 'namaDesa' in item);
-        sekolahData.forEach(s => dataToDownload.push(['Sekolah', s.nama, s.alamat, s.jenjang, s.jumlahPM, '']));
-        b3Data.forEach(b => dataToDownload.push(['B3', b.namaDesa, b.alamat, '', b.jumlah, `Bumil: ${b.jenis.bumil}, Busui: ${b.jenis.busui}, Balita: ${b.jenis.balita}`]));
+        const b3Data = data.filter(item => 'namadesa' in item);
+        sekolahData.forEach(s => dataToDownload.push(['Sekolah', s.nama, s.alamat, s.jenjang, s.jumlahpm, '']));
+        b3Data.forEach(b => dataToDownload.push(['B3', b.namadesa, b.alamat, '', b.jumlah, `Bumil: ${b.jenis.bumil}, Busui: ${b.jenis.busui}, Balita: ${b.jenis.balita}`]));
     } else if (selectedReport === 'menu') {
         if (menuReportType === 'harian') {
             dataToDownload.push(['SPPG', 'Nama Menu', 'Kandungan Gizi Porsi Besar', 'Kandungan Gizi Porsi Kecil']);
             data.forEach(item => {
-                const largePortionStr = Array.isArray(item.menu.largePortion) ? item.menu.largePortion.map((n:any) => `${n.source.replace('-',' ')}: ${n.amount}`).join('\n') : '';
-                const smallPortionStr = Array.isArray(item.menu.smallPortion) ? item.menu.smallPortion.map((n:any) => `${n.source.replace('-',' ')}: ${n.amount}`).join('\n') : '';
+                const largePortionStr = Array.isArray(item.menu.largeportion) ? item.menu.largeportion.map((n:any) => `${n.source.replace('-',' ')}: ${n.amount}`).join('\n') : '';
+                const smallPortionStr = Array.isArray(item.menu.smallportion) ? item.menu.smallportion.map((n:any) => `${n.source.replace('-',' ')}: ${n.amount}`).join('\n') : '';
                 dataToDownload.push([item.sppgName || sppgTitle, item.menu.menuName, largePortionStr, smallPortionStr]);
             });
         } else if (menuReportType === 'mingguan') {
@@ -545,13 +540,13 @@ export default function ReportsPage({ userRole, userSppgId, sppgList }: ReportsP
 
           </CardContent>
           <CardFooter className='flex flex-col sm:flex-row justify-end gap-2'>
-              <Button variant="outline" onClick={handlePreview} disabled={!isFilterComplete} className="w-full sm:w-auto">
+              <Button variant="outline" onClick={handlePreview} disabled={!isFilterComplete || isLoading} className="w-full sm:w-auto">
                   <Eye className="mr-2 h-4 w-4" />
-                  Lihat Laporan
+                  {isLoading ? 'Memuat...' : 'Lihat Laporan'}
               </Button>
-              <Button onClick={handleDownload} disabled={!isFilterComplete} className="w-full sm:w-auto">
+              <Button onClick={handleDownload} disabled={!isFilterComplete || isLoading} className="w-full sm:w-auto">
                   <Download className="mr-2 h-4 w-4" />
-                  Unduh Data
+                  {isLoading ? 'Memuat...' : 'Unduh Data'}
               </Button>
           </CardFooter>
         </Card>
