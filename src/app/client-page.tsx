@@ -18,6 +18,14 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -78,6 +86,14 @@ export type B3Data = {
   telepon_pic: string | null;
 };
 
+const DetailItem = ({ label, value }: { label: string; value: React.ReactNode }) => (
+  <div className="grid grid-cols-3 gap-2 text-sm">
+    <dt className="text-muted-foreground col-span-1">{label}</dt>
+    <dd className="font-medium col-span-2">{value || '-'}</dd>
+  </div>
+);
+
+
 type ClientPageProps = {
   user: User;
   sppgList: SppgData[];
@@ -90,14 +106,17 @@ export default function ClientPage({ user, sppgList, sekolahList, b3List, assign
   const router = useRouter();
   const supabase = createClient();
   const [activeMenu, setActiveMenu] = useState<Menu>('Dashboard');
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
-  // These will be replaced by data from user_profiles table
-  const userRole = user.user_metadata?.role || 'SPPG';
-  const userSppgId = user.user_metadata?.sppg_id;
-  const userName = user.user_metadata?.nama || user.email;
-  const userAvatar = user.user_metadata?.avatar_url;
+  const userProfile = user.user_metadata;
+  const userRole = userProfile?.role || 'SPPG';
+  const userSppgId = userProfile?.sppg_id;
+  const userName = userProfile?.nama || user.email;
+  const userAvatar = userProfile?.avatar_url;
+  const userJabatan = userProfile?.jabatan;
 
-  const sppgName = sppgList.find(s => s.id === userSppgId)?.nama || userSppgId;
+  const sppgDetails = sppgList.find(s => s.id === userSppgId);
+  const sppgName = sppgDetails?.nama || userSppgId;
 
 
   const handleMenuClick = (menu: Menu) => {
@@ -179,6 +198,7 @@ export default function ClientPage({ user, sppgList, sekolahList, b3List, assign
   );
 
   return (
+    <>
     <div className="flex h-screen bg-background">
       {/* Static Sidebar for Desktop */}
       <div className="border-r w-64 hidden md:flex flex-col">
@@ -210,7 +230,7 @@ export default function ClientPage({ user, sppgList, sekolahList, b3List, assign
                 <Button variant="ghost" className="relative flex items-center gap-3 px-2">
                     <div className='text-right hidden sm:block'>
                         <p className='text-sm font-medium'>{userName}</p>
-                        <p className='text-xs text-muted-foreground'>{userRole} - {sppgName}</p>
+                        <p className='text-xs text-muted-foreground'>{userRole === 'Admin Pusat' ? userRole : `${userJabatan || userRole} - ${sppgName}`}</p>
                     </div>
                     <Avatar className="h-9 w-9">
                         <AvatarImage src={userAvatar} alt={`@${userName}`} />
@@ -230,7 +250,7 @@ export default function ClientPage({ user, sppgList, sekolahList, b3List, assign
                     </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setIsProfileOpen(true)}>
                     Profil
                 </DropdownMenuItem>
                 <DropdownMenuItem>
@@ -247,7 +267,42 @@ export default function ClientPage({ user, sppgList, sekolahList, b3List, assign
         <main className="flex-1 p-4 sm:p-6">{renderContent()}</main>
       </div>
     </div>
+
+    <Dialog open={isProfileOpen} onOpenChange={setIsProfileOpen}>
+        <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+                <DialogTitle>Profil Pengguna</DialogTitle>
+                <DialogDescription>
+                    Detail akun dan penugasan Anda.
+                </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-6 py-4">
+                <div className="space-y-3">
+                    <h3 className="font-semibold text-sm">Data Akun</h3>
+                    <dl className="grid gap-2">
+                        <DetailItem label="Nama" value={userName} />
+                        <DetailItem label="Email" value={user.email} />
+                        <DetailItem label="Role" value={userRole} />
+                        {userJabatan && <DetailItem label="Jabatan" value={userJabatan} />}
+                    </dl>
+                </div>
+                {sppgDetails && (
+                    <div className="space-y-3">
+                        <h3 className="font-semibold text-sm">Data SPPG</h3>
+                        <dl className="grid gap-2">
+                            <DetailItem label="Nama SPPG" value={sppgDetails.nama} />
+                            <DetailItem label="Yayasan" value={sppgDetails.yayasan} />
+                            <DetailItem label="Alamat" value={sppgDetails.alamat} />
+                        </dl>
+                    </div>
+                )}
+            </div>
+            <DialogFooter>
+                <Button onClick={() => setIsProfileOpen(false)}>Tutup</Button>
+            </DialogFooter>
+        </DialogContent>
+    </Dialog>
+    </>
   );
-}
 
     
