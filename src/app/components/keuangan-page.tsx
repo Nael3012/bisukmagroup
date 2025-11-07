@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   Select,
   SelectContent,
@@ -22,6 +22,8 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { getWeekMenuStatus } from '@/app/actions/menu';
+import { useToast } from '@/hooks/use-toast';
 
 const yayasanLogos: Record<string, string> = {
     "Yayasan Bisukma Bangun Bangsa": "https://oilvtefzzupggnstgpsa.supabase.co/storage/v1/object/public/logos/1762413828035_Bisukma%20Bangun%20Bangsa.png",
@@ -46,12 +48,14 @@ type KeuanganPageProps = {
 }
 
 export default function KeuanganPage({ userRole, userSppgId, sppgList }: KeuanganPageProps) {
+  const { toast } = useToast();
   const defaultSppg = userRole === 'SPPG' && userSppgId ? userSppgId : (sppgList[0]?.id || '');
   const [selectedSppg, setSelectedSppg] = useState<SppgId>(defaultSppg);
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [showPorsiInput, setShowPorsiInput] = useState(false);
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [missingMenuDays, setMissingMenuDays] = useState<{ day: string; date: string }[]>([]);
+  const [isLoadingStatus, setIsLoadingStatus] = useState(false);
   
   useEffect(() => {
     if (userRole === 'SPPG' && userSppgId) {
@@ -85,40 +89,53 @@ export default function KeuanganPage({ userRole, userSppgId, sppgList }: Keuanga
         window.URL.revokeObjectURL(url);
       } catch (error) {
         console.error("Download failed:", error);
+        toast({
+          variant: "destructive",
+          title: "Gagal Mengunduh",
+          description: "Tidak dapat mengunduh logo."
+        });
       }
     }
   };
 
+  const fetchMenuData = useCallback(async () => {
+      if (!selectedSppg || !date) {
+          setMissingMenuDays([]);
+          return;
+      }
+      setIsLoadingStatus(true);
+      try {
+          const weekStatusFromDb = await getWeekMenuStatus(selectedSppg, date);
+          
+          const currentWeekStart = startOfWeek(date, { weekStartsOn: 1 });
+          const missingDays: { day: string; date: string }[] = [];
+
+          (Object.keys(weekStatusFromDb) as (keyof typeof weekStatusFromDb)[]).forEach((day, index) => {
+              if (!weekStatusFromDb[day]) {
+                  const dateOfDay = addDays(currentWeekStart, index);
+                  missingDays.push({
+                      day: String(day),
+                      date: format(dateOfDay, 'd MMMM yyyy', { locale: id }),
+                  });
+              }
+          });
+          setMissingMenuDays(missingDays);
+
+      } catch (error) {
+          console.error("Failed to fetch menu status", error);
+          toast({
+              variant: "destructive",
+              title: "Gagal Memuat Status Menu",
+              description: "Terjadi kesalahan saat memeriksa kelengkapan menu mingguan.",
+          });
+      } finally {
+          setIsLoadingStatus(false);
+      }
+  }, [selectedSppg, date, toast]);
+
   useEffect(() => {
-    // TODO: Fetch real menu data for the selected SPPG and week
-    // This is just a placeholder to show the logic
-    const fetchMenuData = async () => {
-        if (!selectedSppg) {
-            setMissingMenuDays([]);
-            return;
-        }
-
-        // Simulating a fetch for weekStatus
-        // In a real app, you would fetch this from your database
-        const weekStatusFromDb = { Senin: false, Selasa: true, Rabu: false, Kamis: true, Jumat: true };
-
-        const currentWeekStart = startOfWeek(new Date(), { weekStartsOn: 1 }); // Monday
-        const missingDays: { day: string; date: string }[] = [];
-
-        (Object.keys(weekStatusFromDb) as (keyof typeof weekStatusFromDb)[]).forEach((day, index) => {
-            if (!weekStatusFromDb[day]) {
-                const dateOfDay = addDays(currentWeekStart, index);
-                missingDays.push({
-                    day: String(day),
-                    date: format(dateOfDay, 'd MMMM yyyy', { locale: id }),
-                });
-            }
-        });
-        setMissingMenuDays(missingDays);
-    }
-    
     fetchMenuData();
-  }, [selectedSppg]);
+  }, [fetchMenuData]);
 
 
   const renderRegularMode = () => (
@@ -129,7 +146,9 @@ export default function KeuanganPage({ userRole, userSppgId, sppgList }: Keuanga
               <CardDescription>Pilih SPPG dan tanggal untuk membuat laporan keuangan harian.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-             {missingMenuDays.length > 0 && (
+             {isLoadingStatus ? (
+                <div className="text-center p-4 text-muted-foreground">Memeriksa status menu...</div>
+             ) : missingMenuDays.length > 0 && (
                 <Alert variant="destructive">
                     <Info className="h-4 w-4" />
                     <AlertTitle>Data Menu Belum Lengkap</AlertTitle>
