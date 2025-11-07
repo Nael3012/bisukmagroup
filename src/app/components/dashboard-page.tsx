@@ -13,6 +13,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { Users, Utensils, Building, Soup, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
+import type { Sekolah, B3Data } from '../client-page';
 
 const yayasanLogos: Record<string, string> = {
     "Yayasan Bisukma Bangun Bangsa": "https://oilvtefzzupggnstgpsa.supabase.co/storage/v1/object/public/logos/1762413828035_Bisukma%20Bangun%20Bangsa.png",
@@ -35,6 +36,8 @@ type DashboardPageProps = {
     userRole: 'Admin Pusat' | 'SPPG';
     userSppgId?: SppgId;
     sppgList: SppgData[];
+    sekolahList: Sekolah[];
+    b3List: B3Data[];
 }
 
 const StatCard = ({ title, value, icon: Icon, description }: { title: string; value: string | number; icon: React.ElementType; description: string }) => {
@@ -52,7 +55,7 @@ const StatCard = ({ title, value, icon: Icon, description }: { title: string; va
   );
 };
 
-export default function DashboardPage({ userRole, userSppgId, sppgList }: DashboardPageProps) {
+export default function DashboardPage({ userRole, userSppgId, sppgList, sekolahList, b3List }: DashboardPageProps) {
   const [selectedSppg, setSelectedSppg] = useState<SppgId>(userRole === 'Admin Pusat' ? 'all' : userSppgId || 'all');
   const [currentData, setCurrentData] = useState({ totalPenerimaManfaat: 0, porsiHariIni: 0, porsiMingguan: 0 });
   
@@ -65,10 +68,25 @@ export default function DashboardPage({ userRole, userSppgId, sppgList }: Dashbo
   }, [userRole, userSppgId]);
 
   useEffect(() => {
-    // TODO: Fetch real dashboard data based on selectedSppg
-    // For now, setting to 0 to avoid using mock data
-    setCurrentData({ totalPenerimaManfaat: 0, porsiHariIni: 0, porsiMingguan: 0 });
-  }, [selectedSppg]);
+    const filteredSekolah = selectedSppg === 'all'
+        ? sekolahList
+        : sekolahList.filter(s => s.sppg_id === selectedSppg);
+        
+    const filteredB3 = selectedSppg === 'all'
+        ? b3List
+        : b3List.filter(b => b.sppg_id === selectedSppg);
+
+    const totalSekolahPM = filteredSekolah.reduce((acc, s) => acc + (s.jumlahpm || 0), 0);
+    const totalB3PM = filteredB3.reduce((acc, b) => acc + (b.jumlah || 0), 0);
+    
+    // TODO: Fetch real porsi data
+    setCurrentData({
+        totalPenerimaManfaat: totalSekolahPM + totalB3PM,
+        porsiHariIni: 0, 
+        porsiMingguan: 0 
+    });
+
+  }, [selectedSppg, sekolahList, b3List]);
 
 
   const selectedSppgDetails = useMemo(() => {

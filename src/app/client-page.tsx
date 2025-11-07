@@ -157,7 +157,7 @@ export default function ClientPage({ user, sppgList, sekolahList, b3List, assign
         return <AccountsPage accountList={assignedUsers} sppgList={sppgList} />;
       case 'Dashboard':
       default:
-        return <DashboardPage {...props} />;
+        return <DashboardPage {...props} sekolahList={sekolahList} b3List={b3List} />;
     }
   };
 
