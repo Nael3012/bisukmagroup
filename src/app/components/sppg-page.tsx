@@ -32,11 +32,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Info, ChevronLeft, ChevronRight, Pencil, Upload } from 'lucide-react';
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect, useRef, useActionState } from 'react';
 import { WilayahSelector } from './wilayah-selector';
 import Image from 'next/image';
 import { createClient } from '@/utils/supabase/client';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useFormStatus } from 'react-dom';
 import { saveSppg, type SppgFormState } from '@/app/actions/sppg';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
@@ -99,7 +99,7 @@ const SppgForm = ({ sppg, onSaveSuccess }: { sppg?: SppgData | null, onSaveSucce
     const [wilayah, setWilayah] = useState(sppg?.wilayah || {});
     
     const initialState: SppgFormState = { message: '', errors: {} };
-    const [state, dispatch] = useFormState(saveSppg, initialState);
+    const [state, dispatch] = useActionState(saveSppg, initialState);
 
     useEffect(() => {
         setSelectedYayasan(sppg?.yayasan || '');

@@ -37,11 +37,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect, useMemo, useActionState } from 'react';
 import { ArrowUpDown, ChevronLeft, ChevronRight, Pencil } from 'lucide-react';
 import { WilayahSelector } from './wilayah-selector';
 import type { SppgData, Sekolah, B3Data } from '../client-page';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useFormStatus } from 'react-dom';
 import { saveSekolah, saveB3, type MitraFormState } from '@/app/actions/mitra';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
@@ -93,7 +93,7 @@ const SekolahForm = ({
   const formRef = useRef<HTMLFormElement>(null);
   
   const initialState: MitraFormState = { message: '', errors: {} };
-  const [state, dispatch] = useFormState(saveSekolah, initialState);
+  const [state, dispatch] = useActionState(saveSekolah, initialState);
   
   const [selectedJenjang, setSelectedJenjang] = useState<Jenjang>((sekolah?.jenjang as Jenjang) || '');
   const [wilayah, setWilayah] = useState(sekolah?.wilayah || {});
@@ -215,7 +215,7 @@ const B3Form = ({ b3, sppgList, userRole, userSppgId, onSaveSuccess }: {
     const formRef = useRef<HTMLFormElement>(null);
     
     const initialState: MitraFormState = { message: '', errors: {} };
-    const [state, dispatch] = useFormState(saveB3, initialState);
+    const [state, dispatch] = useActionState(saveB3, initialState);
     const [wilayah, setWilayah] = useState(b3?.wilayah || {});
 
     useEffect(() => {
